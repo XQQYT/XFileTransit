@@ -39,3 +39,25 @@
 
 # debug information files
 *.dwo
+
+# Qt Creator files
+*.pro.user
+*.pro.user.*
+*.autosave
+
+# Build directories
+build-*/
+*.build.*/
+
+# Other Qt related files
+*.qm
+Makefile*
+*.o
+*.a
+moc_*
+ui_*
+qrc_*
+*.so
+*.dylib
+*.dll
+*.exe
