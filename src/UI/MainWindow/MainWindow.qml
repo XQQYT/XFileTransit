@@ -83,7 +83,7 @@ Window {
     // 延迟收缩
     Timer {
         id: collapseTimer
-        interval: 150
+        interval: 500
         onTriggered: {
             if (root.expanded) {
                 root.expanded = false
