@@ -1,6 +1,25 @@
 #include "model/FileListModel.h"
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
+#include <QtCore/QUrl>
+
+QString FileInfo::formatFileSize(quint64 bytes)
+{
+    const char* suffixes[] = { "B", "KB", "MB", "GB", "TB", "PB" };
+    double size = static_cast<double>(bytes);
+    int i = 0;
+
+    while (size >= 1024 && i < 5) {
+        size /= 1024;
+        ++i;
+    }
+
+    // 保留两位小数（当数值大于1KB时）
+    if (i == 0)
+        return QString::number(static_cast<qulonglong>(size)) + " " + suffixes[i];
+    else
+        return QString("%1 %2").arg(QString::number(size, 'f', 2)).arg(suffixes[i]);
+}
 
 FileListModel::FileListModel(QObject* parent) :
     QAbstractListModel(parent)
@@ -24,6 +43,8 @@ QVariant FileListModel::data(const QModelIndex& index, int role) const
     const FileInfo& file = file_list.at(index.row());
 
     switch (role) {
+    case Qt::ToolTipRole:
+        return file.file_name + "\n路径: " + file.source_path + "\n大小: " + file.format_file_size;
     case FileNameRole:
         return file.file_name;
     case FileSourcePathRole:
@@ -46,7 +67,8 @@ QHash<int, QByteArray> FileListModel::roleNames() const
         {FileSourcePathRole, "filePath"},
         {FileUrlRole, "fileUrl"},
         {FileSizeRole, "fileSize"},
-        {FileIconRole, "fileIcon"}
+        {FileIconRole, "fileIcon"},
+        {Qt::ToolTipRole, "toolTip"}
     };
     return roles;
 }
@@ -62,7 +84,11 @@ QString FileListModel::getFileName(const QString& file_url)
 QString FileListModel::getFilePath(const QString& file_url)
 {
     if (file_url.startsWith("file:///")) {
-        return file_url.mid(8);
+#ifdef Q_OS_WIN
+        return QUrl(file_url).toLocalFile();
+#else
+        return file_url.mid(7);
+#endif
     }
     return file_url;
 }
@@ -78,7 +104,7 @@ quint64 FileListModel::getFileSize(const QString& file_url)
     return file_info.size();
 }
 
-void FileListModel::addFiles(const QList<QString>& files)
+void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
 {
     if (files.isEmpty())
         return;
@@ -92,7 +118,7 @@ void FileListModel::addFiles(const QList<QString>& files)
 
         qDebug() << "添加文件:" << fileName << "路径:" << filePath << "大小:" << fileSize;
 
-        file_list.append(FileInfo(fileName, filePath, file, fileSize));
+        file_list.append(FileInfo(is_remote_file, fileName, filePath, file, fileSize));
     }
 
     endInsertRows();

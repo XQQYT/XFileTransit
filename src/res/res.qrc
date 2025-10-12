@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/qml">
+        <file>../ui/MainWindow.qml</file>
+    </qresource>
+    <qresource prefix="/file_icon">
+        <file>FileIcons/doc.svg</file>
+        <file>FileIcons/mp3.svg</file>
+        <file>FileIcons/mp4.svg</file>
+        <file>FileIcons/ppt.svg</file>
+        <file>FileIcons/rar.svg</file>
+        <file>FileIcons/xls.svg</file>
+        <file>FileIcons/zip.svg</file>
+        <file>FileIcons/exe.svg</file>
+    </qresource>
+</RCC>

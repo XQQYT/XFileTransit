@@ -7,11 +7,17 @@ int main(int argc, char* argv[])
 {
     QGuiApplication app(argc, argv);
 
-
     QQmlApplicationEngine engine;
-    FileListModel file_model;
-    engine.rootContext()->setContextProperty("file_list_model", &file_model);
-    engine.load(QUrl("qrc:/ui/MainWindow/MainWindow.qml"));
+
+    // 创建模型实例
+    FileListModel* fileModel = new FileListModel(&engine);
+
+    // 注册到 QML 上下文
+    engine.rootContext()->setContextProperty("file_list_model", fileModel);
+
+    // 加载 QML
+    engine.load(QUrl("qrc:/qml/ui/MainWindow.qml"));
+
     if (engine.rootObjects().isEmpty())
         return -1;
 

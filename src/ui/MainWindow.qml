@@ -1,8 +1,9 @@
-import QtQuick 2.14
-import QtQuick.Window 2.14
-import Qt.labs.platform 1.1
+import QtQuick
+import QtQuick.Window
+import Qt.labs.platform
+import QtQuick.Controls
 
-Window {
+ApplicationWindow  {
     id: root
     width: Screen.width * 0.5
     height: Math.max(60, Screen.height * 0.08)
@@ -16,6 +17,7 @@ Window {
     property bool expanded: false
     property int animationDuration: 300
     property bool dragActive: false
+    property bool mouseIsInWindow: false
     property int itemWidth: 120  // 每个文件项的宽度
     property int itemHeight: 80  // 每个文件项的高度
     property int itemsPerRow: Math.max(1, Math.floor((width - 40) / itemWidth)) // 每行显示的文件数量
@@ -43,7 +45,7 @@ Window {
                     var fileUrl = drop.urls[i].toString()
                     newFiles.push(fileUrl)
                 }
-                file_list_model.addFiles(newFiles);
+                file_list_model.addFiles(newFiles, false);
                 drop.accept()
                 
                 // 添加文件后延长收缩时间
@@ -68,16 +70,10 @@ Window {
             }
         }
 
-        onExited: {
-            if (!isMouseInTriggerArea(mouseX, mouseY)) {
+        onExited: {            
+            if (!root.mouseIsInWindow) {
                 collapseTimer.start()
             }
-        }
-
-        function isMouseInTriggerArea(x, y) {
-            var globalPos = mapToItem(null, x, y)
-            return globalPos.y >= 0 && globalPos.y <= 6 &&
-                    globalPos.x >= root.x && globalPos.x <= (root.x + root.width)
         }
     }
 
@@ -125,10 +121,7 @@ Window {
                 }
             }
             onExited: {
-                var globalPos = mapToItem(null, mouseX, mouseY)
-                var inMainWindow = globalPos.y >= root.y && globalPos.y <= (root.y + root.height) &&
-                        globalPos.x >= root.x && globalPos.x <= (root.x + root.width)
-                if (!inMainWindow) {
+                if (!root.mouseInWindow) {
                     collapseTimer.start()
                 }
             }
@@ -155,7 +148,7 @@ Window {
                         var fileUrl = drop.urls[i].toString()
                         newFiles.push(fileUrl)
                     }
-                    file_list_model.addFiles(newFiles);
+                    file_list_model.addFiles(newFiles,false);
 
                     // 使用主窗口的添加函数处理重复文件
                     // addFilesToList(newFiles)
@@ -287,14 +280,23 @@ Window {
                 "text/plain": model.filePath
             }
             
+            ToolTip {
+                id: fileToolTip
+                visible: fileDragArea.containsMouse
+                text: model.toolTip
+                delay: 500
+                timeout: 5000
+            }
+
             Column {
                 anchors.centerIn: parent
                 width: parent.width - 20
                 spacing: 5
-                
-                Text {
-                    text: model.fileIcon ? model.fileIcon : "📄"  // 提供默认值
-                    font.pixelSize: 24
+                Image {
+                    width: 50
+                    height: 50
+                    source: model.fileIcon
+                    fillMode: Image.PreserveAspectFit
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
                 
@@ -304,8 +306,8 @@ Window {
                     color: "#2c3e50"
                     width: parent.width
                     horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.Wrap
-                    maximumLineCount: 2
+                    wrapMode: Text.NoWrap
+                    maximumLineCount: 1
                     elide: Text.ElideMiddle
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
@@ -315,16 +317,19 @@ Window {
             MouseArea {
                 id: fileDragArea
                 anchors.fill: parent
-                drag.target: fileDragItem
+                drag.target: null
                 enabled: true
-                
+                hoverEnabled: true
                 onPressed: {
                     // 创建拖拽可视化项
-                    fileDragItem.parent = root
-                    fileDragItem.x = mapToItem(root, mouseX, mouseY).x - fileDragItem.width / 2
-                    fileDragItem.y = mapToItem(root, mouseX, mouseY).y - fileDragItem.height / 2
+                    fileDragItem.parent = root.contentItem
+                    var globalPos = mapToGlobal(mouseX, mouseY)
+                    var itemPos = root.contentItem.mapFromGlobal(globalPos.x, globalPos.y)
+                    fileDragItem.x = itemPos.x - fileDragItem.width / 2
+                    fileDragItem.y = itemPos.y - fileDragItem.height / 2
                     fileDragItem.visible = true
                     
+                    fileDragItem.Drag.active = true
                 }
                 
                 onPositionChanged: {
@@ -336,49 +341,41 @@ Window {
                 
                 onReleased: {
                     fileDragItem.visible = false
+                    fileDragItem.Drag.active = false
                 }
                 
                 // 双击打开文件
                 onDoubleClicked: {
-                    console.log("双击打开文件:", model.path)
-                    Qt.openUrlExternally(model.url)
+                    if (model.fileUrl) {
+                        Qt.openUrlExternally(model.fileUrl)
+                    } else if (model.filePath) {
+                        var fileUrl = model.filePath.startsWith("file://") ? model.filePath : "file:///" + model.filePath
+                        Qt.openUrlExternally(fileUrl)
+                    }
+                }
+                onEntered:{
+                    mouseIsInWindow = true
+                }
+                onExited:{
+                    mouseIsInWindow = false
                 }
             }
             
             // 拖拽可视化项
             Rectangle {
                 id: fileDragItem
-                width: itemWidth - 10
-                height: itemHeight - 10
-                radius: 8
-                color: "#AAE8F4FD"
-                border.color: "#666666"
-                border.width: 2
                 visible: false
-                
-                Column {
-                    anchors.centerIn: parent
-                    width: parent.width - 20
-                    spacing: 5
-                    
-                    Text {
-                        text: model.fileIcon ? model.fileIcon : "📄"  // 提供默认值
-                        font.pixelSize: 20
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                    
-                    Text {
-                        text: model.fileName
-                        font.pixelSize: 10
-                        color: "#2c3e50"
-                        width: parent.width
-                        horizontalAlignment: Text.AlignHCenter
-                        wrapMode: Text.Wrap
-                        maximumLineCount: 1
-                        elide: Text.ElideMiddle
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
+
+                // 拖拽支持
+                Drag.active: false
+                Drag.dragType: Drag.Automatic
+                Drag.supportedActions: Qt.CopyAction
+                Drag.mimeData: {
+                    "text/uri-list": model.fileUrl ? [model.fileUrl.toString()] : [],
+                    "text/plain": model.filePath || model.fileUrl || ""
                 }
+                Drag.hotSpot.x: width / 2
+                Drag.hotSpot.y: height / 2
                 
                 // 拖拽提示
                 Text {
@@ -387,22 +384,7 @@ Window {
                         right: parent.right
                         margins: 5
                     }
-                    text: "⇲"
-                    font.pixelSize: 12
-                    color: "#666666"
-                }
-                
-                Drag.active: fileDragArea.drag.active
-                Drag.hotSpot.x: width / 2
-                Drag.hotSpot.y: height / 2
-                
-                // 拖拽开始
-                Drag.onActiveChanged: {
-                    if (Drag.active) {
-                        parent.Drag.start()
-                    } else {
-                        parent.Drag.drop()
-                    }
+                    text: "📄"
                 }
             }
             
@@ -434,9 +416,10 @@ Window {
                     id: deleteMouseArea
                     anchors.fill: parent
                     hoverEnabled: true
+                    
                     onClicked: {
                         // 从列表中移除文件
-                        file_list_model.removeFile(index, 0)
+                        file_list_model.removeFile(index)
                     }
                 }
             }
@@ -501,6 +484,12 @@ Window {
                 onClicked: {
                     file_list_model.clearAll()
                 }
+                onEntered:{
+                    mouseIsInWindow = true
+                }
+                onExited:{
+                    mouseIsInWindow = false
+                }
             }
         }
         
@@ -535,6 +524,12 @@ Window {
                 anchors.fill: parent
                 hoverEnabled: true
                 onClicked: Qt.quit()
+                onEntered:{
+                    mouseIsInWindow = true
+                }
+                onExited:{
+                    mouseIsInWindow = false
+                }
             }
         }
     }
