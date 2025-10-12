@@ -64,3 +64,4 @@ qrc_*
 
 build
 .qt
+.vscode
