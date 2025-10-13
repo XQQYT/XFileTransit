@@ -22,6 +22,9 @@ ApplicationWindow  {
     property int itemHeight: 80  // 每个文件项的高度
     property int itemsPerRow: Math.max(1, Math.floor((width - 40) / itemWidth)) // 每行显示的文件数量
 
+    // 连接状态属性
+    property bool isConnected: false
+    property string connectionStatus: isConnected ? "已连接" : "未连接"
     // 主窗口的拖拽区域
     DropArea {
         anchors.fill: parent
@@ -159,16 +162,6 @@ ApplicationWindow  {
                 } else {
                     console.log("触发窗口: 没有检测到文件URL")
                 }
-            }
-            
-            function getFileNameFromPath(path) {
-                var lastSlash = path.lastIndexOf("/")
-                var lastBackslash = path.lastIndexOf("\\")
-                var lastSeparator = Math.max(lastSlash, lastBackslash)
-                if (lastSeparator !== -1) {
-                    return path.substring(lastSeparator + 1)
-                }
-                return path
             }
             
         }
@@ -443,6 +436,7 @@ ApplicationWindow  {
         color: "transparent"
         
         Text {
+            id: titleText
             text: dragActive ? "🔄 释放文件以处理" : "🔄 文件中转站"
             font.pixelSize: 14
             font.bold: true
@@ -453,7 +447,69 @@ ApplicationWindow  {
                 verticalCenter: parent.verticalCenter
             }
         }
-        
+       // 连接状态和切换按钮容器
+        Row {
+            id: connectionContainer
+            spacing: 8
+            anchors {
+                left: titleText.right
+                leftMargin: 15
+                verticalCenter: parent.verticalCenter
+            }
+            
+            // 连接状态文本
+            Text {
+                id: connectionStatusText
+                text: root.connectionStatus
+                font.pixelSize: 12
+                color: root.isConnected ? "#27ae60" : "#e74c3c"
+                anchors.verticalCenter: parent.verticalCenter
+            }
+            
+            // 切换按钮
+            Rectangle {
+                id: switchButton
+                width: 50
+                height: 24
+                radius: 12
+                color: switchMouseArea.containsMouse ? (root.isConnected ? "#e74c3c" : "#27ae60") : "#CCCCCC"
+                border.color: "#40000000"
+                border.width: 1
+                anchors.verticalCenter: parent.verticalCenter
+                
+                Text {
+                    text: "切换" 
+                    font.pixelSize: 10
+                    color: "white"
+                    font.bold: true
+                    anchors.centerIn: parent
+                }
+                
+                MouseArea {
+                    id: switchMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: {
+                        var deviceWindow = Qt.createComponent("qrc:/qml/ui/DeviceListWindow.qml")
+                        if (deviceWindow.status === Component.Ready) {
+                            var window = deviceWindow.createObject(root, {
+                                "deviceModel": device_list_model
+                            })
+                            window.show()
+                            window.requestActivate()
+                        } else {
+                            console.error("无法创建设备列表窗口:", deviceWindow.errorString())
+                        }
+                    }
+                    onEntered: {
+                        mouseIsInWindow = true
+                    }
+                    onExited: {
+                        mouseIsInWindow = false
+                    }
+                }
+            }
+        }        
         // 清空按钮
         Rectangle {
             id: clearButton

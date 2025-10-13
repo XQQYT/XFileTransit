@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/qml">
         <file>../ui/MainWindow.qml</file>
+        <file>../ui/DeviceListWindow.qml</file>
     </qresource>
     <qresource prefix="/file_icon">
         <file>FileIcons/doc.svg</file>
