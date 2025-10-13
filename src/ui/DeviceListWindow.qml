@@ -36,7 +36,13 @@ Window {
                 }
             }
         }
-        
+        LoadingDialog{
+            id: load_dialog
+            onButtonClicked:{
+                console.log("取消操作")
+                load_dialog.hide()
+            }
+        }
         // 设备列表
         ScrollView {
             Layout.fillWidth: true
@@ -90,6 +96,7 @@ Window {
                         onClicked: {
                             console.log("点击设备:", deviceName, deviceIp)
                             deviceModel.stopScan()
+                            load_dialog.show("等待对方响应","取消")
                         }
                         onDoubleClicked: {
                             console.log("双击设备:", deviceName, deviceIp)
