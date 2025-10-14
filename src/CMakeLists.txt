@@ -7,6 +7,7 @@ qt6_add_resources(APP_RES
 )
 
 add_subdirectory(source/model)
+add_subdirectory(source/driver)
 
 add_executable(${PROJECT_NAME}
     ${APP_SOURCES}
@@ -22,9 +23,9 @@ target_link_libraries(${PROJECT_NAME}
     model
     ws2_32
     iphlpapi
+    driver
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/nlohmann
 )
