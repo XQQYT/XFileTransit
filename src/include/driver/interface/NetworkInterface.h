@@ -1,0 +1,37 @@
+#ifndef _NETWORK_H
+#define _NETWORK_H
+
+#include <memory>
+#include <functional>
+#include "driver/interface/SecurityInterface.h"
+#include "driver/interface/MsgBuilderInterface.h"
+
+class NetworkInterface {
+public:
+    struct ParsedPayload {
+        std::vector<uint8_t> iv;
+        std::vector<uint8_t> encrypted_data;
+        std::vector<uint8_t> sha256;
+        bool is_binary;
+        bool is_encrypt;
+    };
+public:
+    NetworkInterface() {};
+    NetworkInterface(const NetworkInterface& obj) = delete;
+    NetworkInterface(NetworkInterface&& obj) = delete;
+    NetworkInterface& operator=(NetworkInterface& other) = delete;
+    NetworkInterface& operator=(NetworkInterface&& other) = delete;
+    virtual ~NetworkInterface() {};
+    virtual void initSocket(const std::string& address, const std::string& port) = 0;
+    virtual void connectTo(std::function<void(bool)> callback = nullptr) = 0;
+    virtual void sendMsg(std::string msg) = 0;
+    virtual void recvMsg(std::function<void(std::string&&)> callback) {};
+    virtual void closeSocket() = 0;
+    virtual void setSecurityInstance(std::shared_ptr<SecurityInterface> instance) { security_instance = instance; }
+protected:
+    std::string address;
+    std::string port;
+    std::shared_ptr<SecurityInterface> security_instance;
+};
+
+#endif
