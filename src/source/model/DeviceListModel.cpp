@@ -1,4 +1,5 @@
 #include "model/DeviceListModel.h"
+#include "control/EventBusManager.h"
 
 DeviceListModel::DeviceListModel(QObject* parent)
 {
@@ -89,4 +90,13 @@ void DeviceListModel::clearAll() {
     beginResetModel();
     device_list.clear();
     endResetModel();
+}
+void DeviceListModel::connectToTarget(const int index)
+{
+    if (index < 0 || index >= device_list.size())
+        return;
+    auto device = device_list.at(index);
+    EventBusManager::instance().publish("/network/send_connect_request",
+        device.device_name.toStdString(), device.device_ip.toStdString());
+    qDebug() << tr("本地ip为") << icmp_scanner.findMatchingLocalIp(device.device_ip);
 }

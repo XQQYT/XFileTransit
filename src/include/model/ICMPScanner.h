@@ -44,6 +44,11 @@ public:
     // 获取扫描结果
     QVector<DeviceInfo> getScanResults() const;
 
+    //判断ip是否在某一网段cidr
+    bool isIpInCidr(const QString& ip, const QString cidr);
+
+    QString findMatchingLocalIp(const QString& remote_ip);
+
 signals:
     // 扫描进度信号 (0-100)
     void scanProgress(int percent);
@@ -87,6 +92,9 @@ private:
     QVector<DeviceInfo> m_scanResults;
     QSet<QString> m_pendingLookups;
     mutable QMutex m_mutex;
+
+    QSet<QString> local_ip;
+    QMap<QString, QString> cidr_ip;
 };
 
 #endif // ICMPSCANNER_H

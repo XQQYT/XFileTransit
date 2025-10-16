@@ -12,8 +12,6 @@ public:
         std::vector<uint8_t> iv;
         std::vector<uint8_t> encrypted_data;
         std::vector<uint8_t> sha256;
-        bool is_binary;
-        bool is_encrypt;
     };
 public:
     NetworkInterface() {};

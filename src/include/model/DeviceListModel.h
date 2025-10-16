@@ -34,6 +34,7 @@ public:
     Q_INVOKABLE void startScan();
     Q_INVOKABLE void stopScan();
     Q_INVOKABLE void refresh();
+    Q_INVOKABLE void connectToTarget(const int index);
     bool getIsScanning() { return scanning; }
     quint64 getResultCount() { return device_list.size(); }
 signals:

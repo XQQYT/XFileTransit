@@ -25,15 +25,15 @@ public:
         uint8_t* iv;
         uint8_t* sha256;
     };
-    enum class MessageType : uint16_t {
-        USER_AVATAR = 0xAEAE
+    enum class Flag : uint8_t {
+        IS_BINARY = 1 << 0,
+        IS_ENCRYPT = 1 << 1
     };
 
 public:
     virtual ~MsgBuilderInterface() {};
     virtual std::unique_ptr<UserMsg> buildMsg(std::string payload, const uint8_t* key) = 0;
     virtual void setSecurityInstance(std::shared_ptr<SecurityInterface> instance) { security_instance = instance; }
-    virtual std::unique_ptr<MsgBuilderInterface::UserMsg> buildFile(MessageType type, std::string username, std::string path, uint8_t* key) = 0;
 
 protected:
     std::shared_ptr<SecurityInterface> security_instance;

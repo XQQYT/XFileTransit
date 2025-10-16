@@ -16,6 +16,7 @@ struct  Header
     uint16_t magic;
     uint8_t version;
     uint32_t length;
+    uint8_t flag;
 };
 #pragma pack(pop)
 
@@ -25,7 +26,6 @@ public:
     MsgBuilder(std::shared_ptr<SecurityInterface> instance = nullptr);
     ~MsgBuilder() = default;
     std::unique_ptr<MsgBuilderInterface::UserMsg> buildMsg(std::string payload, const uint8_t* key) override;
-    std::unique_ptr<MsgBuilderInterface::UserMsg> buildFile(MsgBuilderInterface::MessageType type, std::string username, std::string path, uint8_t* key) {};
 
 private:
     uint8_t version;

@@ -83,20 +83,15 @@ void TcpDriver::sendMsg(std::string msg)
     }
 }
 
-NetworkInterface::ParsedPayload parseMsgPayload(const uint8_t* full_msg, const uint32_t length) {
+NetworkInterface::ParsedPayload parseMsgPayload(const uint8_t* full_msg, const uint32_t length, const uint8_t flag) {
     NetworkInterface::ParsedPayload result;
 
     size_t offset = 0;
 
-    //解析二进制标志
-    memcpy(&result.is_binary, full_msg + offset, 1);
-    offset += 1;
+    //检查标志位
+    bool is_encrypt = static_cast<bool>((flag) & static_cast<uint8_t>(MsgBuilderInterface::Flag::IS_ENCRYPT));
 
-    //解析加密标志
-    memcpy(&result.is_encrypt, full_msg + offset, 1);
-    offset += 1;
-
-    if (result.is_encrypt)
+    if (is_encrypt)
     {
         // 解析 IV（16字节）
         result.iv.assign(full_msg + offset, full_msg + offset + 16);
@@ -108,7 +103,7 @@ NetworkInterface::ParsedPayload parseMsgPayload(const uint8_t* full_msg, const u
 
     //解析密文
     size_t cipher_len;
-    if (result.is_encrypt)
+    if (is_encrypt)
     {
         cipher_len = length - 16 - 32 - 1 - 1;
     }
@@ -128,12 +123,12 @@ void TcpDriver::recvMsg(std::function<void(std::vector<uint8_t>, bool)> callback
     receive_thread = new std::thread([this, callback = std::move(callback)]() {
         while (runing)
         {
-            uint8_t peek_buffer[4];
+            uint8_t peek_buffer[2];
             int peeked = recv(tcp_socket, reinterpret_cast<char*>(peek_buffer), sizeof(peek_buffer), MSG_PEEK);
             if (peeked > 0) {
                 if (peek_buffer[0] == 0xAB && peek_buffer[1] == 0xCD)
                 {
-                    constexpr int HEADER_SIZE = 7;
+                    constexpr int HEADER_SIZE = 8;
                     uint8_t buffer[HEADER_SIZE] = { 0 };
                     uint32_t header_received = 0;
                     while (header_received < HEADER_SIZE) {
@@ -146,6 +141,9 @@ void TcpDriver::recvMsg(std::function<void(std::vector<uint8_t>, bool)> callback
                     uint32_t payload_length = 0;
                     memcpy(&payload_length, buffer + 3, sizeof(payload_length));
                     payload_length = ntohl(payload_length);
+
+                    uint8_t flag = 0x0;
+                    memcpy(&flag, buffer + 7, sizeof(flag));
 
                     uint8_t* receive_msg = new uint8_t[payload_length];
                     uint32_t readed_length = 0;
@@ -163,14 +161,14 @@ void TcpDriver::recvMsg(std::function<void(std::vector<uint8_t>, bool)> callback
                         std::cout << readed_length << " / " << payload_length << std::endl;
                     }
 
-                    auto parsed = parseMsgPayload(receive_msg, payload_length);
+                    auto parsed = parseMsgPayload(receive_msg, payload_length, flag);
 
                     std::vector<uint8_t> result_vec;
                     if (security_instance->verifyAndDecrypt(parsed.encrypted_data, tls_info.key, parsed.iv, result_vec, parsed.sha256))
                     {
                         result_vec.resize(result_vec.size() - 4);
-                        callback(std::move(result_vec), parsed.is_binary);
-
+                        callback(std::move(result_vec),
+                            static_cast<bool>(flag & static_cast<uint8_t>(MsgBuilderInterface::Flag::IS_BINARY)));
                     }
                 }
                 else

@@ -83,13 +83,14 @@ QVector<QString> ICMPScanner::getLocalNetworks()
 
                     QString networkStr = QString("%1/%2").arg(networkAddr.toString()).arg(cidr);
                     if (!networks.contains(networkStr)) {
+                        local_ip.insert(ip.toString());
+                        cidr_ip[networkStr] = ip.toString();
                         networks.append(networkStr);
                     }
                 }
             }
         }
     }
-
     return networks;
 }
 
@@ -134,13 +135,14 @@ void ICMPScanner::parseNetworkRange()
         // 如果没有设置网络范围，使用所有本地网络
         auto networks = getLocalNetworks();
         for (const QString& network : networks) {
-            // 这里简化处理，实际应该解析CIDR并生成所有IP
             QString baseIP = network.split('/').first();
             QStringList parts = baseIP.split('.');
             if (parts.size() == 4) {
                 for (int i = 1; i <= 254; ++i) {
-                    m_targetIPs.append(QString("%1.%2.%3.%4")
-                        .arg(parts[0]).arg(parts[1]).arg(parts[2]).arg(i));
+                    QString target_ip = QString("%1.%2.%3.%4")
+                        .arg(parts[0]).arg(parts[1]).arg(parts[2]).arg(i);
+                    if (!local_ip.contains(target_ip))
+                        m_targetIPs.append(target_ip);
                 }
             }
         }
@@ -152,15 +154,16 @@ void ICMPScanner::parseNetworkRange()
             QString baseIP = parts[0];
             int cidr = parts[1].toInt();
 
-            // 简化的CIDR解析，实际应该完整实现
             QStringList ipParts = baseIP.split('.');
             if (ipParts.size() == 4 && cidr >= 24 && cidr <= 32) {
                 int hostBits = 32 - cidr;
                 int hostCount = (1 << hostBits) - 2; // 减去网络地址和广播地址
 
                 for (int i = 1; i <= hostCount && i <= 254; ++i) {
-                    m_targetIPs.append(QString("%1.%2.%3.%4")
-                        .arg(ipParts[0]).arg(ipParts[1]).arg(ipParts[2]).arg(i));
+                    QString target_ip = QString("%1.%2.%3.%4")
+                        .arg(ipParts[0]).arg(ipParts[1]).arg(ipParts[2]).arg(i);
+                    if (!local_ip.contains(target_ip))
+                        m_targetIPs.append(target_ip);
                 }
             }
         }
@@ -176,8 +179,10 @@ void ICMPScanner::parseNetworkRange()
             if (ipParts.size() == 4) {
                 int start = ipParts[3].toInt();
                 for (int i = start; i <= end && i <= 254; ++i) {
-                    m_targetIPs.append(QString("%1.%2.%3.%4")
-                        .arg(ipParts[0]).arg(ipParts[1]).arg(ipParts[2]).arg(i));
+                    QString target_ip = QString("%1.%2.%3.%4")
+                        .arg(ipParts[0]).arg(ipParts[1]).arg(ipParts[2]).arg(i);
+                    if (!local_ip.contains(target_ip))
+                        m_targetIPs.append(target_ip);
                 }
             }
         }
@@ -343,4 +348,58 @@ QString ICMPScanner::getHostTypeFromResponse(const QString& responseData)
     else {
         return "Unknown";
     }
+}
+
+uint32_t ipToUint32(const QString& ip) {
+    struct in_addr addr;
+    QByteArray ipBytes = ip.toLocal8Bit();
+    if (inet_pton(AF_INET, ipBytes.constData(), &addr) != 1) {
+        throw std::invalid_argument("Invalid IP format: " + ip.toStdString());
+    }
+    return ntohl(addr.s_addr);
+}
+
+// 根据 CIDR 位数生成掩码
+uint32_t cidrToMask(int cidr) {
+    if (cidr < 0 || cidr > 32) {
+        throw std::invalid_argument("Invalid CIDR: " + std::to_string(cidr));
+    }
+    return cidr == 0 ? 0 : (0xFFFFFFFFu << (32 - cidr));
+}
+
+// 判断 ip 是否在网段 cidr 中
+bool ICMPScanner::isIpInCidr(const QString& ip, const QString cidr) {
+    int slashPos = cidr.lastIndexOf('/');
+    if (slashPos == -1) {  // 使用 -1 而不是 std::string::npos
+        return false;
+    }
+
+    QString networkStr = cidr.left(slashPos);  // 使用 left 而不是 mid(0, slashPos)
+    bool ok;
+    int cidrBits = cidr.mid(slashPos + 1).toInt(&ok);
+
+    if (!ok || cidrBits < 0 || cidrBits > 32) {
+        return false;
+    }
+
+    try {
+        uint32_t ipInt = ipToUint32(ip);
+        uint32_t networkInt = ipToUint32(networkStr);
+        uint32_t mask = cidrToMask(cidrBits);
+
+        return (ipInt & mask) == (networkInt & mask);
+    }
+    catch (const std::exception&) {
+        return false;
+    }
+}
+QString ICMPScanner::findMatchingLocalIp(const QString& remote_ip)
+{
+    for (auto it = cidr_ip.constBegin(); it != cidr_ip.constEnd(); ++it)
+    {
+        if (isIpInCidr(remote_ip, it.key())) {
+            return it.value();
+        }
+    }
+    return QString();
 }

@@ -5,9 +5,9 @@ set(APP_SOURCES
 qt6_add_resources(APP_RES
     ${CMAKE_CURRENT_SOURCE_DIR}/res/res.qrc
 )
-
-add_subdirectory(source/model)
 add_subdirectory(source/driver)
+add_subdirectory(source/control)
+add_subdirectory(source/model)
 
 add_executable(${PROJECT_NAME}
     ${APP_SOURCES}
@@ -15,15 +15,16 @@ add_executable(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
+    driver
+    control
+    model
     Qt6::Core
     Qt6::Quick
     Qt6::Gui
     Qt6::Widgets
     Qt6::Network
-    model
     ws2_32
     iphlpapi
-    driver
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
