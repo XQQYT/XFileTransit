@@ -47,7 +47,11 @@ public:
     //判断ip是否在某一网段cidr
     bool isIpInCidr(const QString& ip, const QString cidr);
 
+    //查找网段中本机的IP
     QString findMatchingLocalIp(const QString& remote_ip);
+
+    //获取本机设备名
+    QString getLocalComputerName();
 
 signals:
     // 扫描进度信号 (0-100)

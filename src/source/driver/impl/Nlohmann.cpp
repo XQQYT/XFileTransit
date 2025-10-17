@@ -15,9 +15,9 @@ std::string NlohmannJsonParser::getValue(const std::string& key)
     {
         return msg_json[key].get<std::string>();
     }
-
+    return "";
 }
-std::unique_ptr<Parser> NlohmannJsonParser::getObj(const std::string& key)
+std::unique_ptr<Json::Parser> NlohmannJsonParser::getObj(const std::string& key)
 {
     if (msg_json.empty())
     {
@@ -33,7 +33,7 @@ bool NlohmannJsonParser::contain(const std::string& key)
 {
     return msg_json.contains(key);
 }
-std::vector<std::unique_ptr<Parser>> NlohmannJsonParser::getArray(const std::string& key)
+std::vector<std::unique_ptr<Json::Parser>> NlohmannJsonParser::getArray(const std::string& key)
 {
     if (msg_json.empty())
     {
@@ -62,33 +62,36 @@ std::string NlohmannJsonParser::toString()
     }
     return msg_json.dump();
 }
-std::unique_ptr<Parser> NlohmannJson::getParser()
+std::unique_ptr<Json::Parser> NlohmannJson::getParser()
 {
     return std::make_unique<NlohmannJsonParser>();
 }
-std::unique_ptr<JsonBuilder> NlohmannJson::getBuilder(const MsgType type)
+std::unique_ptr<Json::JsonBuilder> NlohmannJson::getBuilder(const Json::BuilderType type)
 {
     switch (type)
     {
-    case MsgType::User:
+    case Json::BuilderType::User:
         return std::make_unique<UserMsgBuilder>();
     default:
         return nullptr;
     }
 }
 
-
-std::string UserMsgBuilder::build(std::map<std::string, std::string>& args)
+template<class Map>
+std::string UserMsgBuilder::buildImpl(uint64_t type, Map&& args)
 {
-    auto type = args["type"];
-    json result_json;
-    if (type == "connect_request")
-    {
-        result_json["type"] = type;
-        result_json["content"] = {
-            {"source_ip", args["source_ip"]},
-            {"device_name", args["device_name"]}
-        };
+    if (!registry.validateFields(type, args)) {
+        throw std::invalid_argument("Missing required fields for message type");
     }
+
+    const auto& schema = registry.getSchema(type);
+
+    json result_json;
+
+    result_json["type"] = schema.type_name;
+    for (auto&& [key, value] : args) {
+        result_json[std::forward<decltype(key)>(key)] = std::forward<decltype(value)>(value);
+    }
+
     return result_json.dump();
 }

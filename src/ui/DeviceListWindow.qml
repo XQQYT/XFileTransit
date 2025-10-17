@@ -94,7 +94,6 @@ Window {
                         onCanceled: deviceItem.pressed = false
                         
                         onClicked: {
-                            console.log("点击第", index, "行，设备:", deviceName, deviceIp)
                             deviceModel.stopScan()
                             deviceModel.connectToTarget(index)
                             load_dialog.show("等待对方响应","取消")

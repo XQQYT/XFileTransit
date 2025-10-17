@@ -97,6 +97,7 @@ void DeviceListModel::connectToTarget(const int index)
         return;
     auto device = device_list.at(index);
     EventBusManager::instance().publish("/network/send_connect_request",
-        device.device_name.toStdString(), device.device_ip.toStdString());
-    qDebug() << tr("本地ip为") << icmp_scanner.findMatchingLocalIp(device.device_ip);
+        icmp_scanner.getLocalComputerName().toStdString(),
+        icmp_scanner.findMatchingLocalIp(device.device_ip).toStdString(),
+        device.device_ip.toStdString());
 }

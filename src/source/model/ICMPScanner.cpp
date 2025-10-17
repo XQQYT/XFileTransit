@@ -403,3 +403,14 @@ QString ICMPScanner::findMatchingLocalIp(const QString& remote_ip)
     }
     return QString();
 }
+
+QString ICMPScanner::getLocalComputerName()
+{
+    QString computerName = QHostInfo::localHostName();
+
+    if (computerName.isEmpty()) {
+        return "Unknown";
+    }
+
+    return computerName;
+}

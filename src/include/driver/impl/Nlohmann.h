@@ -6,7 +6,7 @@
 
 using json = nlohmann::json;
 
-class NlohmannJsonParser : public Parser
+class NlohmannJsonParser : public Json::Parser
 {
 public:
     NlohmannJsonParser() = default;
@@ -21,16 +21,29 @@ private:
     json msg_json;
 };
 
-class NlohmannJson : public JsonFactoryInterface
+class NlohmannJson : public Json::JsonFactoryInterface
 {
 public:
-    std::unique_ptr<Parser> getParser() override;
-    std::unique_ptr<JsonBuilder> getBuilder(const MsgType type) override;
+    std::unique_ptr<Json::Parser> getParser() override;
+    std::unique_ptr<Json::JsonBuilder> getBuilder(const Json::BuilderType type) override;
 };
 
-class UserMsgBuilder : public JsonBuilder
+class UserMsgBuilder : public Json::JsonBuilder
 {
 public:
-    std::string build(std::map<std::string, std::string>& args) override;
+    template<class Map>
+    std::string buildImpl(uint64_t type, Map&& args);
+    std::string build(uint64_t type, std::map<std::string, std::string>& args) override
+    {
+        return buildImpl(type, args);
+    }
+    std::string build(uint64_t type, std::map<std::string, std::string>&& args) override
+    {
+        return buildImpl(type, std::move(args));
+    }
+private:
+    uint64_t current_type;
+    std::map<std::string, std::string> fields;
+    Json::MessageRegistry registry;
 };
 #endif
