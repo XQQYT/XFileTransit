@@ -1,10 +1,10 @@
 #include <QtGui/QGuiApplication>
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QQmlContext>
-//model
+// model
 #include "model/FileListModel.h"
 #include "model/DeviceListModel.h"
-//control
+// control
 #include "control/EventBusManager.h"
 #include "control/NetworkController.h"
 
@@ -18,11 +18,11 @@ int main(int argc, char* argv[])
 
     QQmlApplicationEngine engine;
 
-    //初始化组件
+    // 初始化组件
     EventBusManager::instance().startEventBus();
     initRegisterEvents();
     EventBusManager::instance().registerEvent("/network/send_connect_request");
-    NetworkController n_controller;
+    NetworkController network_controller;
     // 创建模型实例
     FileListModel* file_list_model = new FileListModel(&engine);
     DeviceListModel* device_list_model = new DeviceListModel(&engine);

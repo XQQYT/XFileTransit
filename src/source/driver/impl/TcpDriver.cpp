@@ -4,33 +4,33 @@
 #include <memory.h>
 #include <iomanip>
 
-TcpDriver::TcpDriver() :
-    msg_builder(std::make_unique<MsgBuilder>(security_instance)),
-    tls_info({ nullptr }),
-    addr({}),
-    receive_thread(nullptr),
-    connect_status(false)
+TcpDriver::TcpDriver() : msg_builder(std::make_unique<MsgBuilder>(security_instance)),
+client_addr({}),
+listen_addr({}),
+receive_thread(nullptr),
+listen_thread(nullptr)
 {
+    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0)
+    {
+        std::cerr << "WSAStartup failed\n";
+        return;
+    }
 }
 
 TcpDriver::~TcpDriver()
 {
-    if (tcp_socket)
+    if (client_socket)
         closeSocket();
 }
 
 void TcpDriver::initSocket(const std::string& address, const std::string& port)
 {
-    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
-        std::cerr << "WSAStartup failed\n";
-        return;
-    }
-    tcp_socket = socket(AF_INET, SOCK_STREAM, 0);
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(std::stoi(port));
-    inet_pton(AF_INET, address.c_str(), &addr.sin_addr);
-    this->address = address;
-    this->port = port;
+    client_socket = socket(AF_INET, SOCK_STREAM, 0);
+    client_addr.sin_family = AF_INET;
+    client_addr.sin_port = htons(std::stoi(port));
+    inet_pton(AF_INET, address.c_str(), &client_addr.sin_addr);
+    this->client_address = address;
+    this->client_port = port;
 }
 
 void TcpDriver::connectTo(std::function<void(bool)> callback)
@@ -38,43 +38,99 @@ void TcpDriver::connectTo(std::function<void(bool)> callback)
     struct timeval tv;
     tv.tv_sec = 1;
     tv.tv_usec = 0;
-    setsockopt(tcp_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
-    int ret = connect(tcp_socket, (sockaddr*)&addr, sizeof(addr));
+    setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
+    int ret = connect(client_socket, (sockaddr*)&client_addr, sizeof(client_addr));
+    if (ret == SOCKET_ERROR) {
+        int error_code = WSAGetLastError();
+
+        switch (error_code) {
+        case WSAECONNREFUSED:
+            std::cerr << "Connection refused (No service listening on target port)" << std::endl;
+            break;
+        case WSAETIMEDOUT:
+            std::cerr << "Connection timed out" << std::endl;
+            break;
+        case WSAEHOSTUNREACH:
+            std::cerr << "Host unreachable" << std::endl;
+            break;
+        case WSAENETUNREACH:
+            std::cerr << "Network unreachable" << std::endl;
+            break;
+        case WSAEADDRINUSE:
+            std::cerr << "Address already in use" << std::endl;
+            break;
+        case WSAEINPROGRESS:
+            std::cerr << "Non-blocking socket connection in progress" << std::endl;
+            break;
+        case WSAEACCES:
+            std::cerr << "Permission denied" << std::endl;
+            break;
+        case WSAEAFNOSUPPORT:
+            std::cerr << "Address family not supported" << std::endl;
+            break;
+        case WSAECONNABORTED:
+            std::cerr << "Connection aborted" << std::endl;
+            break;
+        case WSAECONNRESET:
+            std::cerr << "Connection reset by peer" << std::endl;
+            break;
+        case WSAENOTCONN:
+            std::cerr << "Socket is not connected" << std::endl;
+            break;
+        default:
+            std::cerr << "Unknown error" << std::endl;
+            break;
+        }
+    }
+    else {
+        std::cout << "Connect successful" << std::endl;
+    }
     if (security_instance && !ret)
     {
-        //发送建立TLS请求
+        // 发送建立TLS请求
         uint8_t head[2];
         head[0] = 0xEA;
         head[1] = 0xEA;
-        send(tcp_socket, reinterpret_cast<const char*>(head), 2, 0);
-        tls_info = security_instance->getAesKey(tcp_socket);
+        send(client_socket, reinterpret_cast<const char*>(head), 2, 0);
+        security_instance->setTlsInfo(security_instance->getAesKey(client_socket));
 
-        //TLS连接完成，发起普通tcp连接
-        tcp_socket = socket(AF_INET, SOCK_STREAM, 0);
+        // TLS连接完成，发起普通tcp连接
+        client_socket = socket(AF_INET, SOCK_STREAM, 0);
 
-        ret = connect(tcp_socket, (sockaddr*)&addr, sizeof(addr));
+        ret = connect(client_socket, (sockaddr*)&client_addr, sizeof(client_addr));
     }
 
     if (callback)
     {
+        std::cout << ret << std::endl;
         callback(!ret);
     }
     connect_status = !ret;
 }
 
-void TcpDriver::sendMsg(std::string msg)
+void printHex(const std::vector<uint8_t>& data) {
+    for (size_t i = 0; i < data.size(); ++i) {
+        std::cout << std::hex << std::setw(2) << std::setfill('0')
+            << static_cast<int>(data[i]) << " ";
+    }
+    std::cout << std::dec << std::endl;
+}
+
+void TcpDriver::sendMsg(const std::string& msg)
 {
-    std::unique_ptr<MsgBuilderInterface::UserMsg> ready_to_send_msg = std::move(msg_builder->buildMsg(msg, tls_info.key));
+    std::unique_ptr<MsgBuilderInterface::UserMsg> ready_to_send_msg = std::move(msg_builder->buildMsg(msg));
 
     size_t final_msg_length = ready_to_send_msg->msg->size();
     size_t sended_length = 0;
 
     while (sended_length < final_msg_length)
     {
-        int ret = send(tcp_socket, reinterpret_cast<const char*>(ready_to_send_msg->msg->data() + sended_length),
+        int ret = send(client_socket, reinterpret_cast<const char*>(ready_to_send_msg->msg->data() + sended_length),
             final_msg_length - sended_length, 0);
-        if (ret <= 0) {
-            if (errno == EINTR) continue;
+        if (ret <= 0)
+        {
+            if (errno == EINTR)
+                continue;
             perror("write failed");
             break;
         }
@@ -82,13 +138,81 @@ void TcpDriver::sendMsg(std::string msg)
         std::cout << sended_length << " / " << final_msg_length << std::endl;
     }
 }
+void TcpDriver::startListen(const std::string& address, const std::string& port, std::function<bool(bool)> callback)
+{
+    runing = true;
 
-NetworkInterface::ParsedPayload parseMsgPayload(const uint8_t* full_msg, const uint32_t length, const uint8_t flag) {
-    NetworkInterface::ParsedPayload result;
+    listen_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (listen_socket == INVALID_SOCKET)
+    {
+        std::cerr << "create listen socket failed" << WSAGetLastError() << std::endl;
+        return;
+    }
+
+    listen_addr.sin_family = AF_INET;
+    listen_addr.sin_port = htons(std::stoi(port));
+    inet_pton(AF_INET, address.c_str(), &listen_addr.sin_addr);
+
+    if (bind(listen_socket, (sockaddr*)&listen_addr, sizeof(listen_addr)) == SOCKET_ERROR)
+    {
+        std::cerr << "fail to bind" << WSAGetLastError() << std::endl;
+        closesocket(listen_socket);
+        return;
+    }
+
+    if (listen(listen_socket, 5) == SOCKET_ERROR)
+    {
+        std::cerr << "fail to listen" << WSAGetLastError() << std::endl;
+        closesocket(listen_socket);
+        return;
+    }
+
+    listen_thread = new std::thread([this, callback]()
+        {
+            WSAPOLLFD fds[1];
+            fds[0].fd = listen_socket;
+            fds[0].events = POLLRDNORM;
+
+            while (runing)
+            {
+                int result = WSAPoll(fds, 1, 100);
+
+                if (result > 0 && (fds[0].revents & POLLRDNORM)) {
+                    SOCKET accepted_socket = accept(listen_socket, nullptr, nullptr);
+                    if (accepted_socket != INVALID_SOCKET) {
+                        candidate_socket = accepted_socket;
+                        if (callback(connect_status.load())) {
+                            connect_status = true;
+                            if (client_socket == INVALID_SOCKET)
+                            {
+                                client_socket = accepted_socket;
+                            }
+                            std::cout << "accept" << std::endl;
+                        }
+                        else {
+                            std::cout << "refused" << std::endl;
+                            closesocket(accepted_socket);
+                        }
+                    }
+                    else {
+                        std::cerr << "fail to accept" << WSAGetLastError() << std::endl;
+                    }
+                }
+                else if (result < 0) {
+                    std::cerr << "error in WSAPoll" << WSAGetLastError() << std::endl;
+                }
+            }
+
+            closesocket(listen_socket); });
+}
+
+NetworkInterface::ParsedMsg parseMsgPayload(const uint8_t* full_msg, const uint32_t length, const uint8_t flag)
+{
+    NetworkInterface::ParsedMsg result;
 
     size_t offset = 0;
 
-    //检查标志位
+    // 检查标志位
     bool is_encrypt = static_cast<bool>((flag) & static_cast<uint8_t>(MsgBuilderInterface::Flag::IS_ENCRYPT));
 
     if (is_encrypt)
@@ -97,115 +221,137 @@ NetworkInterface::ParsedPayload parseMsgPayload(const uint8_t* full_msg, const u
         result.iv.assign(full_msg + offset, full_msg + offset + 16);
         offset += 16;
 
-        //解析 SHA256（32字节）
+        // 解析 SHA256（32字节）
         result.sha256.assign(full_msg + offset, full_msg + offset + 32);
     }
 
-    //解析密文
-    size_t cipher_len;
+    // 解析密文
+    size_t cipher_len = length;
     if (is_encrypt)
     {
-        cipher_len = length - 16 - 32 - 1 - 1;
+        cipher_len = length - 16 - 32;
     }
-    else
-    {
-        cipher_len = length - 1 - 1;
-    }
-    result.encrypted_data.assign(full_msg + offset, full_msg + offset + cipher_len);
+
+    result.data.assign(full_msg + offset, full_msg + offset + cipher_len);
     offset += cipher_len;
 
     return result;
 }
 
-void TcpDriver::recvMsg(std::function<void(std::vector<uint8_t>, bool)> callback)
+void TcpDriver::recvMsg(std::function<void(ParsedMsg&& parsed_msg)> callback)
 {
+    if (!connect_status && client_socket == INVALID_SOCKET && candidate_socket != INVALID_SOCKET)
+    {
+        client_socket = candidate_socket;
+    }
     runing = true;
-    receive_thread = new std::thread([this, callback = std::move(callback)]() {
-        while (runing)
+    receive_thread = new std::thread([this, callback = std::move(callback)]()
         {
-            uint8_t peek_buffer[2];
-            int peeked = recv(tcp_socket, reinterpret_cast<char*>(peek_buffer), sizeof(peek_buffer), MSG_PEEK);
-            if (peeked > 0) {
-                if (peek_buffer[0] == 0xAB && peek_buffer[1] == 0xCD)
-                {
-                    constexpr int HEADER_SIZE = 8;
-                    uint8_t buffer[HEADER_SIZE] = { 0 };
-                    uint32_t header_received = 0;
-                    while (header_received < HEADER_SIZE) {
-                        int n = recv(tcp_socket, reinterpret_cast<char*>(buffer + header_received),
-                            HEADER_SIZE - header_received, 0);
-                        if (n <= 0) throw std::runtime_error("Header recv error");
-                        header_received += n;
-                    }
-
-                    uint32_t payload_length = 0;
-                    memcpy(&payload_length, buffer + 3, sizeof(payload_length));
-                    payload_length = ntohl(payload_length);
-
-                    uint8_t flag = 0x0;
-                    memcpy(&flag, buffer + 7, sizeof(flag));
-
-                    uint8_t* receive_msg = new uint8_t[payload_length];
-                    uint32_t readed_length = 0;
-
-                    while (readed_length < payload_length) {
-                        int read_byte = recv(tcp_socket, reinterpret_cast<char*>(receive_msg + readed_length),
-                            payload_length - readed_length, 0);
-                        if (read_byte == 0) {
-                            throw std::runtime_error("peer closed");
-                        }
-                        if (read_byte < 0) {
-                            throw std::runtime_error("recv error");
-                        }
-                        readed_length += read_byte;
-                        std::cout << readed_length << " / " << payload_length << std::endl;
-                    }
-
-                    auto parsed = parseMsgPayload(receive_msg, payload_length, flag);
-
-                    std::vector<uint8_t> result_vec;
-                    if (security_instance->verifyAndDecrypt(parsed.encrypted_data, tls_info.key, parsed.iv, result_vec, parsed.sha256))
+            while (runing)
+            {
+                uint8_t peek_buffer[2];
+                int peeked = recv(client_socket, reinterpret_cast<char*>(peek_buffer), sizeof(peek_buffer), MSG_PEEK);
+                if (peeked > 0) {
+                    if (peek_buffer[0] == 0xAB && peek_buffer[1] == 0xCD)
                     {
-                        result_vec.resize(result_vec.size() - 4);
-                        callback(std::move(result_vec),
-                            static_cast<bool>(flag & static_cast<uint8_t>(MsgBuilderInterface::Flag::IS_BINARY)));
-                    }
-                }
-                else
-                {
-                    char dump_buffer[4];
-                    recv(tcp_socket, dump_buffer, sizeof(dump_buffer), 0);
-                }
+                        constexpr int HEADER_SIZE = 8;
+                        uint8_t buffer[HEADER_SIZE] = { 0 };
+                        uint32_t header_received = 0;
+                        while (header_received < HEADER_SIZE) {
+                            int n = recv(client_socket, reinterpret_cast<char*>(buffer + header_received),
+                                HEADER_SIZE - header_received, 0);
+                            if (n <= 0) throw std::runtime_error("Header recv error");
+                            header_received += n;
+                        }
 
-            }
-            else if (peeked == 0) {
-                break;
-            }
-            else {
-                if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                    continue;
+                        uint32_t payload_length = 0;
+                        memcpy(&payload_length, buffer + 3, sizeof(payload_length));
+                        payload_length = ntohl(payload_length);
+
+                        uint8_t flag = 0x0;
+                        memcpy(&flag, buffer + 7, sizeof(flag));
+
+                        uint8_t* receive_msg = new uint8_t[payload_length];
+                        uint32_t readed_length = 0;
+
+                        while (readed_length < payload_length) {
+                            int read_byte = recv(client_socket, reinterpret_cast<char*>(receive_msg + readed_length),
+                                payload_length - readed_length, 0);
+                            if (read_byte == 0) {
+                                throw std::runtime_error("peer closed");
+                            }
+                            if (read_byte < 0) {
+                                throw std::runtime_error("recv error");
+                            }
+                            readed_length += read_byte;
+                            std::cout << readed_length << " / " << payload_length << std::endl;
+                        }
+
+                        auto parsed = parseMsgPayload(receive_msg, payload_length, flag);
+                        memcpy(&parsed.header, buffer, HEADER_SIZE);
+                        std::vector<uint8_t> result_vec;
+                        if (flag & static_cast<uint8_t>(MsgBuilderInterface::Flag::IS_ENCRYPT) &&
+                            security_instance->verifyAndDecrypt(parsed.data, security_instance->getTlsInfo().key, parsed.iv, result_vec, parsed.sha256))
+                        {
+                            result_vec.resize(result_vec.size() - 4);
+                            parsed.data.assign(result_vec.begin(), result_vec.end());
+                            callback(std::move(parsed));
+                        }
+                        else
+                        {
+                            callback(std::move(parsed));
+                        }
+                    }
+                    else if (peek_buffer[0] == 0xEA && peek_buffer[1] == 0xEA)
+                    {
+                        security_instance->dealTlsRequest(client_socket, [this](bool ret, SecurityInterface::TlsInfo info) {
+                            if (ret)
+                            {
+                                security_instance->setTlsInfo(info);
+                            }
+                            });
+                    }
+                    else
+                    {
+                        char dump_buffer[4];
+                        recv(client_socket, dump_buffer, sizeof(dump_buffer), 0);
+                    }
+
                 }
-                else if (errno == EINTR) {
-                    continue;
-                }
-                else {
-                    perror("recv error");
+                else if (peeked == 0) {
                     break;
                 }
-            }
+                else {
+                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                        continue;
+                    }
+                    else if (errno == EINTR) {
+                        continue;
+                    }
+                    else {
+                        perror("recv error");
+                        break;
+                    }
+                }
 
-        }
-        });
+            } });
 }
 
 void TcpDriver::closeSocket()
 {
+    runing = false;
     if (connect_status)
     {
-        closesocket(tcp_socket);
-        WSACleanup();
+        closesocket(client_socket);
     }
-    runing = false;
+    closesocket(listen_socket);
+    WSACleanup();
+    if (listen_thread)
+    {
+        if (listen_thread->joinable())
+            listen_thread->join();
+        delete listen_thread;
+    }
     if (receive_thread)
     {
         if (receive_thread->joinable())

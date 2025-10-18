@@ -9,7 +9,7 @@ MsgBuilder::MsgBuilder(std::shared_ptr<SecurityInterface> instance)
     security_instance = instance;
 }
 
-std::unique_ptr<MsgBuilderInterface::UserMsg> MsgBuilder::buildMsg(std::string real_msg, const uint8_t* key)
+std::unique_ptr<MsgBuilderInterface::UserMsg> MsgBuilder::buildMsg(std::string real_msg)
 {
     //构造Header
     Header header;
@@ -33,7 +33,7 @@ std::unique_ptr<MsgBuilderInterface::UserMsg> MsgBuilder::buildMsg(std::string r
         reinterpret_cast<const uint8_t*>(real_msg.data() + real_msg.size()));
 
     if (security_instance) {
-        iv = security_instance->aesEncrypt(vec, key);
+        iv = security_instance->aesEncrypt(vec, security_instance->getTlsInfo().key);
         //向量+内容一起做sha256
         std::vector<uint8_t> vi_encrypt(iv, iv + 16);
         vi_encrypt.insert(vi_encrypt.end(), vec.begin(), vec.end());
@@ -48,15 +48,16 @@ std::unique_ptr<MsgBuilderInterface::UserMsg> MsgBuilder::buildMsg(std::string r
     uint32_t payload_length;
     if (security_instance.operator bool())
     {
-        payload_length = htonl(16 + 32 + vec.size());
+        payload_length = 16 + 32 + vec.size();
     }
     else
     {
-        payload_length = htonl(vec.size());
+        payload_length = vec.size();
     }
     std::vector<uint8_t> msg(sizeof(Header) + payload_length);
 
     //补上Header中的payload length字段
+    payload_length = htonl(payload_length);
     memcpy(&header.length, &payload_length, sizeof(payload_length));
 
     size_t offset = 0;

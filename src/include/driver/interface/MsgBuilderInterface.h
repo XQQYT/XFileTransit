@@ -7,9 +7,22 @@
 #include <string>
 #include "SecurityInterface.h"
 
+
 class MsgBuilderInterface
 {
 public:
+    static const uint16_t magic = 0xABCD;
+    static const uint8_t version = 0x01;
+
+#pragma pack(push, 1)
+    struct  Header
+    {
+        uint16_t magic;
+        uint8_t version;
+        uint32_t length;
+        uint8_t flag;
+    };
+#pragma pack(pop)
     class UserMsg
     {
     public:
@@ -32,7 +45,7 @@ public:
 
 public:
     virtual ~MsgBuilderInterface() {};
-    virtual std::unique_ptr<UserMsg> buildMsg(std::string payload, const uint8_t* key) = 0;
+    virtual std::unique_ptr<UserMsg> buildMsg(std::string payload) = 0;
     virtual void setSecurityInstance(std::shared_ptr<SecurityInterface> instance) { security_instance = instance; }
 
 protected:

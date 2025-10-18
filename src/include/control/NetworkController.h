@@ -3,6 +3,7 @@
 
 #include "driver/interface/NetworkInterface.h"
 #include "driver/interface/JsonFactoryInterface.h"
+#include "driver/interface/SecurityInterface.h"
 
 class NetworkController
 {
@@ -14,6 +15,7 @@ private:
 private:
     std::unique_ptr<NetworkInterface> control_msg_network_driver;
     std::unique_ptr<Json::JsonFactoryInterface> json_builder;
+    std::shared_ptr<SecurityInterface> security_driver;
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdint.h>
 #include <memory> 
+#include <functional>
 #include <winsock2.h>
 
 class SecurityInterface
@@ -12,7 +13,6 @@ public:
     struct TlsInfo
     {
         uint8_t* key;
-        // uint8_t* session_id;
         ~TlsInfo() {
             if (key)
                 delete[] key;
@@ -28,6 +28,11 @@ public:
         const std::vector<uint8_t>& iv,
         std::vector<uint8_t>& out_plaintext,
         std::vector<uint8_t>& sha256) = 0;
+    virtual void dealTlsRequest(SOCKET socket, std::function<void(bool, TlsInfo)> callback) = 0;
+    const TlsInfo getTlsInfo() { return tls_info; }
+    void setTlsInfo(const TlsInfo& info) { tls_info = info; }
+protected:
+    TlsInfo tls_info;
 };
 
 
