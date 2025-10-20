@@ -12,11 +12,7 @@ class SecurityInterface
 public:
     struct TlsInfo
     {
-        uint8_t* key;
-        ~TlsInfo() {
-            if (key)
-                delete[] key;
-        }
+        std::shared_ptr<uint8_t[]> key;
     };
 public:
     virtual ~SecurityInterface() = default;

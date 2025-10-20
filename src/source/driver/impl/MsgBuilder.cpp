@@ -33,7 +33,7 @@ std::unique_ptr<MsgBuilderInterface::UserMsg> MsgBuilder::buildMsg(std::string r
         reinterpret_cast<const uint8_t*>(real_msg.data() + real_msg.size()));
 
     if (security_instance) {
-        iv = security_instance->aesEncrypt(vec, security_instance->getTlsInfo().key);
+        iv = security_instance->aesEncrypt(vec, security_instance->getTlsInfo().key.get());
         //向量+内容一起做sha256
         std::vector<uint8_t> vi_encrypt(iv, iv + 16);
         vi_encrypt.insert(vi_encrypt.end(), vec.begin(), vec.end());

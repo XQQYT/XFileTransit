@@ -20,13 +20,12 @@ public:
         std::vector<uint8_t>& out_plaintext,
         std::vector<uint8_t>& sha256) override;
     void dealTlsRequest(SOCKET socket, std::function<void(bool, TlsInfo)> callback) override;
-
+    bool generateAndLoadTempCertificate();
 private:
     SSL_CTX* client_ctx;  // 客户端上下文
     SSL_CTX* server_ctx;  // 服务器上下文
 
     bool initializeSSL();
-    void safeSSLShutdown(SSL* ssl, bool handshakeCompleted);
 };
 
 #endif //_OPENSSLDRIVER_H

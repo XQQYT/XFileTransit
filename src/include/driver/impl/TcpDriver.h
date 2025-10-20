@@ -28,10 +28,11 @@ private:
     WSADATA wsa_data;
     SOCKET client_socket = INVALID_SOCKET;
     SOCKET listen_socket = INVALID_SOCKET;
-    SOCKET candidate_socket = INVALID_SOCKET;
+    std::string candidate_ip;
     std::unique_ptr<MsgBuilderInterface> msg_builder;
     sockaddr_in client_addr;
     sockaddr_in listen_addr;
+    sockaddr_in accept_addr;
     std::thread* receive_thread;
     std::thread* listen_thread;
     std::atomic<bool> runing{ false };

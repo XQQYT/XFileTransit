@@ -20,21 +20,15 @@ NetworkController::NetworkController() :
     security_driver(std::make_shared<OpensslDriver>())
 {
     initSubscribe();
-    // control_msg_network_driver->setSecurityInstance(security_driver);
+    control_msg_network_driver->setSecurityInstance(security_driver);
     control_msg_network_driver->startListen("0.0.0.0", "7777", [this](bool connect_status) -> bool
         {
-            if (!connect_status)
-            {
-                control_msg_network_driver->recvMsg([](NetworkInterface::ParsedMsg&& msg)
-                    {
-                        std::cout << "recv msg -> " << std::string(msg.data.data(), msg.data.data() + msg.data.size()) << std::endl;
-                    });
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            std::cout << "accepted" << std::endl;
+            control_msg_network_driver->recvMsg([](NetworkInterface::ParsedMsg&& msg)
+                {
+                    std::cout << "recv msg -> " << std::string(msg.data.data(), msg.data.data() + msg.data.size()) << std::endl;
+                });
+            return true;
         });
 }
 void NetworkController::onSendConnectRequest(std::string sender_device_name, std::string sender_device_ip, std::string target_device_ip)

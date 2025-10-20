@@ -40,11 +40,9 @@ bool OpensslDriver::initializeSSL()
         ERR_print_errors_fp(stderr);
         return false;
     }
-    SSL_CTX_set_verify(client_ctx, SSL_VERIFY_NONE, nullptr);
-    SSL_CTX_set_options(client_ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
+    SSL_CTX_set_min_proto_version(client_ctx, TLS1_2_VERSION);
     std::cout << "SSL client context created successfully" << std::endl;
 
-    // 2. 初始化服务器上下文
     server_ctx = SSL_CTX_new(TLS_server_method());
     if (!server_ctx) {
         std::cerr << "Unable to create SSL server context" << std::endl;
@@ -53,95 +51,176 @@ bool OpensslDriver::initializeSSL()
         client_ctx = nullptr;
         return false;
     }
-    SSL_CTX_set_verify(server_ctx, SSL_VERIFY_NONE, nullptr);
-    SSL_CTX_set_options(server_ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
-    std::cout << "SSL server context created successfully" << std::endl;
+    SSL_CTX_set_min_proto_version(server_ctx, TLS1_2_VERSION);
 
+    if (!generateAndLoadTempCertificate()) {
+        std::cerr << "Failed to generate temporary certificate" << std::endl;
+        SSL_CTX_free(server_ctx);
+        SSL_CTX_free(client_ctx);
+        server_ctx = nullptr;
+        client_ctx = nullptr;
+        return false;
+    }
+
+    std::cout << "SSL server context created with certificate" << std::endl;
     std::cout << "OpenSSL dual mode initialization completed" << std::endl;
     return true;
 }
 
-void OpensslDriver::safeSSLShutdown(SSL* ssl, bool handshakeCompleted)
+bool OpensslDriver::generateAndLoadTempCertificate()
 {
-    if (!ssl) return;
+    EVP_PKEY* pkey = EVP_PKEY_new();
+    RSA* rsa = RSA_new();
+    BIGNUM* bn = BN_new();
 
-    if (handshakeCompleted) {
-        // 只有握手成功后才尝试优雅关闭
-        SSL_shutdown(ssl);
+    // 生成RSA密钥
+    BN_set_word(bn, RSA_F4);
+    RSA_generate_key_ex(rsa, 2048, bn, nullptr);
+    EVP_PKEY_assign_RSA(pkey, rsa);
+
+    // 创建证书
+    X509* x509 = X509_new();
+    X509_set_version(x509, 2);
+    ASN1_INTEGER_set(X509_get_serialNumber(x509), 1);
+    X509_gmtime_adj(X509_get_notBefore(x509), 0);
+    X509_gmtime_adj(X509_get_notAfter(x509), 365 * 24 * 60 * 60L);
+
+    X509_set_pubkey(x509, pkey);
+
+    X509_NAME* name = X509_get_subject_name(x509);
+    X509_NAME_add_entry_by_txt(name, "C", MBSTRING_ASC, (unsigned char*)"US", -1, -1, 0);
+    X509_NAME_add_entry_by_txt(name, "O", MBSTRING_ASC, (unsigned char*)"Test Org", -1, -1, 0);
+    X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char*)"localhost", -1, -1, 0);
+
+    X509_set_issuer_name(x509, name);
+    X509_sign(x509, pkey, EVP_sha256());
+
+    // 加载到SSL上下文
+    if (SSL_CTX_use_certificate(server_ctx, x509) <= 0) {
+        std::cerr << "Failed to load certificate" << std::endl;
+        ERR_print_errors_fp(stderr);
+        X509_free(x509);
+        EVP_PKEY_free(pkey);
+        BN_free(bn);
+        return false;
     }
-    SSL_free(ssl);
+
+    if (SSL_CTX_use_PrivateKey(server_ctx, pkey) <= 0) {
+        std::cerr << "Failed to load private key" << std::endl;
+        ERR_print_errors_fp(stderr);
+        X509_free(x509);
+        EVP_PKEY_free(pkey);
+        BN_free(bn);
+        return false;
+    }
+
+    X509_free(x509);
+    EVP_PKEY_free(pkey);
+    BN_free(bn);
+
+    std::cout << "Temporary self-signed certificate generated and loaded" << std::endl;
+    return true;
 }
 
 SecurityInterface::TlsInfo OpensslDriver::getAesKey(SOCKET socket)
 {
     constexpr const uint32_t KEYLENGTH = 32;
 
-    if (!client_ctx) {
-        throw std::runtime_error("SSL client context not initialized");
-    }
+    std::cout << "=== Starting TLS handshake ===" << std::endl;
 
-    SSL* ssl = SSL_new(client_ctx);  // 使用客户端上下文
+    // 创建SSL对象
+    SSL* ssl = SSL_new(client_ctx);
     if (!ssl) {
-        throw std::runtime_error("SSL_new failed for client");
+        std::cerr << "Failed to create SSL object" << std::endl;
+        ERR_print_errors_fp(stderr);
+        throw std::runtime_error("SSL_new failed");
     }
 
-    SSL_set_fd(ssl, socket);
+    // 将SSL与socket关联
+    if (SSL_set_fd(ssl, socket) != 1) {
+        std::cerr << "Failed to set SSL file descriptor" << std::endl;
+        SSL_free(ssl);
+        throw std::runtime_error("SSL_set_fd failed");
+    }
 
-    bool handshakeCompleted = false;
+    std::cout << "Starting SSL_connect..." << std::endl;
 
-    try {
-        std::cout << "=== Client: Starting TLS connection ===" << std::endl;
+    // 执行TLS握手
+    int ret = SSL_connect(ssl);
+    std::cout << "SSL_connect returned: " << ret << std::endl;
 
-        int ret = SSL_connect(ssl);
-        std::cout << "SSL_connect returned: " << ret << std::endl;
+    if (ret <= 0) {
+        int ssl_error = SSL_get_error(ssl, ret);
+        std::cerr << "SSL connection failed with error: " << ssl_error << std::endl;
 
-        if (ret <= 0) {
-            int ssl_error = SSL_get_error(ssl, ret);
-            std::cerr << "SSL client connection failed with error: " << ssl_error << std::endl;
-            ERR_print_errors_fp(stderr);
-            throw std::runtime_error("SSL_connect failed");
+        switch (ssl_error) {
+        case SSL_ERROR_NONE:
+            std::cerr << "SSL_ERROR_NONE - No error" << std::endl;
+            break;
+        case SSL_ERROR_ZERO_RETURN:
+            std::cerr << "SSL_ERROR_ZERO_RETURN - TLS connection closed" << std::endl;
+            break;
+        case SSL_ERROR_WANT_READ:
+        case SSL_ERROR_WANT_WRITE:
+            std::cerr << "SSL_ERROR_WANT_READ/WRITE - Operation would block" << std::endl;
+            break;
+        case SSL_ERROR_SYSCALL:
+            std::cerr << "SSL_ERROR_SYSCALL - System call error: " << ERR_get_error() << std::endl;
+            break;
+        case SSL_ERROR_SSL:
+            std::cerr << "SSL_ERROR_SSL - SSL protocol error" << std::endl;
+            break;
+        default:
+            std::cerr << "Unknown SSL error" << std::endl;
         }
 
-        handshakeCompleted = true;
-        std::cout << "Client TLS handshake completed!" << std::endl;
-        std::cout << "Protocol: " << SSL_get_version(ssl) << ", Cipher: " << SSL_get_cipher(ssl) << std::endl;
+        ERR_print_errors_fp(stderr);
+        SSL_free(ssl);
+        throw std::runtime_error("SSL_connect failed");
+    }
 
-        // 读取服务器发送的密钥
-        std::unique_ptr<uint8_t[]> key(new uint8_t[KEYLENGTH]);
-        memset(key.get(), 0, KEYLENGTH);
+    std::cout << "TLS handshake completed successfully!" << std::endl;
+    std::cout << "Protocol: " << SSL_get_version(ssl) << std::endl;
+    std::cout << "Cipher: " << SSL_get_cipher(ssl) << std::endl;
 
-        int total_read = 0;
-        while (total_read < KEYLENGTH) {
-            int n = SSL_read(ssl, key.get() + total_read, KEYLENGTH - total_read);
-            if (n <= 0) {
-                int ssl_error = SSL_get_error(ssl, n);
-                if (ssl_error == SSL_ERROR_ZERO_RETURN) {
-                    break; // 正常关闭
-                }
-                throw std::runtime_error("SSL_read failed");
-            }
+    // 读取服务器发送的密钥
+    std::shared_ptr<uint8_t[]> key(new uint8_t[KEYLENGTH]);
+    int total_read = 0;
+
+    while (total_read < KEYLENGTH) {
+        int n = SSL_read(ssl, key.get() + total_read, KEYLENGTH - total_read);
+        if (n > 0) {
             total_read += n;
+            std::cout << "Read " << n << " bytes, total: " << total_read << "/" << KEYLENGTH << std::endl;
         }
-
-        if (total_read < KEYLENGTH) {
-            throw std::runtime_error("Incomplete key received");
+        else if (n == 0) {
+            std::cerr << "SSL connection closed by peer" << std::endl;
+            break;
         }
-
-        std::cout << "Successfully received key from server: " << total_read << " bytes" << std::endl;
-
-        // 安全关闭连接
-        safeSSLShutdown(ssl, handshakeCompleted);
-        closesocket(socket);
-
-        std::cout << "TLS client connection closed" << std::endl;
-        return SecurityInterface::TlsInfo{ key.release() };
-
+        else {
+            int ssl_error = SSL_get_error(ssl, n);
+            if (ssl_error == SSL_ERROR_WANT_READ || ssl_error == SSL_ERROR_WANT_WRITE) {
+                continue; // 重试
+            }
+            std::cerr << "SSL_read failed with error: " << ssl_error << std::endl;
+            break;
+        }
     }
-    catch (...) {
-        safeSSLShutdown(ssl, handshakeCompleted);
-        closesocket(socket);
-        throw;
+
+    if (total_read < KEYLENGTH) {
+        std::cerr << "Failed to receive complete key. Received: " << total_read << "/" << KEYLENGTH << " bytes" << std::endl;
+        SSL_shutdown(ssl);
+        SSL_free(ssl);
+        throw std::runtime_error("Incomplete key received");
     }
+
+    std::cout << "Successfully received encryption key from server" << std::endl;
+
+    // 清理SSL连接
+    SSL_shutdown(ssl);
+    SSL_free(ssl);
+
+    return SecurityInterface::TlsInfo{ key };
 }
 
 void OpensslDriver::dealTlsRequest(SOCKET socket, std::function<void(bool, TlsInfo)> callback)
@@ -161,14 +240,12 @@ void OpensslDriver::dealTlsRequest(SOCKET socket, std::function<void(bool, TlsIn
 
     SSL_set_fd(ssl, socket);
 
-    std::unique_ptr<uint8_t[]> key(new uint8_t[32]);
-    bool handshakeCompleted = false;
 
     try {
         std::cout << "=== Server: Starting TLS handshake ===" << std::endl;
-
         int ret = SSL_accept(ssl);
         std::cout << "SSL_accept returned: " << ret << std::endl;
+        std::shared_ptr<uint8_t[]> key(new uint8_t[32]);
 
         if (ret <= 0) {
             int ssl_error = SSL_get_error(ssl, ret);
@@ -177,7 +254,6 @@ void OpensslDriver::dealTlsRequest(SOCKET socket, std::function<void(bool, TlsIn
             throw std::runtime_error("SSL_accept failed");
         }
 
-        handshakeCompleted = true;
         std::cout << "Server TLS handshake completed!" << std::endl;
         std::cout << "Protocol: " << SSL_get_version(ssl) << ", Cipher: " << SSL_get_cipher(ssl) << std::endl;
 
@@ -197,15 +273,17 @@ void OpensslDriver::dealTlsRequest(SOCKET socket, std::function<void(bool, TlsIn
         std::cout << "Successfully sent key to client: " << bytes_sent << " bytes" << std::endl;
 
         // 安全关闭连接
-        safeSSLShutdown(ssl, handshakeCompleted);
+        SSL_shutdown(ssl);
+        SSL_free(ssl);
         closesocket(socket);
 
-        callback(true, { key.release() });
+        callback(true, { key });
 
     }
     catch (const std::exception& e) {
         std::cerr << "Exception in dealTlsRequest: " << e.what() << std::endl;
-        safeSSLShutdown(ssl, handshakeCompleted);
+        SSL_shutdown(ssl);
+        SSL_free(ssl);
         closesocket(socket);
         callback(false, { nullptr });
     }

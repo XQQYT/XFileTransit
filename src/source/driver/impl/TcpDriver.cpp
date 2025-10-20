@@ -35,10 +35,6 @@ void TcpDriver::initSocket(const std::string& address, const std::string& port)
 
 void TcpDriver::connectTo(std::function<void(bool)> callback)
 {
-    struct timeval tv;
-    tv.tv_sec = 1;
-    tv.tv_usec = 0;
-    setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
     int ret = connect(client_socket, (sockaddr*)&client_addr, sizeof(client_addr));
     if (ret == SOCKET_ERROR) {
         int error_code = WSAGetLastError();
@@ -88,10 +84,6 @@ void TcpDriver::connectTo(std::function<void(bool)> callback)
     if (security_instance && !ret)
     {
         // 发送建立TLS请求
-        uint8_t head[2];
-        head[0] = 0xEA;
-        head[1] = 0xEA;
-        send(client_socket, reinterpret_cast<const char*>(head), 2, 0);
         security_instance->setTlsInfo(security_instance->getAesKey(client_socket));
 
         // TLS连接完成，发起普通tcp连接
@@ -167,7 +159,7 @@ void TcpDriver::startListen(const std::string& address, const std::string& port,
         return;
     }
 
-    listen_thread = new std::thread([this, callback]()
+    listen_thread = new std::thread([this, cb = std::move(callback)]()
         {
             WSAPOLLFD fds[1];
             fds[0].fd = listen_socket;
@@ -178,20 +170,37 @@ void TcpDriver::startListen(const std::string& address, const std::string& port,
                 int result = WSAPoll(fds, 1, 100);
 
                 if (result > 0 && (fds[0].revents & POLLRDNORM)) {
-                    SOCKET accepted_socket = accept(listen_socket, nullptr, nullptr);
-                    if (accepted_socket != INVALID_SOCKET) {
-                        candidate_socket = accepted_socket;
-                        if (callback(connect_status.load())) {
-                            connect_status = true;
-                            if (client_socket == INVALID_SOCKET)
+                    int accept_addr_len = sizeof(accept_addr);
+                    SOCKET accepted_socket = accept(listen_socket, (sockaddr*)&accept_addr, &accept_addr_len);
+                    if (accepted_socket != INVALID_SOCKET)
+                    {
+                        if (candidate_ip.empty())
+                        {
+                            security_instance->dealTlsRequest(accepted_socket, [this, accepted_socket](bool ret, SecurityInterface::TlsInfo info) {
+                                if (ret)
+                                {
+                                    if (accepted_socket != INVALID_SOCKET) {
+                                        char client_ip[INET_ADDRSTRLEN];
+                                        inet_ntop(AF_INET, &(accept_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
+
+                                        candidate_ip.assign(client_ip);
+                                    }
+                                    security_instance->setTlsInfo(info);
+                                }
+                                });
+                        }
+                        else
+                        {
+                            char client_ip[INET_ADDRSTRLEN];
+                            inet_ntop(AF_INET, &(accept_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
+                            uint16_t client_port = ntohs(accept_addr.sin_port);
+
+                            if (candidate_ip == client_ip)
                             {
                                 client_socket = accepted_socket;
+                                connect_status = true;
+                                cb(true);
                             }
-                            std::cout << "accept" << std::endl;
-                        }
-                        else {
-                            std::cout << "refused" << std::endl;
-                            closesocket(accepted_socket);
                         }
                     }
                     else {
@@ -240,9 +249,9 @@ NetworkInterface::ParsedMsg parseMsgPayload(const uint8_t* full_msg, const uint3
 
 void TcpDriver::recvMsg(std::function<void(ParsedMsg&& parsed_msg)> callback)
 {
-    if (!connect_status && client_socket == INVALID_SOCKET && candidate_socket != INVALID_SOCKET)
+    if (!connect_status)
     {
-        client_socket = candidate_socket;
+        throw std::runtime_error("connect status is false");
     }
     runing = true;
     receive_thread = new std::thread([this, callback = std::move(callback)]()
@@ -291,7 +300,7 @@ void TcpDriver::recvMsg(std::function<void(ParsedMsg&& parsed_msg)> callback)
                         memcpy(&parsed.header, buffer, HEADER_SIZE);
                         std::vector<uint8_t> result_vec;
                         if (flag & static_cast<uint8_t>(MsgBuilderInterface::Flag::IS_ENCRYPT) &&
-                            security_instance->verifyAndDecrypt(parsed.data, security_instance->getTlsInfo().key, parsed.iv, result_vec, parsed.sha256))
+                            security_instance->verifyAndDecrypt(parsed.data, security_instance->getTlsInfo().key.get(), parsed.iv, result_vec, parsed.sha256))
                         {
                             result_vec.resize(result_vec.size() - 4);
                             parsed.data.assign(result_vec.begin(), result_vec.end());
@@ -302,15 +311,15 @@ void TcpDriver::recvMsg(std::function<void(ParsedMsg&& parsed_msg)> callback)
                             callback(std::move(parsed));
                         }
                     }
-                    else if (peek_buffer[0] == 0xEA && peek_buffer[1] == 0xEA)
-                    {
-                        security_instance->dealTlsRequest(client_socket, [this](bool ret, SecurityInterface::TlsInfo info) {
-                            if (ret)
-                            {
-                                security_instance->setTlsInfo(info);
-                            }
-                            });
-                    }
+                    // else if (peek_buffer[0] == 0xEA && peek_buffer[1] == 0xEA)
+                    // {
+                    //     security_instance->dealTlsRequest(client_socket, [this](bool ret, SecurityInterface::TlsInfo info) {
+                    //         if (ret)
+                    //         {
+                    //             security_instance->setTlsInfo(info);
+                    //         }
+                    //         });
+                    // }
                     else
                     {
                         char dump_buffer[4];
