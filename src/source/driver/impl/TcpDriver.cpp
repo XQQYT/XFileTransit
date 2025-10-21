@@ -174,34 +174,44 @@ void TcpDriver::startListen(const std::string& address, const std::string& port,
                     SOCKET accepted_socket = accept(listen_socket, (sockaddr*)&accept_addr, &accept_addr_len);
                     if (accepted_socket != INVALID_SOCKET)
                     {
-                        if (candidate_ip.empty())
+                        if (security_instance)
                         {
-                            security_instance->dealTlsRequest(accepted_socket, [this, accepted_socket](bool ret, SecurityInterface::TlsInfo info) {
-                                if (ret)
-                                {
-                                    if (accepted_socket != INVALID_SOCKET) {
-                                        char client_ip[INET_ADDRSTRLEN];
-                                        inet_ntop(AF_INET, &(accept_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
+                            if (candidate_ip.empty())
+                            {
+                                security_instance->dealTlsRequest(accepted_socket, [this, accepted_socket](bool ret, SecurityInterface::TlsInfo info) {
+                                    if (ret)
+                                    {
+                                        if (accepted_socket != INVALID_SOCKET) {
+                                            char client_ip[INET_ADDRSTRLEN];
+                                            inet_ntop(AF_INET, &(accept_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
 
-                                        candidate_ip.assign(client_ip);
+                                            candidate_ip.assign(client_ip);
+                                        }
+                                        security_instance->setTlsInfo(info);
                                     }
-                                    security_instance->setTlsInfo(info);
+                                    });
+                            }
+                            else
+                            {
+                                char client_ip[INET_ADDRSTRLEN];
+                                inet_ntop(AF_INET, &(accept_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
+                                uint16_t client_port = ntohs(accept_addr.sin_port);
+
+                                if (candidate_ip == client_ip)
+                                {
+                                    client_socket = accepted_socket;
+                                    connect_status = true;
+                                    cb(true);
                                 }
-                                });
+                            }
                         }
                         else
                         {
-                            char client_ip[INET_ADDRSTRLEN];
-                            inet_ntop(AF_INET, &(accept_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
-                            uint16_t client_port = ntohs(accept_addr.sin_port);
-
-                            if (candidate_ip == client_ip)
-                            {
-                                client_socket = accepted_socket;
-                                connect_status = true;
-                                cb(true);
-                            }
+                            client_socket = accepted_socket;
+                            connect_status = true;
+                            cb(true);
                         }
+
                     }
                     else {
                         std::cerr << "fail to accept" << WSAGetLastError() << std::endl;
@@ -232,6 +242,7 @@ NetworkInterface::ParsedMsg parseMsgPayload(const uint8_t* full_msg, const uint3
 
         // 解析 SHA256（32字节）
         result.sha256.assign(full_msg + offset, full_msg + offset + 32);
+        offset += 32;
     }
 
     // 解析密文
