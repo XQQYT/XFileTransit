@@ -21,7 +21,6 @@ int main(int argc, char* argv[])
     // 初始化组件
     EventBusManager::instance().startEventBus();
     initRegisterEvents();
-    EventBusManager::instance().registerEvent("/network/send_connect_request");
     NetworkController network_controller;
     // 创建模型实例
     FileListModel* file_list_model = new FileListModel(&engine);

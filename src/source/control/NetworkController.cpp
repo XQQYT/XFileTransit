@@ -20,7 +20,7 @@ NetworkController::NetworkController() :
     security_driver(std::make_shared<OpensslDriver>())
 {
     initSubscribe();
-    control_msg_network_driver->setSecurityInstance(security_driver);
+    // control_msg_network_driver->setSecurityInstance(security_driver);
     control_msg_network_driver->startListen("0.0.0.0", "7777", [this](bool connect_status) -> bool
         {
             std::cout << "accepted" << std::endl;
