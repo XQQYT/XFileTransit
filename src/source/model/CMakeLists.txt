@@ -3,6 +3,7 @@ set(MODEL_SOURCES
     ICMPScanner.cpp
     FileIconManager.cpp
     FileListModel.cpp
+    ConnectionManager.cpp
 )
 
 set(MODEL_HEADERS
@@ -10,6 +11,7 @@ set(MODEL_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/model/ICMPScanner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/model/FileIconManager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/model/FileListModel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/model/ConnectionManager.h
 )
 
 add_library(model STATIC

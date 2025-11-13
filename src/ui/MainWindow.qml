@@ -509,6 +509,22 @@ ApplicationWindow  {
                     }
                 }
             }
+            Connections {
+                target: connection_manager
+                function onHaveConRequest(device_ip, device_name) {
+                    var con_request_dialog = Qt.createComponent("qrc:/qml/ui/ConnectRequestDialog.qml")
+                    if (con_request_dialog.status === Component.Ready) {
+                        var window = con_request_dialog.createObject(root, {
+                            "device_ip": device_ip,"device_name":device_name
+                        })
+
+                        window.show()
+                        window.requestActivate()
+                    } else {
+                        console.error("无法创建连接请求弹窗:", con_request_dialog.errorString())
+                    }
+                }
+            }
         }        
         // 清空按钮
         Rectangle {

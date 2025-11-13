@@ -307,13 +307,14 @@ void TcpDriver::recvMsg(std::function<void(ParsedMsg&& parsed_msg)> callback)
                             std::cout << readed_length << " / " << payload_length << std::endl;
                         }
 
+                        printHex(std::vector<uint8_t>(buffer, buffer + 8));
                         auto parsed = parseMsgPayload(receive_msg, payload_length, flag);
                         memcpy(&parsed.header, buffer, HEADER_SIZE);
                         std::vector<uint8_t> result_vec;
+                        result_vec.reserve(parsed.data.size());
                         if (flag & static_cast<uint8_t>(MsgBuilderInterface::Flag::IS_ENCRYPT) &&
                             security_instance->verifyAndDecrypt(parsed.data, security_instance->getTlsInfo().key.get(), parsed.iv, result_vec, parsed.sha256))
                         {
-                            result_vec.resize(result_vec.size() - 4);
                             parsed.data.assign(result_vec.begin(), result_vec.end());
                             callback(std::move(parsed));
                         }
@@ -322,15 +323,6 @@ void TcpDriver::recvMsg(std::function<void(ParsedMsg&& parsed_msg)> callback)
                             callback(std::move(parsed));
                         }
                     }
-                    // else if (peek_buffer[0] == 0xEA && peek_buffer[1] == 0xEA)
-                    // {
-                    //     security_instance->dealTlsRequest(client_socket, [this](bool ret, SecurityInterface::TlsInfo info) {
-                    //         if (ret)
-                    //         {
-                    //             security_instance->setTlsInfo(info);
-                    //         }
-                    //         });
-                    // }
                     else
                     {
                         char dump_buffer[4];

@@ -5,7 +5,7 @@ void NlohmannJsonParser::loadJson(const std::string& msg)
 {
     msg_json = json::parse(msg);
 }
-std::string NlohmannJsonParser::getValue(const std::string& key)
+std::string NlohmannJsonParser::getValue(const std::string&& key)
 {
     if (msg_json.empty())
     {
@@ -17,7 +17,7 @@ std::string NlohmannJsonParser::getValue(const std::string& key)
     }
     return "";
 }
-std::unique_ptr<Json::Parser> NlohmannJsonParser::getObj(const std::string& key)
+std::unique_ptr<Json::Parser> NlohmannJsonParser::getObj(const std::string&& key)
 {
     if (msg_json.empty())
     {
@@ -29,11 +29,11 @@ std::unique_ptr<Json::Parser> NlohmannJsonParser::getObj(const std::string& key)
     }
     return nullptr;
 }
-bool NlohmannJsonParser::contain(const std::string& key)
+bool NlohmannJsonParser::contain(const std::string&& key)
 {
     return msg_json.contains(key);
 }
-std::vector<std::unique_ptr<Json::Parser>> NlohmannJsonParser::getArray(const std::string& key)
+std::vector<std::unique_ptr<Json::Parser>> NlohmannJsonParser::getArray(const std::string&& key)
 {
     if (msg_json.empty())
     {
@@ -87,11 +87,15 @@ std::string UserMsgBuilder::buildImpl(uint64_t type, Map&& args)
     const auto& schema = registry.getSchema(type);
 
     json result_json;
+    json content_json;
 
     result_json["type"] = schema.type_name;
+
     for (auto&& [key, value] : args) {
-        result_json[std::forward<decltype(key)>(key)] = std::forward<decltype(value)>(value);
+        content_json[std::forward<decltype(key)>(key)] = std::forward<decltype(value)>(value);
     }
+
+    result_json["content"] = std::move(content_json);
 
     return result_json.dump();
 }

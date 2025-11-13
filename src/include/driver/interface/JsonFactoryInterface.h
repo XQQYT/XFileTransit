@@ -75,7 +75,7 @@ namespace Json
     class MessageRegistry
     {
     private:
-        std::unordered_map<int, MessageSchema> schemas;
+        std::map<int, MessageSchema> schemas;
 
     public:
         MessageRegistry()
@@ -110,11 +110,11 @@ namespace Json
     {
     public:
         virtual void loadJson(const std::string& content) = 0;
-        virtual std::string getValue(const std::string& key) = 0;
-        virtual std::unique_ptr<Parser> getObj(const std::string& key) = 0;
-        virtual bool contain(const std::string& key) = 0;
+        virtual std::string getValue(const std::string&& key) = 0;
+        virtual std::unique_ptr<Parser> getObj(const std::string&& key) = 0;
+        virtual bool contain(const std::string&& key) = 0;
         virtual std::string toString() = 0;
-        virtual std::vector<std::unique_ptr<Parser>> getArray(const std::string& key) = 0;
+        virtual std::vector<std::unique_ptr<Parser>> getArray(const std::string&& key) = 0;
         virtual ~Parser() = default;
     };
     class JsonBuilder

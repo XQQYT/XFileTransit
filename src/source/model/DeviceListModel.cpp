@@ -1,7 +1,8 @@
 #include "model/DeviceListModel.h"
 #include "control/EventBusManager.h"
 
-DeviceListModel::DeviceListModel(QObject* parent)
+DeviceListModel::DeviceListModel(QObject* parent) :
+    QAbstractListModel(parent)
 {
     QObject::connect(&icmp_scanner, &ICMPScanner::scanFinished, [this]() {
         emit DeviceListModel::scanFinished();

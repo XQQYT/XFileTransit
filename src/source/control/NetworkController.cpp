@@ -3,6 +3,8 @@
 #include "driver/impl/TcpDriver.h"
 #include "driver/impl/Nlohmann.h"
 #include "driver/impl/OpensslDriver.h"
+#include "control/MsgParser/JsonParser.h"
+#include "control/MsgParser/BinaryParser.h"
 
 void NetworkController::initSubscribe()
 {
@@ -17,16 +19,17 @@ void NetworkController::initSubscribe()
 NetworkController::NetworkController() :
     control_msg_network_driver(std::make_unique<TcpDriver>()),
     json_builder(std::make_unique<NlohmannJson>()),
-    security_driver(std::make_shared<OpensslDriver>())
+    security_driver(std::make_shared<OpensslDriver>()),
+    json_parser(std::make_unique<JsonParser>())
 {
     initSubscribe();
-    // control_msg_network_driver->setSecurityInstance(security_driver);
+    control_msg_network_driver->setSecurityInstance(security_driver);
     control_msg_network_driver->startListen("0.0.0.0", "7777", [this](bool connect_status) -> bool
         {
-            std::cout << "accepted" << std::endl;
-            control_msg_network_driver->recvMsg([](NetworkInterface::ParsedMsg&& msg)
+            control_msg_network_driver->recvMsg([this](NetworkInterface::ParsedMsg&& msg)
                 {
                     std::cout << "recv msg -> " << std::string(msg.data.data(), msg.data.data() + msg.data.size()) << std::endl;
+                    json_parser->parse(std::move(msg.data));
                 });
             return true;
         });
@@ -38,16 +41,13 @@ void NetworkController::onSendConnectRequest(std::string sender_device_name, std
         {
             if (ret)
             {
-                std::cout << "build" << std::endl;
                 std::string msg = json_builder->getBuilder(Json::BuilderType::User)->build(
                     static_cast<uint64_t>(Json::MessageType::User::ConnectRequest),
                     {
                          {"sender_device_name",std::move(sender_device_name)},
                          {"sender_device_ip",std::move(sender_device_ip)}
                     });
-                std::cout << "send" << std::endl;
                 control_msg_network_driver->sendMsg(msg);
-                std::cout << "sended" << std::endl;
             }
             else
             {

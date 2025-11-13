@@ -12,11 +12,11 @@ public:
     NlohmannJsonParser() = default;
     explicit NlohmannJsonParser(const json& j) : msg_json(j) {}
     void loadJson(const std::string&) override;
-    std::string getValue(const std::string& key) override;
-    std::unique_ptr<Parser> getObj(const std::string& key) override;
-    bool contain(const std::string& key) override;
+    std::string getValue(const std::string&& key) override;
+    std::unique_ptr<Parser> getObj(const std::string&& key) override;
+    bool contain(const std::string&& key) override;
     std::string toString() override;
-    std::vector<std::unique_ptr<Parser>> getArray(const std::string& key) override;
+    std::vector<std::unique_ptr<Parser>> getArray(const std::string&& key) override;
 private:
     json msg_json;
 };
