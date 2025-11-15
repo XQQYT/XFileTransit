@@ -40,6 +40,7 @@ public:
 signals:
     void scanFinished();
     void scanningChanged();
+    void connectResult(bool ret);
 private slots:
     void onFoundOne(DeviceInfo info);
 private:

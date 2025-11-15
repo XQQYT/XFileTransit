@@ -13,6 +13,8 @@ public:
     NetworkController();
 private:
     void onSendConnectRequest(std::string sender_device_name, std::string sender_device_ip, std::string target_device_ip);
+    void onSendConnectRequestResult(bool res);
+    void onHaveConnectRequestResult(bool res);
 private:
     std::unique_ptr<NetworkInterface> control_msg_network_driver;
     std::unique_ptr<Json::JsonFactoryInterface> json_builder;

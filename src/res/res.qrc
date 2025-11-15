@@ -4,6 +4,7 @@
         <file>../ui/DeviceListWindow.qml</file>
         <file>../ui/LoadingDialog.qml</file>
         <file>../ui/ConnectRequestDialog.qml</file>
+        <file>../ui/GeneralDialog.qml</file>
     </qresource>
     <qresource prefix="/file_icon">
         <file>FileIcons/doc.svg</file>

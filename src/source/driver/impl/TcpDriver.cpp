@@ -5,10 +5,11 @@
 #include <iomanip>
 
 TcpDriver::TcpDriver() : msg_builder(std::make_unique<MsgBuilder>(security_instance)),
-client_addr({}),
-listen_addr({}),
+client_tls_addr({}),
+client_tcp_addr({}),
 receive_thread(nullptr),
-listen_thread(nullptr)
+tls_listen_thread(nullptr),
+tcp_listen_thread(nullptr)
 {
     if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0)
     {
@@ -23,19 +24,21 @@ TcpDriver::~TcpDriver()
         closeSocket();
 }
 
-void TcpDriver::initSocket(const std::string& address, const std::string& port)
+void TcpDriver::initSocket(const std::string& address, const std::string& tls_port, const std::string& tcp_port)
 {
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
-    client_addr.sin_family = AF_INET;
-    client_addr.sin_port = htons(std::stoi(port));
-    inet_pton(AF_INET, address.c_str(), &client_addr.sin_addr);
-    this->client_address = address;
-    this->client_port = port;
+    client_tls_addr.sin_family = AF_INET;
+    client_tls_addr.sin_port = htons(std::stoi(tls_port));
+    inet_pton(AF_INET, address.c_str(), &client_tls_addr.sin_addr);
+
+    client_tcp_addr.sin_family = AF_INET;
+    client_tcp_addr.sin_port = htons(std::stoi(tcp_port));
+    inet_pton(AF_INET, address.c_str(), &client_tcp_addr.sin_addr);
 }
 
 void TcpDriver::connectTo(std::function<void(bool)> callback)
 {
-    int ret = connect(client_socket, (sockaddr*)&client_addr, sizeof(client_addr));
+    int ret = connect(client_socket, (sockaddr*)&client_tls_addr, sizeof(client_tls_addr));
     if (ret == SOCKET_ERROR) {
         int error_code = WSAGetLastError();
 
@@ -89,15 +92,16 @@ void TcpDriver::connectTo(std::function<void(bool)> callback)
         // TLS连接完成，发起普通tcp连接
         client_socket = socket(AF_INET, SOCK_STREAM, 0);
 
-        ret = connect(client_socket, (sockaddr*)&client_addr, sizeof(client_addr));
+        ret = connect(client_socket, (sockaddr*)&client_tcp_addr, sizeof(client_tcp_addr));
     }
+
+    connect_status = !ret;
 
     if (callback)
     {
         std::cout << ret << std::endl;
         callback(!ret);
     }
-    connect_status = !ret;
 }
 
 void printHex(const std::vector<uint8_t>& data) {
@@ -130,55 +134,55 @@ void TcpDriver::sendMsg(const std::string& msg)
         std::cout << sended_length << " / " << final_msg_length << std::endl;
     }
 }
-void TcpDriver::startListen(const std::string& address, const std::string& port, std::function<bool(bool)> callback)
+SOCKET TcpDriver::createListenSocket(const std::string& address, const std::string& port) {
+    SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (sock == INVALID_SOCKET) return INVALID_SOCKET;
+        
+    sockaddr_in addr{};
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(std::stoi(port));
+    inet_pton(AF_INET, address.c_str(), &addr.sin_addr);
+        
+    if (bind(sock, (sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR) {
+        closesocket(sock);
+        return INVALID_SOCKET;
+    }
+        
+    if (listen(sock, 5) == SOCKET_ERROR) {
+        closesocket(sock);
+        return INVALID_SOCKET;
+    }
+        
+    return sock;
+}
+
+void TcpDriver::startTlsListen(const std::string& address, const std::string& tls_port, std::function<bool(bool)> tls_callback)
 {
-    runing = true;
+    //初始化tls监听
+    tls_listen_socket =  createListenSocket(address, tls_port);
 
-    listen_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (listen_socket == INVALID_SOCKET)
-    {
-        std::cerr << "create listen socket failed" << WSAGetLastError() << std::endl;
-        return;
-    }
-
-    listen_addr.sin_family = AF_INET;
-    listen_addr.sin_port = htons(std::stoi(port));
-    inet_pton(AF_INET, address.c_str(), &listen_addr.sin_addr);
-
-    if (bind(listen_socket, (sockaddr*)&listen_addr, sizeof(listen_addr)) == SOCKET_ERROR)
-    {
-        std::cerr << "fail to bind" << WSAGetLastError() << std::endl;
-        closesocket(listen_socket);
-        return;
-    }
-
-    if (listen(listen_socket, 5) == SOCKET_ERROR)
-    {
-        std::cerr << "fail to listen" << WSAGetLastError() << std::endl;
-        closesocket(listen_socket);
-        return;
-    }
-
-    listen_thread = new std::thread([this, cb = std::move(callback)]()
+    tls_listen_thread = new std::thread([this, cb = std::move(tls_callback)]()
         {
             WSAPOLLFD fds[1];
-            fds[0].fd = listen_socket;
+            fds[0].fd = tls_listen_socket;
             fds[0].events = POLLRDNORM;
 
-            while (runing)
+            while (this->runing)
             {
-                int result = WSAPoll(fds, 1, 100);
+                //只有在等待TLS请求时才接收
+                if(this->connection_status == ConnectionStatus::WAITING_TLS)
+                {
+                    int result = WSAPoll(fds, 1, 100);
 
-                if (result > 0 && (fds[0].revents & POLLRDNORM)) {
-                    int accept_addr_len = sizeof(accept_addr);
-                    SOCKET accepted_socket = accept(listen_socket, (sockaddr*)&accept_addr, &accept_addr_len);
-                    if (accepted_socket != INVALID_SOCKET)
+                    if (result > 0 && (fds[0].revents & POLLRDNORM)) 
                     {
-                        if (security_instance)
+                        int accept_addr_len = sizeof(accept_addr);
+                        SOCKET accepted_socket = accept(tls_listen_socket, (sockaddr*)&accept_addr, &accept_addr_len);
+                        if (accepted_socket != INVALID_SOCKET)
                         {
-                            if (candidate_ip.empty())
+                            if (security_instance)
                             {
-                                security_instance->dealTlsRequest(accepted_socket, [this, accepted_socket](bool ret, SecurityInterface::TlsInfo info) {
+                                security_instance->dealTlsRequest(accepted_socket, [this, accepted_socket, &cb](bool ret, SecurityInterface::TlsInfo info) {
                                     if (ret)
                                     {
                                         if (accepted_socket != INVALID_SOCKET) {
@@ -188,10 +192,53 @@ void TcpDriver::startListen(const std::string& address, const std::string& port,
                                             candidate_ip.assign(client_ip);
                                         }
                                         security_instance->setTlsInfo(info);
+                                        connection_status = ConnectionStatus::TLS_CONNECTED;
                                     }
-                                    });
+                                    if(cb)
+                                        cb(ret);
+                                });
                             }
-                            else
+                        }
+                        else {
+                            std::cerr << "fail to accept" << WSAGetLastError() << std::endl;
+                        }
+                    }
+                    else if (result < 0) {
+                        std::cerr << "error in WSAPoll" << WSAGetLastError() << std::endl;
+                    }
+                }
+                else {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                }
+            }
+
+            closesocket(tls_listen_socket); });
+}
+
+void TcpDriver::startTcpListen(const std::string& address, const std::string& tcp_port, std::function<bool(bool)> tcp_callback)
+{
+    //初始化tcp监听
+    tcp_listen_socket =  createListenSocket(address, tcp_port);
+
+    tcp_listen_thread = new std::thread([this, cb = std::move(tcp_callback)]()
+        {
+            WSAPOLLFD fds[1];
+            fds[0].fd = tcp_listen_socket;
+            fds[0].events = POLLRDNORM;
+
+            while (this->runing)
+            {
+                //只有在tls建立成功时才监听
+                if(this->connection_status == ConnectionStatus::TLS_CONNECTED)
+                {
+                    int result = WSAPoll(fds, 1, 100);
+
+                    if (result > 0 && (fds[0].revents & POLLRDNORM)) {
+                        int accept_addr_len = sizeof(accept_addr);
+                        SOCKET accepted_socket = accept(tcp_listen_socket, (sockaddr*)&accept_addr, &accept_addr_len);
+                        if (accepted_socket != INVALID_SOCKET)
+                        {
+                            if (security_instance)
                             {
                                 char client_ip[INET_ADDRSTRLEN];
                                 inet_ntop(AF_INET, &(accept_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
@@ -201,28 +248,34 @@ void TcpDriver::startListen(const std::string& address, const std::string& port,
                                 {
                                     client_socket = accepted_socket;
                                     connect_status = true;
-                                    cb(true);
+                                    if(cb)
+                                        cb(true);
+                                    this->connection_status = ConnectionStatus::TCP_ESTABLISHED;
                                 }
                             }
                         }
-                        else
-                        {
-                            client_socket = accepted_socket;
-                            connect_status = true;
-                            cb(true);
+                        else {
+                            std::cerr << "fail to accept" << WSAGetLastError() << std::endl;
                         }
-
                     }
-                    else {
-                        std::cerr << "fail to accept" << WSAGetLastError() << std::endl;
+                    else if (result < 0) {
+                        std::cerr << "error in WSAPoll" << WSAGetLastError() << std::endl;
                     }
                 }
-                else if (result < 0) {
-                    std::cerr << "error in WSAPoll" << WSAGetLastError() << std::endl;
+                else {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
                 }
             }
 
-            closesocket(listen_socket); });
+            closesocket(tcp_listen_socket); });
+}
+
+void TcpDriver::startListen(const std::string& address, const std::string& tls_port, 
+    const std::string& tcp_port,std::function<bool(bool)> tls_callback, std::function<bool(bool)> tcp_callback)
+{
+    runing = true;
+    startTlsListen(address, tls_port, tls_callback);
+    startTcpListen(address, tcp_port, tcp_callback);
 }
 
 NetworkInterface::ParsedMsg parseMsgPayload(const uint8_t* full_msg, const uint32_t length, const uint8_t flag)
@@ -356,13 +409,20 @@ void TcpDriver::closeSocket()
     {
         closesocket(client_socket);
     }
-    closesocket(listen_socket);
+    closesocket(tls_listen_socket);
+    closesocket(tcp_listen_socket);
     WSACleanup();
-    if (listen_thread)
+    if (tls_listen_thread)
     {
-        if (listen_thread->joinable())
-            listen_thread->join();
-        delete listen_thread;
+        if (tls_listen_thread->joinable())
+            tls_listen_thread->join();
+        delete tls_listen_thread;
+    }
+    if (tcp_listen_thread)
+    {
+        if (tcp_listen_thread->joinable())
+            tcp_listen_thread->join();
+        delete tcp_listen_thread;
     }
     if (receive_thread)
     {
@@ -376,4 +436,20 @@ void TcpDriver::setSecurityInstance(std::shared_ptr<SecurityInterface> instance)
 {
     security_instance = instance;
     msg_builder->setSecurityInstance(instance);
+}
+
+void TcpDriver::resetConnection()
+{
+    if (connect_status)
+    {
+        closesocket(client_socket);
+    }
+    client_socket = INVALID_SOCKET;
+    candidate_ip.clear();
+    client_tls_addr = {};
+    client_tcp_addr = {};
+    accept_addr = {};
+    connect_status = false;
+
+    connection_status = ConnectionStatus::WAITING_TLS;
 }

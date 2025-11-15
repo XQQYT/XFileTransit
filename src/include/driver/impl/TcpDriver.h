@@ -16,25 +16,45 @@ class TcpDriver : public NetworkInterface
 public:
     TcpDriver();
     ~TcpDriver();
-    void initSocket(const std::string& address, const std::string& port) override;
+    void initSocket(const std::string& address, const std::string& tls_port, const std::string& tcp_port) override;
     void connectTo(std::function<void(bool)> callback = nullptr) override;
     void sendMsg(const std::string& msg) override;
-    void startListen(const std::string& address, const std::string& port, std::function<bool(bool)> callback) override;
+    void startListen(const std::string& address, const std::string& tls_port, const std::string& tcp_port,
+        std::function<bool(bool)> tls_callback,std::function<bool(bool)> tcp_callback) override;
     void recvMsg(std::function<void(ParsedMsg&& parsed_msg)> callback) override;
     void closeSocket() override;
     void setSecurityInstance(std::shared_ptr<SecurityInterface> instance) override;
+    void resetConnection() override;
+private:
+    enum class ConnectionStatus{
+        WAITING_TLS,
+        TLS_CONNECTED,
+        TCP_ESTABLISHED
+    }connection_status;
 
+    void startTlsListen(const std::string& address, const std::string& tls_port, std::function<bool(bool)> tls_callback);
+    void startTcpListen(const std::string& address, const std::string& tcp_port, std::function<bool(bool)> tcp_callback);
+
+    private:
+    SOCKET createListenSocket(const std::string& address, const std::string& port);
 private:
     WSADATA wsa_data;
+
     SOCKET client_socket = INVALID_SOCKET;
-    SOCKET listen_socket = INVALID_SOCKET;
+    SOCKET tls_listen_socket = INVALID_SOCKET;
+    SOCKET tcp_listen_socket = INVALID_SOCKET;
+
     std::string candidate_ip;
     std::unique_ptr<MsgBuilderInterface> msg_builder;
-    sockaddr_in client_addr;
-    sockaddr_in listen_addr;
+
+    sockaddr_in client_tls_addr;
+    sockaddr_in client_tcp_addr;
     sockaddr_in accept_addr;
+
     std::thread* receive_thread;
-    std::thread* listen_thread;
+    std::thread* tls_listen_thread;
+    std::thread* tcp_listen_thread;
+
     std::atomic<bool> runing{ false };
     std::atomic<bool> connect_status{ false };
 };

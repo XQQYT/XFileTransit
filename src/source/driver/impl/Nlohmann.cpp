@@ -17,6 +17,18 @@ std::string NlohmannJsonParser::getValue(const std::string&& key)
     }
     return "";
 }
+std::optional<bool> NlohmannJsonParser::getBool(const std::string&& key) 
+{
+    if (msg_json.empty() || !msg_json.contains(key)) {
+        return std::nullopt;
+    }
+    
+    if (msg_json[key].is_boolean()) {
+        return msg_json[key].get<bool>();
+    }
+    
+    return std::nullopt;
+}
 std::unique_ptr<Json::Parser> NlohmannJsonParser::getObj(const std::string&& key)
 {
     if (msg_json.empty())

@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <map>
+#include <optional>
 
 namespace Json
 {
@@ -23,13 +24,15 @@ namespace Json
             enum Type
             {
                 ConnectRequest,
+                ConnectRequestResponse
             };
 
             constexpr const char* toString(Type type)
             {
                 switch (type)
                 {
-                case ConnectRequest: return "user_connect_request";
+                case ConnectRequest: return "ConnectRequest";
+                case ConnectRequestResponse: return "ConnectRequestResponse";
                 default: return "unknown";
                 }
             }
@@ -68,7 +71,6 @@ namespace Json
         uint64_t type;
         std::string type_name;
         std::vector<std::string> required_fields;
-        std::vector<std::string> optional_fields;
     };
 
     // 消息注册表
@@ -81,14 +83,15 @@ namespace Json
         MessageRegistry()
         {
             registerSchema(MessageType::User::ConnectRequest, "connect_request",
-                { "sender_device_name", "sender_device_ip" }, {});
+                { "sender_device_name", "sender_device_ip" });
+            registerSchema(MessageType::User::ConnectRequestResponse, "response",
+                { "subtype", "arg0" });
         }
 
         void registerSchema(uint64_t type, const std::string& type_name,
-            const std::vector<std::string>& required,
-            const std::vector<std::string>& optional)
+            const std::vector<std::string>& required)
         {
-            schemas[type] = { type, type_name, required, optional };
+            schemas[type] = { type, type_name, required };
         }
 
         const MessageSchema& getSchema(uint64_t type) const {
@@ -111,6 +114,7 @@ namespace Json
     public:
         virtual void loadJson(const std::string& content) = 0;
         virtual std::string getValue(const std::string&& key) = 0;
+        virtual std::optional<bool> getBool(const std::string&& key) = 0;
         virtual std::unique_ptr<Parser> getObj(const std::string&& key) = 0;
         virtual bool contain(const std::string&& key) = 0;
         virtual std::string toString() = 0;

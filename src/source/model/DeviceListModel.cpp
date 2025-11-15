@@ -8,7 +8,12 @@ DeviceListModel::DeviceListModel(QObject* parent) :
         emit DeviceListModel::scanFinished();
         scanning = false;
         emit scanningChanged();
-        });
+    });
+    EventBusManager::instance().subscribe("/network/have_connect_request_result",[this](bool ret){
+        QMetaObject::invokeMethod(this, [this,ret]() {
+            emit connectResult(ret);
+        }, Qt::QueuedConnection);
+    });
     QObject::connect(&icmp_scanner, &ICMPScanner::foundOne, this, &DeviceListModel::onFoundOne);
 }
 DeviceListModel::~DeviceListModel()
@@ -76,7 +81,7 @@ void DeviceListModel::onFoundOne(DeviceInfo info)
     device_list.push_back(info);
     endInsertRows();
 
-    qDebug() << "发现新设备:" << info.device_name << "IP:" << info.device_ip;
+    // qDebug() << "发现新设备:" << info.device_name << "IP:" << info.device_ip;
 }
 void DeviceListModel::refresh()
 {
@@ -97,8 +102,12 @@ void DeviceListModel::connectToTarget(const int index)
     if (index < 0 || index >= device_list.size())
         return;
     auto device = device_list.at(index);
+    // EventBusManager::instance().publish("/network/send_connect_request",
+    //     icmp_scanner.getLocalComputerName().toStdString(),
+    //     icmp_scanner.findMatchingLocalIp(device.device_ip).toStdString(),
+    //     device.device_ip.toStdString());
     EventBusManager::instance().publish("/network/send_connect_request",
         icmp_scanner.getLocalComputerName().toStdString(),
         icmp_scanner.findMatchingLocalIp(device.device_ip).toStdString(),
-        device.device_ip.toStdString());
+        std::string("192.168.6.137"));
 }

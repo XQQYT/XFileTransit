@@ -6,12 +6,32 @@ Window {
     id: deviceListWindow
     width: 400
     height: 500
+    x: (Screen.width - width) / 2
+    y: (Screen.height - height) / 2
     title: qsTr("设备列表")
     modality: Qt.ApplicationModal
     flags: Qt.Dialog
     
     property var deviceModel: null
         
+    Loader {
+        id: generalDialogLoader
+        source: "qrc:/qml/ui/GeneralDialog.qml"
+        onLoaded: {
+            item.parent = deviceListWindow.contentItem
+        }
+
+    }
+        
+    Connections {
+        target: deviceModel
+        function onConnectResult(ret) {
+            generalDialogLoader.item.text = ret ? "连接成功" : "连接被拒绝"
+            load_dialog.hide()
+            generalDialogLoader.item.open()
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 10

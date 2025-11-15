@@ -25,6 +25,25 @@ ApplicationWindow  {
     // 连接状态属性
     property bool isConnected: false
     property string connectionStatus: isConnected ? "已连接" : "未连接"
+
+    Loader {
+        id: deviceWindowLoader
+        source: "qrc:/qml/ui/DeviceListWindow.qml"
+        
+        onLoaded: {
+            item.deviceModel = device_list_model
+        }
+    }
+    
+    Loader {
+        id: connectRequestLoader  
+        source: "qrc:/qml/ui/ConnectRequestDialog.qml"
+        
+        onLoaded: {
+            item.connection_model = connection_manager
+        }
+    }
+
     // 主窗口的拖拽区域
     DropArea {
         anchors.fill: parent
@@ -490,15 +509,11 @@ ApplicationWindow  {
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked: {
-                        var deviceWindow = Qt.createComponent("qrc:/qml/ui/DeviceListWindow.qml")
-                        if (deviceWindow.status === Component.Ready) {
-                            var window = deviceWindow.createObject(root, {
-                                "deviceModel": device_list_model
-                            })
-                            window.show()
-                            window.requestActivate()
+                        if (deviceWindowLoader.status === Loader.Ready) {
+                            deviceWindowLoader.item.show()
+                            deviceWindowLoader.item.requestActivate()
                         } else {
-                            console.error("无法创建设备列表窗口:", deviceWindow.errorString())
+                            console.error("设备窗口未正确加载:", deviceWindowLoader.status)
                         }
                     }
                     onEntered: {
@@ -512,19 +527,16 @@ ApplicationWindow  {
             Connections {
                 target: connection_manager
                 function onHaveConRequest(device_ip, device_name) {
-                    var con_request_dialog = Qt.createComponent("qrc:/qml/ui/ConnectRequestDialog.qml")
-                    if (con_request_dialog.status === Component.Ready) {
-                        var window = con_request_dialog.createObject(root, {
-                            "device_ip": device_ip,"device_name":device_name
-                        })
-
-                        window.show()
-                        window.requestActivate()
-                    } else {
-                        console.error("无法创建连接请求弹窗:", con_request_dialog.errorString())
+                if (connectRequestLoader.status === Loader.Ready) {
+                    connectRequestLoader.item.device_ip = device_ip
+                    connectRequestLoader.item.device_name = device_name
+                    connectRequestLoader.item.show()
+                    connectRequestLoader.item.requestActivate()
+                } else {
+                    console.error("连接请求对话框未正确加载:", connectRequestLoader.status)
+                }
                     }
                 }
-            }
         }        
         // 清空按钮
         Rectangle {
@@ -615,5 +627,8 @@ ApplicationWindow  {
         border.width: 1
         y: parent.height - 4
         visible: !root.expanded
+    }
+    Component.onDestruction: {
+
     }
 }

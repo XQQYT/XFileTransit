@@ -1,4 +1,6 @@
 set(CMAKE_SYSTEM_NAME Windows)
+#指定Qt路径
+set(CMAKE_PREFIX_PATH "D:/Qt6.8/6.8.2/mingw_64")
 
 # 指定编译器
 set(CMAKE_C_COMPILER "D:/Qt6.8/Tools/mingw1310_64/bin/gcc.exe")

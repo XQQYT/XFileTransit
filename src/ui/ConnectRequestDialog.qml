@@ -14,11 +14,7 @@ ApplicationWindow {
     // 属性接口，用于外部设置设备信息
     property string device_ip: ""
     property string device_name: ""
-    property alias acceptButton: acceptBtn
-    property alias rejectButton: rejectBtn
-    
-    signal accepted()
-    signal rejected()
+    property var connection_model: null
     
     // 居中显示
     x: (Screen.width - width) / 2
@@ -90,7 +86,7 @@ ApplicationWindow {
                 text: "拒绝"
                 Layout.preferredWidth: 100
                 onClicked: {
-                    connectionDialog.rejected()
+                    connection_model.rejected(device_ip,device_name)
                     connectionDialog.close()
                 }
             }
@@ -101,7 +97,7 @@ ApplicationWindow {
                 Layout.preferredWidth: 100
                 highlighted: true
                 onClicked: {
-                    connectionDialog.accepted()
+                    connection_model.accepted(device_ip,device_name)
                     connectionDialog.close()
                 }
             }
@@ -112,7 +108,7 @@ ApplicationWindow {
     Shortcut {
         sequence: "Esc"
         onActivated: {
-            connectionDialog.rejected()
+            connection_model.rejected(device_ip,device_name)
             connectionDialog.close()
         }
     }

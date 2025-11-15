@@ -13,9 +13,14 @@
 
 void initRegisterEvents()
 {
+    //发送连接请求
     EventBusManager::instance().registerEvent("/network/send_connect_request");
+    //收到连接请求
     EventBusManager::instance().registerEvent("/network/have_connect_request");
-
+    //发送请求结果，接受/拒绝
+    EventBusManager::instance().registerEvent("/network/send_connect_request_result");
+    //收到请求结果，接受/拒绝
+    EventBusManager::instance().registerEvent("/network/have_connect_request_result");
 }
 int main(int argc, char* argv[])
 {
@@ -24,8 +29,7 @@ int main(int argc, char* argv[])
     QFont defaultFont("Segoe UI");
     app.setFont(defaultFont);
 
-    QQmlApplicationEngine engine;
-
+    QQmlApplicationEngine engine;    
     // 初始化组件
     EventBusManager::instance().startEventBus();
     initRegisterEvents();
