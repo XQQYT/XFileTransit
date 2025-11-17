@@ -34,9 +34,9 @@ private:
 
     void startTlsListen(const std::string& address, const std::string& tls_port, std::function<bool(bool)> tls_callback);
     void startTcpListen(const std::string& address, const std::string& tcp_port, std::function<bool(bool)> tcp_callback);
-
-    private:
     SOCKET createListenSocket(const std::string& address, const std::string& port);
+    void dealConnectError();
+    void dealRecvError();
 private:
     WSADATA wsa_data;
 
@@ -55,7 +55,8 @@ private:
     std::thread* tls_listen_thread;
     std::thread* tcp_listen_thread;
 
-    std::atomic<bool> runing{ false };
+    std::atomic<bool> listen_running{ false };
+    std::atomic<bool> recv_running{ false };
     std::atomic<bool> connect_status{ false };
 };
 

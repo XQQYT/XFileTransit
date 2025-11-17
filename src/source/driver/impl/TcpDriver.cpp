@@ -36,50 +36,95 @@ void TcpDriver::initSocket(const std::string& address, const std::string& tls_po
     inet_pton(AF_INET, address.c_str(), &client_tcp_addr.sin_addr);
 }
 
+void TcpDriver::dealConnectError()
+{
+    if(this->dce_cb)
+    {
+        int error_code = WSAGetLastError();
+        switch (error_code) {
+        case WSAECONNREFUSED:
+            this->dce_cb(ConnectError::CONNECT_REFUSED);
+            break;
+        case WSAETIMEDOUT:
+            this->dce_cb(ConnectError::CONNECT_TIMEOUT);
+            break;
+        case WSAEHOSTUNREACH:
+            this->dce_cb(ConnectError::CONNECT_HOST_UNREACHABLE);
+            break;
+        case WSAENETUNREACH:
+            this->dce_cb(ConnectError::CONNECT_NETWORK_UNREACHABLE);
+            break;
+        case WSAEADDRINUSE:
+            this->dce_cb(ConnectError::CONNECT_ADDR_IN_USE);
+            break;
+        case WSAEINPROGRESS:
+            this->dce_cb(ConnectError::CONNECT_IN_PROGRESS);
+            break;
+        case WSAEACCES:
+            this->dce_cb(ConnectError::CONNECT_ACCESS_DENIED);
+            break;
+        case WSAEISCONN:
+            this->dce_cb(ConnectError::CONNECT_ALREADY_CONNECTED);
+            break;
+        case WSAEFAULT:
+            this->dce_cb(ConnectError::CONNECT_BAD_ADDRESS);
+            break;
+        case WSAEINTR:
+            this->dce_cb(ConnectError::CONNECT_INTERRUPTED);
+            break;
+        default:
+            std::cerr << "Connect unknown error" << std::endl;
+            break;
+        }        
+    }
+}
+
+void TcpDriver::dealRecvError()
+{
+    if(this->dre_cb)
+    {
+        int error_code = WSAGetLastError();
+        switch (error_code) {
+        case WSAECONNRESET:
+            //对方正常关闭
+            if(this->dcc_cb)
+            {
+                this->dcc_cb();
+            }
+            break;
+        case WSAECONNABORTED:
+            this->dre_cb(RecvError::RECV_CONN_ABORTED);
+            break;
+        case WSAENOTCONN:
+            this->dre_cb(RecvError::RECV_NOT_CONNECTED);
+            break;
+        case WSAENETDOWN:
+            this->dre_cb(RecvError::RECV_NETWORK_DOWN);
+            break;
+        case WSAETIMEDOUT:
+            this->dre_cb(RecvError::RECV_TIMED_OUT);
+            break;
+        case WSAEINTR:
+            this->dre_cb(RecvError::RECV_INTERRUPTED);
+            break;
+        case WSAESHUTDOWN:
+            this->dre_cb(RecvError::RECV_SHUTDOWN);
+            break;
+        case WSAENETRESET:
+            this->dre_cb(RecvError::RECV_NETWORK_RESET);
+            break;
+        default:
+            std::cerr << "Recv unknown error" << std::endl;
+            break;
+        }        
+    }
+}
+
 void TcpDriver::connectTo(std::function<void(bool)> callback)
 {
     int ret = connect(client_socket, (sockaddr*)&client_tls_addr, sizeof(client_tls_addr));
     if (ret == SOCKET_ERROR) {
-        int error_code = WSAGetLastError();
-
-        switch (error_code) {
-        case WSAECONNREFUSED:
-            std::cerr << "Connection refused (No service listening on target port)" << std::endl;
-            break;
-        case WSAETIMEDOUT:
-            std::cerr << "Connection timed out" << std::endl;
-            break;
-        case WSAEHOSTUNREACH:
-            std::cerr << "Host unreachable" << std::endl;
-            break;
-        case WSAENETUNREACH:
-            std::cerr << "Network unreachable" << std::endl;
-            break;
-        case WSAEADDRINUSE:
-            std::cerr << "Address already in use" << std::endl;
-            break;
-        case WSAEINPROGRESS:
-            std::cerr << "Non-blocking socket connection in progress" << std::endl;
-            break;
-        case WSAEACCES:
-            std::cerr << "Permission denied" << std::endl;
-            break;
-        case WSAEAFNOSUPPORT:
-            std::cerr << "Address family not supported" << std::endl;
-            break;
-        case WSAECONNABORTED:
-            std::cerr << "Connection aborted" << std::endl;
-            break;
-        case WSAECONNRESET:
-            std::cerr << "Connection reset by peer" << std::endl;
-            break;
-        case WSAENOTCONN:
-            std::cerr << "Socket is not connected" << std::endl;
-            break;
-        default:
-            std::cerr << "Unknown error" << std::endl;
-            break;
-        }
+        dealConnectError();
     }
     else {
         std::cout << "Connect successful" << std::endl;
@@ -167,7 +212,7 @@ void TcpDriver::startTlsListen(const std::string& address, const std::string& tl
             fds[0].fd = tls_listen_socket;
             fds[0].events = POLLRDNORM;
 
-            while (this->runing)
+            while (this->listen_running)
             {
                 //只有在等待TLS请求时才接收
                 if(this->connection_status == ConnectionStatus::WAITING_TLS)
@@ -226,7 +271,7 @@ void TcpDriver::startTcpListen(const std::string& address, const std::string& tc
             fds[0].fd = tcp_listen_socket;
             fds[0].events = POLLRDNORM;
 
-            while (this->runing)
+            while (this->listen_running)
             {
                 //只有在tls建立成功时才监听
                 if(this->connection_status == ConnectionStatus::TLS_CONNECTED)
@@ -273,7 +318,7 @@ void TcpDriver::startTcpListen(const std::string& address, const std::string& tc
 void TcpDriver::startListen(const std::string& address, const std::string& tls_port, 
     const std::string& tcp_port,std::function<bool(bool)> tls_callback, std::function<bool(bool)> tcp_callback)
 {
-    runing = true;
+    listen_running = true;
     startTlsListen(address, tls_port, tls_callback);
     startTcpListen(address, tcp_port, tcp_callback);
 }
@@ -317,10 +362,10 @@ void TcpDriver::recvMsg(std::function<void(ParsedMsg&& parsed_msg)> callback)
     {
         throw std::runtime_error("connect status is false");
     }
-    runing = true;
+    recv_running = true;
     receive_thread = new std::thread([this, callback = std::move(callback)]()
         {
-            while (runing)
+            while (recv_running)
             {
                 uint8_t peek_buffer[2];
                 int peeked = recv(client_socket, reinterpret_cast<char*>(peek_buffer), sizeof(peek_buffer), MSG_PEEK);
@@ -382,29 +427,22 @@ void TcpDriver::recvMsg(std::function<void(ParsedMsg&& parsed_msg)> callback)
                         recv(client_socket, dump_buffer, sizeof(dump_buffer), 0);
                     }
 
-                }
+                }//对方正常关闭
                 else if (peeked == 0) {
-                    break;
+                    if(this->dcc_cb)
+                    {
+                        this->dcc_cb();
+                    }
+                }else if (peeked == SOCKET_ERROR) {//错误处理
+                    dealRecvError();
                 }
-                else {
-                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                        continue;
-                    }
-                    else if (errno == EINTR) {
-                        continue;
-                    }
-                    else {
-                        perror("recv error");
-                        break;
-                    }
-                }
-
             } });
 }
 
 void TcpDriver::closeSocket()
 {
-    runing = false;
+    listen_running = false;
+    recv_running = false;
     if (connect_status)
     {
         closesocket(client_socket);
@@ -444,6 +482,7 @@ void TcpDriver::resetConnection()
     {
         closesocket(client_socket);
     }
+    recv_running = false;
     client_socket = INVALID_SOCKET;
     candidate_ip.clear();
     client_tls_addr = {};

@@ -25,11 +25,13 @@ Window {
         if (ret) {
             // 连接成功：隐藏设备窗口，对话框作为独立窗口显示
             deviceListWindow.hide()
+            generalDialogLoader.item.iconType = generalDialogLoader.item.success
             generalDialogLoader.item.text = "连接成功"
             generalDialogLoader.item.x = (Screen.width - generalDialogLoader.item.width) / 2
             generalDialogLoader.item.y = (Screen.height - generalDialogLoader.item.height) / 2
         } else {
             // 连接被拒绝：不隐藏设备窗口，对话框相对于设备窗口居中
+            generalDialogLoader.item.iconType = generalDialogLoader.item.error
             generalDialogLoader.item.text = "连接被拒绝"
             generalDialogLoader.item.x = deviceListWindow.x + (deviceListWindow.width - generalDialogLoader.item.width) / 2
             generalDialogLoader.item.y = deviceListWindow.y + (deviceListWindow.height - generalDialogLoader.item.height) / 2

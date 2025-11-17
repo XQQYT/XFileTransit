@@ -8,6 +8,14 @@ ConnectionManager::ConnectionManager()
         this,
         std::placeholders::_1,
         std::placeholders::_2));
+    EventBusManager::instance().subscribe("/network/have_connect_error", std::bind(&ConnectionManager::onHaveConnectError,
+        this,
+        std::placeholders::_1));
+    EventBusManager::instance().subscribe("/network/have_recv_error", std::bind(&ConnectionManager::onHaveRecvError,
+        this,
+        std::placeholders::_1));
+    EventBusManager::instance().subscribe("/network/connection_closed", std::bind(&ConnectionManager::onConnectionClosed,
+        this));
 }
 
 void ConnectionManager::onHaveConnectRequest(std::string device_ip, std::string device_name)
@@ -25,4 +33,30 @@ void ConnectionManager::accepted(const QString device_ip, const QString device_n
 void ConnectionManager::rejected(const QString device_ip, const QString device_name)
 {
     EventBusManager::instance().publish("/network/send_connect_request_result", false);
+}
+
+void ConnectionManager::disconnect()
+{
+    EventBusManager::instance().publish("/network/disconnect");
+}
+
+void ConnectionManager::onHaveConnectError(std::string message)
+{
+    QMetaObject::invokeMethod(this, [this, message]() {
+        emit haveConnectError(QString::fromStdString(message));
+    }, Qt::QueuedConnection);
+}
+
+void ConnectionManager::onHaveRecvError(std::string message)
+{
+    QMetaObject::invokeMethod(this, [this, message]() {
+        emit haveRecvError(QString::fromStdString(message));
+    }, Qt::QueuedConnection);
+}
+
+void ConnectionManager::onConnectionClosed()
+{
+    QMetaObject::invokeMethod(this, [this]() {
+        emit connectionClosed();
+    }, Qt::QueuedConnection);
 }

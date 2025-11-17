@@ -23,6 +23,21 @@ void NetworkController::initSubscribe()
         std::bind(&NetworkController::onHaveConnectRequestResult,
             this,
             std::placeholders::_1));
+    EventBusManager::instance().subscribe("/network/disconnect",
+        std::bind(&NetworkController::onDisconnect,
+            this));
+    //设置错误处理回调函数
+    control_msg_network_driver->setDealConnectErrorCb(std::bind(
+        &NetworkController::onConnectError,
+        this,
+        std::placeholders::_1));
+    control_msg_network_driver->setDealRecvErrorCb(std::bind(
+        &NetworkController::onRecvError,
+        this,
+        std::placeholders::_1));
+    control_msg_network_driver->setDealConnClosedCb(std::bind(
+        &NetworkController::onConnClosed,
+        this));
 }
 
 NetworkController::NetworkController() :
@@ -94,4 +109,63 @@ void NetworkController::onHaveConnectRequestResult(bool res)
     {
         control_msg_network_driver->resetConnection();
     }
+}
+
+void NetworkController::onDisconnect()
+{
+    control_msg_network_driver->resetConnection();
+}
+
+void NetworkController::onConnectError(const NetworkInterface::ConnectError error)
+{
+    static const std::map<NetworkInterface::ConnectError, std::string> connect_error_messages = {
+        {NetworkInterface::ConnectError::CONNECT_ACCESS_DENIED, "连接被拒绝：权限不足"},
+        {NetworkInterface::ConnectError::CONNECT_ADDR_IN_USE, "地址已被占用"},
+        {NetworkInterface::ConnectError::CONNECT_ALREADY_CONNECTED, "套接字已连接"},
+        {NetworkInterface::ConnectError::CONNECT_BAD_ADDRESS, "地址参数错误"},
+        {NetworkInterface::ConnectError::CONNECT_HOST_UNREACHABLE, "目标主机不可达"},
+        {NetworkInterface::ConnectError::CONNECT_IN_PROGRESS, "非阻塞连接正在进行中"},
+        {NetworkInterface::ConnectError::CONNECT_INTERRUPTED, "连接操作被中断"},
+        {NetworkInterface::ConnectError::CONNECT_NETWORK_UNREACHABLE, "网络不可达"},
+        {NetworkInterface::ConnectError::CONNECT_REFUSED, "连接被目标拒绝"},
+        {NetworkInterface::ConnectError::CONNECT_TIMEOUT, "连接超时"}
+    };
+
+    // 使用时
+    auto it = connect_error_messages.find(error);
+    if (it != connect_error_messages.end()) {
+        EventBusManager::instance().publish("/network/have_connect_error", it->second);
+    } else {
+        EventBusManager::instance().publish("/network/have_connect_error", std::string("未知连接错误"));
+    }
+    control_msg_network_driver->resetConnection();
+}
+
+void NetworkController::onRecvError(const NetworkInterface::RecvError error)
+{
+    static const std::map<NetworkInterface::RecvError, std::string> error_map = {
+        {NetworkInterface::RecvError::RECV_CONN_ABORTED,    "连接被中止"},
+        {NetworkInterface::RecvError::RECV_NOT_CONNECTED,   "网络未连接"},
+        {NetworkInterface::RecvError::RECV_NETWORK_DOWN,    "网络连接故障"},
+        {NetworkInterface::RecvError::RECV_TIMED_OUT,       "接收数据超时"},
+        {NetworkInterface::RecvError::RECV_INTERRUPTED,     "接收操作被中断"},
+        {NetworkInterface::RecvError::RECV_SHUTDOWN,        "连接已关闭"},
+        {NetworkInterface::RecvError::RECV_NETWORK_RESET,   "网络连接重置"}
+    };
+    
+    auto it = error_map.find(error);
+    if (it != error_map.end()) {
+        EventBusManager::instance().publish("/network/have_recv_error", it->second);
+    }
+    else{
+        EventBusManager::instance().publish("/network/have_recv_error", std::string("未知接收错误"));
+    }
+    control_msg_network_driver->resetConnection();
+}
+
+void NetworkController::onConnClosed()
+{
+    EventBusManager::instance().publish("/network/connection_closed");
+    //重置驱动上下文
+    control_msg_network_driver->resetConnection();
 }

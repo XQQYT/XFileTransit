@@ -19,6 +19,14 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/network/send_connect_request_result");
     //收到请求结果，接受/拒绝
     EventBusManager::instance().registerEvent("/network/have_connect_request_result");
+    //断开所有连接
+    EventBusManager::instance().registerEvent("/network/disconnect");
+    //收到驱动connect的错误
+    EventBusManager::instance().registerEvent("/network/have_connect_error");
+    //收到驱动recv的错误
+    EventBusManager::instance().registerEvent("/network/have_recv_error");
+    //收到对端关闭连接
+    EventBusManager::instance().registerEvent("/network/connection_closed");
 }
 int main(int argc, char* argv[])
 {

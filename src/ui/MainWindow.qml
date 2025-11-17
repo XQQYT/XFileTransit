@@ -27,6 +27,9 @@ ApplicationWindow  {
     property bool isConnected: false
     property string connectionStatus: isConnected ? current_device : "未连接"
 
+    property var currentAcceptHandler: null
+    property var currentRejectHandler: null
+
     Loader {
         id: deviceWindowLoader
         source: "qrc:/qml/ui/DeviceListWindow.qml"
@@ -42,6 +45,66 @@ ApplicationWindow  {
         
         onLoaded: {
             item.connection_model = connection_manager
+        }
+    }
+
+    Connections {
+        target: connection_manager
+        enabled: connectRequestLoader.status === Loader.Ready
+        
+        function onHaveConnectError(message) {
+            if (generalDialogLoader.status === Loader.Ready) {
+                generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                generalDialogLoader.item.text = message
+                generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                generalDialogLoader.item.show()
+                generalDialogLoader.item.requestActivate()
+            }
+        }
+        
+        function onHaveRecvError(message) {
+            if (generalDialogLoader.status === Loader.Ready) {
+                generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                generalDialogLoader.item.text = message
+                generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                generalDialogLoader.item.show()
+                generalDialogLoader.item.requestActivate()
+                resetStatus()
+            }
+        }
+        
+        function onConnectionClosed() {
+            if (generalDialogLoader.status === Loader.Ready) {
+                generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                generalDialogLoader.item.text = "对方断开连接"
+                generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                generalDialogLoader.item.show()
+                generalDialogLoader.item.requestActivate()
+                resetStatus()
+            }
+            resetStatus()
+        }
+    }
+
+    Loader {
+        id: generalDialogLoader
+        source: "qrc:/qml/ui/GeneralDialog.qml"
+        onLoaded: {
+            item.accepted.connect(function() {
+                if (currentAcceptHandler) {
+                    currentAcceptHandler()
+                }
+                currentAcceptHandler = null
+                currentRejectHandler = null
+            })
+            
+            item.rejected.connect(function() {
+                if (currentRejectHandler) {
+                    currentRejectHandler()
+                }
+                currentAcceptHandler = null
+                currentRejectHandler = null
+            })
         }
     }
 
@@ -509,11 +572,28 @@ ApplicationWindow  {
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked: {
-                        if (deviceWindowLoader.status === Loader.Ready) {
-                            deviceWindowLoader.item.show()
-                            deviceWindowLoader.item.requestActivate()
-                        } else {
-                            console.error("设备窗口未正确加载:", deviceWindowLoader.status)
+                        //尚未建立连接，则是打开设备查找
+                        if(!isConnected){
+                            if (deviceWindowLoader.status === Loader.Ready) {
+                                    deviceWindowLoader.item.show()
+                                    deviceWindowLoader.item.requestActivate()
+                                } else {
+                                    console.error("设备窗口未正确加载:", deviceWindowLoader.status)
+                                }
+                        }else{//已建立连接，则是断开连接
+                            if (generalDialogLoader.status === Loader.Ready) {
+                                generalDialogLoader.item.iconType = generalDialogLoader.item.info
+                                generalDialogLoader.item.text = "确定断开连接？"
+                                generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
+                                
+                                // 动态设置当前的处理函数
+                                root.currentAcceptHandler = function() {
+                                    resetStatus()
+                                    connection_manager.disconnect()
+                                }
+                                generalDialogLoader.item.show()
+                                generalDialogLoader.item.requestActivate()
+                            }
                         }
                     }
                     onEntered: {
@@ -544,11 +624,9 @@ ApplicationWindow  {
                 function onAccepted(ip, name) {
                     current_device = (name == "UnKnown" ? ip : name);
                     isConnected = true;
-                    console.log("用户接受了连接请求:", ip, name)
                 }
                 
                 function onRejected(ip, name) {
-                    console.log("用户拒绝了连接请求:", ip, name)
                 }
             }
             Connections {
@@ -655,5 +733,10 @@ ApplicationWindow  {
     }
     Component.onDestruction: {
 
+    }
+
+    function resetStatus() {
+        isConnected = false
+        current_device = ""
     }
 }

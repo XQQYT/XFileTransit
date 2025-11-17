@@ -3,7 +3,7 @@
 
 #include "Parser.h"
 #include "driver/interface/JsonFactoryInterface.h"
-#include <unordered_map>
+#include <map>
 #include <functional>
 #include <string>
 
@@ -20,7 +20,7 @@ namespace JsonMessageType {
     };
 
     inline ResponseType parseResponseType(const std::string& type) {
-        static const std::unordered_map<std::string, ResponseType> mapping = {
+        static const std::map<std::string, ResponseType> mapping = {
             {"connect_request_response", ResponseType::CONNECT_REQUEST_RESPONSE},
         };
         
@@ -29,7 +29,7 @@ namespace JsonMessageType {
     }
 
     inline ResultType parseResultType(const std::string& result) {
-        static const std::unordered_map<std::string, ResultType> mapping = {
+        static const std::map<std::string, ResultType> mapping = {
             {"success", ResultType::SUCCESS},
             {"failed", ResultType::FAILED}
         };
@@ -51,6 +51,6 @@ private:
     void publishResponse(std::string&& event_name, JsonMessageType::ResultType type, std::string arg0);
 private:
     std::unique_ptr <Json::JsonFactoryInterface> json_driver;
-    std::unordered_map<std::string, std::function<void(std::unique_ptr<Json::Parser> parser)>> type_funcfion_map;
+    std::map<std::string, std::function<void(std::unique_ptr<Json::Parser> parser)>> type_funcfion_map;
 };
 #endif
