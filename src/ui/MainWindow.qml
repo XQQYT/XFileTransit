@@ -23,8 +23,9 @@ ApplicationWindow  {
     property int itemsPerRow: Math.max(1, Math.floor((width - 40) / itemWidth)) // 每行显示的文件数量
 
     // 连接状态属性
+    property string current_device: ""
     property bool isConnected: false
-    property string connectionStatus: isConnected ? "已连接" : "未连接"
+    property string connectionStatus: isConnected ? current_device : "未连接"
 
     Loader {
         id: deviceWindowLoader
@@ -271,7 +272,6 @@ ApplicationWindow  {
         cellHeight: itemHeight
         
         onCountChanged: {
-            console.log("文件数量变化，当前数量:", count)
             updateWindowHeight()
         }
 
@@ -497,7 +497,7 @@ ApplicationWindow  {
                 anchors.verticalCenter: parent.verticalCenter
                 
                 Text {
-                    text: "切换" 
+                    text: isConnected ? "断开连接" : "连接"
                     font.pixelSize: 10
                     color: "white"
                     font.bold: true
@@ -536,7 +536,32 @@ ApplicationWindow  {
                     console.error("连接请求对话框未正确加载:", connectRequestLoader.status)
                 }
                     }
+            }
+            Connections {
+                target: connectRequestLoader.item
+                enabled: connectRequestLoader.status === Loader.Ready
+                
+                function onAccepted(ip, name) {
+                    current_device = (name == "UnKnown" ? ip : name);
+                    isConnected = true;
+                    console.log("用户接受了连接请求:", ip, name)
                 }
+                
+                function onRejected(ip, name) {
+                    console.log("用户拒绝了连接请求:", ip, name)
+                }
+            }
+            Connections {
+                target: device_list_model
+                enabled: deviceWindowLoader.status === Loader.Ready
+                
+                function onConnectResult(ret, ip) {
+                    if(ret){
+                        current_device = ip;
+                        isConnected = true;
+                    }
+                }
+            }
         }        
         // 清空按钮
         Rectangle {

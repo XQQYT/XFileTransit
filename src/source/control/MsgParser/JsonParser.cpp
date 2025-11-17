@@ -1,6 +1,7 @@
 #include "control/MsgParser/JsonParser.h"
 #include "driver/impl/Nlohmann.h"
-#include <control/EventBusManager.h>
+#include "control/EventBusManager.h"
+#include "control/GlobalStatusManager.h"
 #include <iostream>
 
 JsonParser::JsonParser() :
@@ -31,9 +32,11 @@ void JsonParser::parse(std::vector<uint8_t>&& data)
 
 void JsonParser::connectRequest(std::unique_ptr<Json::Parser> parser)
 {
-    EventBusManager::instance().publish("/network/have_connect_request",
-        parser->getValue("sender_device_ip"),
-        parser->getValue("sender_device_name"));
+    std::string ip = parser->getValue("sender_device_ip");
+    std::string name = parser->getValue("sender_device_name");
+    EventBusManager::instance().publish("/network/have_connect_request", parser->getValue("sender_device_ip"), parser->getValue("sender_device_name"));
+    GlobalStatusManager::getInstance().setCurrentDeviceIP(std::move(ip));
+    GlobalStatusManager::getInstance().setCurrentDeviceName(std::move(name));
 }
 
 void JsonParser::resonpeResult(std::unique_ptr<Json::Parser> parser)
@@ -43,7 +46,8 @@ void JsonParser::resonpeResult(std::unique_ptr<Json::Parser> parser)
     switch(subtype)
     {
         case JsonMessageType::ResponseType::CONNECT_REQUEST_RESPONSE:
-            publishResponse("/network/have_connect_request_result", arg0);
+            publishResponse("/network/have_connect_request_result", arg0,
+                GlobalStatusManager::getInstance().getCurrentDeviceIP());
             break;
         default:
             break;
@@ -66,3 +70,21 @@ void JsonParser::publishResponse(std::string&& event_name, JsonMessageType::Resu
             break;
     }
 }
+
+void JsonParser::publishResponse(std::string&& event_name, JsonMessageType::ResultType type, std::string arg0)
+{
+    switch(type)
+    {
+        case JsonMessageType::ResultType::SUCCESS:
+            EventBusManager::instance().publish(event_name, true, arg0);
+            break;
+        case JsonMessageType::ResultType::FAILED:
+            EventBusManager::instance().publish(event_name, false, arg0);
+            break;
+        case JsonMessageType::ResultType::UNKNOWN:
+            break;
+        default:
+            break;
+    }
+}
+

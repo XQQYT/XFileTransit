@@ -13,10 +13,6 @@ public:
     Q_INVOKABLE void rejected(const QString device_ip, const QString device_name);
 signals:
     void haveConRequest(const QString device_ip, const QString device_name);
-private:
-    QString current_target_ip;
-    QString current_target_name;
-    bool current_conn_status;
 };
 
 

@@ -40,7 +40,7 @@ public:
 signals:
     void scanFinished();
     void scanningChanged();
-    void connectResult(bool ret);
+    void connectResult(bool ret, QString di);
 private slots:
     void onFoundOne(DeviceInfo info);
 private:

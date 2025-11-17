@@ -3,8 +3,6 @@
 #include <QtQml/QQmlContext>
 // model
 #include "model/ModelManager.h"
-#include "model/FileListModel.h"
-#include "model/DeviceListModel.h"
 // control
 #include "control/EventBusManager.h"
 #include "control/NetworkController.h"

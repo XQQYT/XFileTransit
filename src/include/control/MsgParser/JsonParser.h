@@ -48,6 +48,7 @@ private:
     void connectRequest(std::unique_ptr<Json::Parser> parser);
     void resonpeResult(std::unique_ptr<Json::Parser> parser);
     void publishResponse(std::string&& event_name, JsonMessageType::ResultType type);
+    void publishResponse(std::string&& event_name, JsonMessageType::ResultType type, std::string arg0);
 private:
     std::unique_ptr <Json::JsonFactoryInterface> json_driver;
     std::unordered_map<std::string, std::function<void(std::unique_ptr<Json::Parser> parser)>> type_funcfion_map;

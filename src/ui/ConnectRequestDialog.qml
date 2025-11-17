@@ -16,6 +16,9 @@ ApplicationWindow {
     property string device_name: ""
     property var connection_model: null
     
+    signal accepted(string ip, string name)
+    signal rejected(string ip, string name)
+
     // 居中显示
     x: (Screen.width - width) / 2
     y: (Screen.height - height) / 2
@@ -86,8 +89,9 @@ ApplicationWindow {
                 text: "拒绝"
                 Layout.preferredWidth: 100
                 onClicked: {
-                    connection_model.rejected(device_ip,device_name)
-                    connectionDialog.close()
+                    connectionDialog.rejected(device_ip, device_name)
+                    connection_model.rejected(device_ip, device_name)
+                    connectionDialog.hide()
                 }
             }
             
@@ -97,8 +101,9 @@ ApplicationWindow {
                 Layout.preferredWidth: 100
                 highlighted: true
                 onClicked: {
+                    connectionDialog.accepted(device_ip, device_name)
                     connection_model.accepted(device_ip,device_name)
-                    connectionDialog.close()
+                    connectionDialog.hide()
                 }
             }
         }
@@ -108,8 +113,9 @@ ApplicationWindow {
     Shortcut {
         sequence: "Esc"
         onActivated: {
+            connectionDialog.accepted(device_ip, device_name)
             connection_model.rejected(device_ip,device_name)
-            connectionDialog.close()
+            connectionDialog.hide()
         }
     }
 }

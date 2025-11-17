@@ -9,9 +9,9 @@ DeviceListModel::DeviceListModel(QObject* parent) :
         scanning = false;
         emit scanningChanged();
     });
-    EventBusManager::instance().subscribe("/network/have_connect_request_result",[this](bool ret){
-        QMetaObject::invokeMethod(this, [this,ret]() {
-            emit connectResult(ret);
+    EventBusManager::instance().subscribe("/network/have_connect_request_result",[this](bool ret, std::string di){
+        QMetaObject::invokeMethod(this, [this, ret, di]() {
+            emit connectResult(ret, QString::fromStdString(di));
         }, Qt::QueuedConnection);
     });
     QObject::connect(&icmp_scanner, &ICMPScanner::foundOne, this, &DeviceListModel::onFoundOne);

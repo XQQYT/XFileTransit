@@ -2,13 +2,12 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
-Popup {
+ApplicationWindow  {
     id: root
     width: 300
     height: 150
-    modal: true
-    focus: true
-    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+    modality: Qt.ApplicationModal
+    flags: Qt.Dialog
     
     property string title: "提示"
     property string text: ""
@@ -25,9 +24,13 @@ Popup {
     signal rejected()
     signal clicked(int button)
     
-    x: (parent.width - width) / 2
-    y: (parent.height - height) / 2
-    
+    onVisibleChanged: {
+        if (visible) {
+            requestActivate() // 请求激活窗口
+            forceActiveFocus() // 强制获得焦点
+        }
+    }
+
     Rectangle {
         id: bgRect
         anchors.fill: parent
@@ -70,7 +73,7 @@ Popup {
                 onClicked: {
                     root.clicked(root.yes)
                     root.accepted()
-                    root.close()
+                    root.hide()
                 }
             }
             
@@ -80,7 +83,7 @@ Popup {
                 onClicked: {
                     root.clicked(root.no)
                     root.rejected()
-                    root.close()
+                    root.hide()
                 }
             }
             
@@ -90,7 +93,7 @@ Popup {
                 onClicked: {
                     root.clicked(root.ok)
                     root.accepted()
-                    root.close()
+                    root.hide()
                 }
             }
             
@@ -101,7 +104,7 @@ Popup {
                 onClicked: {
                     root.clicked(root.cancel)
                     root.rejected()
-                    root.close()
+                    root.hide()
                 }
             }
         }

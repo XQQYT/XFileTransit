@@ -5,6 +5,7 @@
 #include "driver/impl/OpensslDriver.h"
 #include "control/MsgParser/JsonParser.h"
 #include "control/MsgParser/BinaryParser.h"
+#include "control/GlobalStatusManager.h"
 
 void NetworkController::initSubscribe()
 {
@@ -55,6 +56,7 @@ void NetworkController::onSendConnectRequest(std::string sender_device_name, std
                     std::cout << "recv msg -> " << std::string(msg.data.data(), msg.data.data() + msg.data.size()) << std::endl;
                     json_parser->parse(std::move(msg.data));
                 });
+                GlobalStatusManager::getInstance().setCurrentDeviceIP(target_device_ip);
                 std::string msg = json_builder->getBuilder(Json::BuilderType::User)->build(
                     static_cast<uint64_t>(Json::MessageType::User::ConnectRequest),
                     {

@@ -410,8 +410,8 @@ public:
         }
         else
         {
-            auto args_tuple =
-                std::make_shared<std::tuple<std::decay_t<Args>...>>(std::forward<Args>(args)...);
+            using DecayedTuple = std::tuple<std::decay_t<Args>...>;
+            auto args_tuple = std::make_shared<DecayedTuple>(std::forward<Args>(args)...);
 
             for (auto& wrapper : it->second)
             {
@@ -422,8 +422,8 @@ public:
                         {
                             try
                             {
-                                if (auto cb = std::any_cast<std::function<void(Args...)>>(
-                                        &wrapper.callback))
+                                if (auto cb = std::any_cast<std::function<void(std::decay_t<Args>...)>>(
+                                    &wrapper.callback))
                                 {
                                     std::apply(*cb, *args_tuple);
                                 }
