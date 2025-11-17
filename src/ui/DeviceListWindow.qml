@@ -57,11 +57,16 @@ Window {
             }
             
             Button {
-                text: qsTr("刷新")
+                text: deviceModel.scanning ? qsTr("停止") : qsTr("扫描")
+                width: 50
                 onClicked: {
-                    if (deviceModel && !deviceModel.scanning) {
-                        deviceModel.refresh()
-                    }
+                    if(deviceModel){
+                        if (!deviceModel.scanning) {
+                            deviceModel.refresh()
+                        }else{
+                            deviceModel.stopScan()
+                        }
+                    }            
                 }
             }
         }
