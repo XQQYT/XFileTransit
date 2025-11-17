@@ -123,9 +123,9 @@ Window {
                         onCanceled: deviceItem.pressed = false
                         
                         onClicked: {
-                            deviceModel.stopScan()
                             deviceModel.connectToTarget(index)
                             load_dialog.show("等待对方响应","取消")
+                            deviceModel.stopScan()
                         }
                         onDoubleClicked: {
                             console.log("双击设备:", deviceName, deviceIp)
@@ -224,8 +224,7 @@ Window {
         
         // 状态栏
         RowLayout {
-            Layout.fillWidth: true
-            
+            spacing: 12
             Label {
                 id: statusLabel
                 text: {
@@ -234,9 +233,54 @@ Window {
                     return qsTr("发现 %1 个设备").arg(deviceListView.count)
                 }
                 color: "#666"
+            }
+            //进度
+            RowLayout {
+                id: progressRow
+                spacing: 8
+                visible: deviceModel && deviceModel.scanning
+
+                property int currentProgress: 0
+                
+                Rectangle {
+                    id: customProgressBar
+                    width: 60
+                    height: 8
+                    radius: 4
+                    color: "#e6e6e6"  // 背景色
+                    
+                    Rectangle {
+                        id: progressFill
+                        width: parent.width * (progressRow.currentProgress / 100)
+                        height: parent.height
+                        radius: 3
+                        color: "#2196F3"  // 进度色
+                        
+                        Behavior on width {
+                            NumberAnimation { duration: 200 }
+                        }
+                    }
+                }
+                
+                Label {
+                    text: qsTr("%1%").arg(progressRow.currentProgress)
+                    color: "#2196F3"
+                    font.bold: true
+                    font.pixelSize: 12
+                }
+            }
+
+            Connections {
+                target: deviceModel
+                enabled: deviceModel !== null
+                
+                function onScanProgress(percent) {
+                    progressRow.currentProgress = Math.min(percent, 100)
+                }
+            }
+            Item{
                 Layout.fillWidth: true
             }
-            
             Item {
                 Layout.preferredWidth: 80  // 给右侧区域固定宽度
                 Layout.alignment: Qt.AlignRight

@@ -4,6 +4,7 @@
 #include <QtCore/QRegularExpression>
 #include <QtCore/QMutexLocker>
 #include <QtCore/QElapsedTimer>
+#include <QtCore/QRandomGenerator>
 
 #include "model/DeviceListModel.h"
 
@@ -18,8 +19,8 @@ ICMPScanner::ICMPScanner(QObject* parent)
 ICMPScanner::~ICMPScanner()
 {
     stopScan();
-    stopScan();
     WSACleanup();
+    wait();
 }
 
 void ICMPScanner::setNetworkRange(const QString& networkRange)
@@ -46,7 +47,6 @@ void ICMPScanner::startScan()
 void ICMPScanner::stopScan()
 {
     m_stopScan = true;
-    wait(5000); // 等待5秒线程结束
 }
 
 QVector<DeviceInfo> ICMPScanner::getScanResults() const
@@ -124,7 +124,6 @@ void ICMPScanner::run()
     }
 
     if (!m_stopScan) {
-        emit scanProgress(100);
         emit scanFinished();
     }
 }
@@ -196,6 +195,10 @@ void ICMPScanner::parseNetworkRange()
 void ICMPScanner::scanWorker()
 {
     while (!m_stopScan) {
+        // 随机延迟 [0, 10] 毫秒
+        int randomDelay = QRandomGenerator::global()->bounded(0, 11);
+        QThread::msleep(randomDelay);
+        
         QString ip;
 
         {
@@ -234,8 +237,6 @@ void ICMPScanner::scanWorker()
 
         emit scanProgress(progress);
 
-        // 短暂延迟，避免过于密集的扫描
-        msleep(10);
     }
 }
 
@@ -328,7 +329,6 @@ bool ICMPScanner::pingHost(const QString& ipAddress, QString& hostType)
 
     // 清理资源
     IcmpCloseHandle(hIcmp);
-    WSACleanup();
 
     return success;
 }

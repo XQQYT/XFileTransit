@@ -15,6 +15,9 @@ DeviceListModel::DeviceListModel(QObject* parent) :
         }, Qt::QueuedConnection);
     });
     QObject::connect(&icmp_scanner, &ICMPScanner::foundOne, this, &DeviceListModel::onFoundOne);
+    QObject::connect(&icmp_scanner, &ICMPScanner::scanProgress,this,[=](int progress){
+        emit scanProgress(progress);
+    });
 }
 DeviceListModel::~DeviceListModel()
 {
