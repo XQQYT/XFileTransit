@@ -65,15 +65,30 @@ void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
     if (files.isEmpty())
         return;
 
-    beginInsertRows(QModelIndex(), file_list.size(), file_list.size() + files.size() - 1);
-
-    for (const QString& file : files) {
-        file_list.append(FileInfo(is_remote_file, file));
+    QList<FileInfo> unique_files;
+    for (const QString& file : files) 
+    {
+        if(!isFileExists(file)) {
+            unique_files.append(FileInfo(is_remote_file, file));
+        }
     }
 
-    endInsertRows();
+    //只有存在新文件时才插入
+    if (!unique_files.isEmpty()) {
+        beginInsertRows(QModelIndex(), file_list.size(), file_list.size() + unique_files.size() - 1);
+        file_list.append(unique_files);
+        endInsertRows();
+    }
 
     qDebug() << "文件添加完成，当前文件数:" << file_list.size();
+}
+
+bool FileListModel::isFileExists(const QString& filePath)
+{
+    return std::any_of(file_list.begin(), file_list.end(),
+                      [&](const FileInfo& info) {
+                          return info.file_url == filePath;
+                      });
 }
 
 void FileListModel::removeFile(int index)

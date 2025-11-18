@@ -155,9 +155,7 @@ public:
   Q_INVOKABLE int getFileCount() const;
 
 private:
-  QString getFileName(const QString& file_url);
-  QString getFilePath(const QString& file_url);
-  quint64 getFileSize(const QString& file_url);
+  bool isFileExists(const QString& filePath);
 private:
   QList<FileInfo> file_list;
 };
