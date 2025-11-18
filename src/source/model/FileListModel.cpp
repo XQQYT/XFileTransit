@@ -3,27 +3,14 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QUrl>
 
-QString FileInfo::formatFileSize(quint64 bytes)
-{
-    const char* suffixes[] = { "B", "KB", "MB", "GB", "TB", "PB" };
-    double size = static_cast<double>(bytes);
-    int i = 0;
-
-    while (size >= 1024 && i < 5) {
-        size /= 1024;
-        ++i;
-    }
-
-    // 保留两位小数（当数值大于1KB时）
-    if (i == 0)
-        return QString::number(static_cast<qulonglong>(size)) + " " + suffixes[i];
-    else
-        return QString("%1 %2").arg(QString::number(size, 'f', 2)).arg(suffixes[i]);
-}
+FileInfo::idType FileInfo::current_type = FileInfo::idType::LOW;
+quint32 FileInfo::file_id_counter = 0;
 
 FileListModel::FileListModel(QObject* parent) :
     QAbstractListModel(parent)
 {
+    //FileInfo默认为LOW
+    FileInfo::setIdBegin(FileInfo::idType::LOW);
 }
 
 FileListModel::~FileListModel()
@@ -73,37 +60,6 @@ QHash<int, QByteArray> FileListModel::roleNames() const
     return roles;
 }
 
-QString FileListModel::getFileName(const QString& file_url)
-{
-    int last_separator_index = file_url.lastIndexOf('/');
-    if (last_separator_index == -1)
-        last_separator_index = file_url.lastIndexOf('\\');
-    return file_url.mid(last_separator_index + 1);
-}
-
-QString FileListModel::getFilePath(const QString& file_url)
-{
-    if (file_url.startsWith("file:///")) {
-#ifdef Q_OS_WIN
-        return QUrl(file_url).toLocalFile();
-#else
-        return file_url.mid(7);
-#endif
-    }
-    return file_url;
-}
-
-quint64 FileListModel::getFileSize(const QString& file_url)
-{
-    QString file_path = getFilePath(file_url);
-    QFileInfo file_info(file_path);
-    if (!file_info.exists()) {
-        qDebug() << "文件不存在:" << file_path;
-        return 0;
-    }
-    return file_info.size();
-}
-
 void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
 {
     if (files.isEmpty())
@@ -112,13 +68,7 @@ void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
     beginInsertRows(QModelIndex(), file_list.size(), file_list.size() + files.size() - 1);
 
     for (const QString& file : files) {
-        QString fileName = getFileName(file);
-        QString filePath = getFilePath(file);
-        quint64 fileSize = getFileSize(file);
-
-        qDebug() << "添加文件:" << fileName << "路径:" << filePath << "大小:" << fileSize;
-
-        file_list.append(FileInfo(is_remote_file, fileName, filePath, file, fileSize));
+        file_list.append(FileInfo(is_remote_file, file));
     }
 
     endInsertRows();

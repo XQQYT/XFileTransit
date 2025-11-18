@@ -7,13 +7,7 @@
         <file>../ui/GeneralDialog.qml</file>
     </qresource>
     <qresource prefix="/file_icon">
-        <file>FileIcons/doc.svg</file>
-        <file>FileIcons/mp3.svg</file>
-        <file>FileIcons/mp4.svg</file>
-        <file>FileIcons/ppt.svg</file>
-        <file>FileIcons/rar.svg</file>
-        <file>FileIcons/xls.svg</file>
-        <file>FileIcons/zip.svg</file>
-        <file>FileIcons/exe.svg</file>
+        <file>FileIcons/unknow_file.svg</file>
+        <file>FileIcons/folder.svg</file>
     </qresource>
 </RCC>

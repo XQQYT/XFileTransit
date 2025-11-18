@@ -1,22 +1,31 @@
 #ifndef _FILEICONMANAGER_H
 #define _FILEICONMANAGER_H
 
+#include <QtCore/QUrl>
 #include <QtCore/QHash>
-#include <QtCore/QString>
 #include <QtCore/QSet>
+
+struct HICON__;
+typedef struct HICON__* HICON;
 
 class FileIconManager
 {
 public:
     static FileIconManager& getInstance();
-    QString getFileIconSvg(const QString& fu, bool irf = false);
+    
+    QUrl getFileIcon(const QString& file_url, bool isfolder = false);
+    void clearCache();
+    void preloadCommonIcons();
 
 private:
     FileIconManager();
-    void initDefaultIcons();
-    void initImagePredix();
-    QHash<QString, QString> default_icons;
-    QSet<QString> img_prefix;
+    ~FileIconManager();
+    
+    QString getFileTypeIcon(const QString& file_url);
+    QString saveIconToTemp(HICON hIcon, const QString& type);
+    
+private:
+    QHash<QString, QUrl> icon_cache;  // 图标缓存，存储 QUrl
 };
 
-#endif // FILEICONMANAGER_H
+#endif // _FILEICONMANAGER_H
