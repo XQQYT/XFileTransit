@@ -9,11 +9,14 @@
 
 struct FileInfo
 {
+public:
   enum class idType{
     LOW,
     HIGH,
     UNDEFINED
   };
+
+public:
   static quint32 file_id_counter;
   static idType current_type;
   quint32 id;
@@ -25,6 +28,10 @@ struct FileInfo
   quint64 file_size;
   QString format_file_size;
   QUrl icon;
+  quint8 file_status;
+
+public:
+  FileInfo() = default;
 
   static void setIdBegin(idType type)
   {
@@ -125,6 +132,7 @@ struct FileInfo
       file_name = fn;
       file_size = size;
     }
+    file_status = 0;
   }
 };
 
@@ -133,12 +141,22 @@ class FileListModel : public QAbstractListModel
   Q_OBJECT
 
 public:
+  enum FileStatus {
+    StatusPending = 0,     // 等待
+    StatusUploading,       // 上传中
+    StatusDownloading,     // 下载中  
+    StatusCompleted,       // 完成
+    StatusError           // 错误
+  };
+  Q_ENUM(FileStatus)
+
   enum Roles {
     FileNameRole = Qt::UserRole + 1,
     FileSourcePathRole,
     FileUrlRole,
     FileSizeRole,
-    FileIconRole
+    FileIconRole,
+    FileStatusRole
   };
 
   explicit FileListModel(QObject* parent = nullptr);

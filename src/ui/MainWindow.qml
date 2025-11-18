@@ -18,7 +18,7 @@ ApplicationWindow  {
     property int animationDuration: 300
     property bool dragActive: false
     property bool mouseIsInWindow: false
-    property int itemWidth: 120  // 每个文件项的宽度
+    property int itemWidth: 100  // 每个文件项的宽度
     property int itemHeight: 80  // 每个文件项的高度
     property int itemsPerRow: Math.max(1, Math.floor((width - 40) / itemWidth)) // 每行显示的文件数量
 
@@ -263,9 +263,7 @@ ApplicationWindow  {
             root.y = 0
             updateWindowHeight()
             // 展开时滚动到底部
-            if (fileGridView.count > 0) {
-                Qt.callLater(scrollToBottom)
-            }
+            scrollToBottom()
         } else {
             root.y = -root.height + 4
         }
@@ -287,7 +285,6 @@ ApplicationWindow  {
     // 滚动到底部
     function scrollToBottom() {
         if (fileGridView.count > 0) {
-            var lastItemIndex = fileGridView.count - 1
             fileGridView.positionViewAtEnd()
             // 使用Timer确保在布局完成后滚动
             scrollTimer.restart()
@@ -296,7 +293,7 @@ ApplicationWindow  {
 
     Timer {
         id: scrollTimer
-        interval: 10
+        interval: 50
         onTriggered: {
             fileGridView.positionViewAtEnd()
         }
@@ -336,6 +333,7 @@ ApplicationWindow  {
         
         onCountChanged: {
             updateWindowHeight()
+            scrollToBottom()
         }
 
         delegate: Rectangle {
@@ -365,11 +363,12 @@ ApplicationWindow  {
 
             Column {
                 anchors.centerIn: parent
-                width: parent.width - 20
-                spacing: 5
+                width: parent.width - 12
+                spacing: 1
+                
                 Image {
-                    width: 50
-                    height: 50
+                    width: 44
+                    height: 44
                     source: model.fileIcon
                     fillMode: Image.PreserveAspectFit
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -385,6 +384,60 @@ ApplicationWindow  {
                     maximumLineCount: 1
                     elide: Text.ElideMiddle
                     anchors.horizontalCenter: parent.horizontalCenter
+                }
+                
+                // 状态行
+                Row {
+                    width: parent.width
+                    spacing: 2
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    height: 12
+                    
+                    // 状态指示器
+                    Rectangle {
+                        id: statusIndicator
+                        width: 8
+                        height: 8
+                        radius: 4
+                        anchors.verticalCenter: parent.verticalCenter
+                        
+                        color: {
+                            if (model.fileStatus === file_list_model.StatusCompleted) return "#4CAF50"
+                            else if (model.fileStatus === file_list_model.StatusUploading) return "#2196F3"
+                            else if (model.fileStatus === file_list_model.StatusDownloading) return "#FF9800"
+                            else if (model.fileStatus === file_list_model.StatusError) return "#F44336"
+                            else return "#9E9E9E"
+                        }
+                    }
+                    
+                    // 进度条 - 只在传输状态显示
+                    Rectangle {
+                        id: progressBar
+                        width: parent.width - statusIndicator.width - parent.spacing - 18
+                        height: 3
+                        radius: 1.5
+                        color: "#e6e6e6"
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: model.fileStatus === file_list_model.StatusUploading || 
+                                model.fileStatus === file_list_model.StatusDownloading
+                        
+                        Rectangle {
+                            width: parent.width * (model.fileProgress / 100)
+                            height: parent.height
+                            radius: 1.5
+                            color: statusIndicator.color
+                        }
+                    }
+                    
+                    // 进度百分比 - 只在传输状态显示
+                    Text {
+                        text: qsTr("%1%").arg(model.fileProgress)
+                        font.pixelSize: 7
+                        color: "#666"
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: model.fileStatus === file_list_model.StatusUploading || 
+                                model.fileStatus === file_list_model.StatusDownloading
+                    }
                 }
             }
             

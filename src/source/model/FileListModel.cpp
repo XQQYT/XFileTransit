@@ -42,6 +42,8 @@ QVariant FileListModel::data(const QModelIndex& index, int role) const
         return file.file_size;
     case FileIconRole:
         return file.icon;
+    case FileStatusRole:
+        return file.file_status;
     default:
         return QVariant();
     }
@@ -55,6 +57,7 @@ QHash<int, QByteArray> FileListModel::roleNames() const
         {FileUrlRole, "fileUrl"},
         {FileSizeRole, "fileSize"},
         {FileIconRole, "fileIcon"},
+        {FileStatusRole, "fileStatus"},
         {Qt::ToolTipRole, "toolTip"}
     };
     return roles;
