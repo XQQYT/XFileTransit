@@ -27,10 +27,18 @@ public:
     {
         current_device_ip = di;
     }
-
+    void setConnectStatus(bool status)
+    {
+        is_connected = status;
+    }
+    bool getConnectStatus()
+    {
+        return is_connected;
+    }
 private:
     std::string current_device_name;
     std::string current_device_ip;
+    bool is_connected{ false };
 };
 
 #endif

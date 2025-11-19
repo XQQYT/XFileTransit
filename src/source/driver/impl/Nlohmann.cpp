@@ -17,16 +17,16 @@ std::string NlohmannJsonParser::getValue(const std::string&& key)
     }
     return "";
 }
-std::optional<bool> NlohmannJsonParser::getBool(const std::string&& key) 
+std::optional<bool> NlohmannJsonParser::getBool(const std::string&& key)
 {
     if (msg_json.empty() || !msg_json.contains(key)) {
         return std::nullopt;
     }
-    
+
     if (msg_json[key].is_boolean()) {
         return msg_json[key].get<bool>();
     }
-    
+
     return std::nullopt;
 }
 std::unique_ptr<Json::Parser> NlohmannJsonParser::getObj(const std::string&& key)
@@ -84,13 +84,14 @@ std::unique_ptr<Json::JsonBuilder> NlohmannJson::getBuilder(const Json::BuilderT
     {
     case Json::BuilderType::User:
         return std::make_unique<UserMsgBuilder>();
+    case Json::BuilderType::Sync:
+        return std::make_unique<SyncMsgBuilder>();
     default:
         return nullptr;
     }
 }
 
-template<class Map>
-std::string UserMsgBuilder::buildImpl(uint64_t type, Map&& args)
+std::string UserMsgBuilder::buildUserMsg(Json::MessageType::User::Type type, std::map<std::string, std::string>&& args)
 {
     if (!registry.validateFields(type, args)) {
         throw std::invalid_argument("Missing required fields for message type");
@@ -109,5 +110,24 @@ std::string UserMsgBuilder::buildImpl(uint64_t type, Map&& args)
 
     result_json["content"] = std::move(content_json);
 
+    return result_json.dump();
+}
+
+std::string SyncMsgBuilder::buildSyncMsg(Json::MessageType::Sync::Type type, std::vector<std::string>&& args, uint8_t stride)
+{
+    json result_json;
+    result_json["type"] = Json::MessageType::Sync::toString(type);
+    json content_json = json::array();
+
+    // 按步长处理参数
+    for (size_t i = 0; i < args.size(); i += stride) {
+        json group = json::array();
+        for (size_t j = 0; j < stride && (i + j) < args.size(); ++j) {
+            group.push_back(args[i + j]);
+        }
+        content_json.push_back(group);
+    }
+
+    result_json["content"] = content_json;
     return result_json.dump();
 }

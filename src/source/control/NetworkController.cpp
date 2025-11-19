@@ -22,10 +22,16 @@ void NetworkController::initSubscribe()
     EventBusManager::instance().subscribe("/network/have_connect_request_result",
         std::bind(&NetworkController::onHaveConnectRequestResult,
             this,
-            std::placeholders::_1));
+            std::placeholders::_1,
+            std::placeholders::_2));
     EventBusManager::instance().subscribe("/network/disconnect",
         std::bind(&NetworkController::onDisconnect,
             this));
+    EventBusManager::instance().subscribe("/sync/send_addfiles",
+        std::bind(&NetworkController::onSendSyncAddFiles,
+            this,
+            std::placeholders::_1,
+            std::placeholders::_2));
     //设置错误处理回调函数
     control_msg_network_driver->setDealConnectErrorCb(std::bind(
         &NetworkController::onConnectError,
@@ -48,7 +54,7 @@ NetworkController::NetworkController() :
 {
     initSubscribe();
     control_msg_network_driver->setSecurityInstance(security_driver);
-    control_msg_network_driver->startListen("0.0.0.0", "7777","7778", nullptr ,[this](bool connect_status) -> bool
+    control_msg_network_driver->startListen("0.0.0.0", "7777", "7778", nullptr, [this](bool connect_status) -> bool
         {
             control_msg_network_driver->recvMsg([this](NetworkInterface::ParsedMsg&& msg)
                 {
@@ -67,13 +73,13 @@ void NetworkController::onSendConnectRequest(std::string sender_device_name, std
             if (ret)
             {
                 control_msg_network_driver->recvMsg([this](NetworkInterface::ParsedMsg&& msg)
-                {
-                    std::cout << "recv msg -> " << std::string(msg.data.data(), msg.data.data() + msg.data.size()) << std::endl;
-                    json_parser->parse(std::move(msg.data));
-                });
+                    {
+                        std::cout << "recv msg -> " << std::string(msg.data.data(), msg.data.data() + msg.data.size()) << std::endl;
+                        json_parser->parse(std::move(msg.data));
+                    });
                 GlobalStatusManager::getInstance().setCurrentDeviceIP(target_device_ip);
-                std::string msg = json_builder->getBuilder(Json::BuilderType::User)->build(
-                    static_cast<uint64_t>(Json::MessageType::User::ConnectRequest),
+                std::string msg = json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(
+                    Json::MessageType::User::ConnectRequest,
                     {
                          {"sender_device_name",std::move(sender_device_name)},
                          {"sender_device_ip",std::move(sender_device_ip)}
@@ -89,31 +95,34 @@ void NetworkController::onSendConnectRequest(std::string sender_device_name, std
 
 void NetworkController::onSendConnectRequestResult(bool res)
 {
-    std::string msg = json_builder->getBuilder(Json::BuilderType::User)->build(
-        static_cast<uint64_t>(Json::MessageType::User::ConnectRequestResponse),
+    std::string msg = json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(
+        Json::MessageType::User::ConnectRequestResponse,
         {
             {"subtype","connect_request_response"},
             {"arg0",res ? "success" : "failed"}
         }
     );
     control_msg_network_driver->sendMsg(msg);
-    if(!res)
+    if (!res)//拒绝连接
     {
         control_msg_network_driver->resetConnection();
     }
+    GlobalStatusManager::getInstance().setConnectStatus(res);
 }
 
-void NetworkController::onHaveConnectRequestResult(bool res)
+void NetworkController::onHaveConnectRequestResult(bool res, std::string)
 {
-    if(!res)
+    if (!res)
     {
         control_msg_network_driver->resetConnection();
     }
+    GlobalStatusManager::getInstance().setConnectStatus(res);
 }
 
 void NetworkController::onDisconnect()
 {
     control_msg_network_driver->resetConnection();
+    GlobalStatusManager::getInstance().setConnectStatus(false);
 }
 
 void NetworkController::onConnectError(const NetworkInterface::ConnectError error)
@@ -135,7 +144,8 @@ void NetworkController::onConnectError(const NetworkInterface::ConnectError erro
     auto it = connect_error_messages.find(error);
     if (it != connect_error_messages.end()) {
         EventBusManager::instance().publish("/network/have_connect_error", it->second);
-    } else {
+    }
+    else {
         EventBusManager::instance().publish("/network/have_connect_error", std::string("未知连接错误"));
     }
     control_msg_network_driver->resetConnection();
@@ -152,15 +162,16 @@ void NetworkController::onRecvError(const NetworkInterface::RecvError error)
         {NetworkInterface::RecvError::RECV_SHUTDOWN,        "连接已关闭"},
         {NetworkInterface::RecvError::RECV_NETWORK_RESET,   "网络连接重置"}
     };
-    
+
     auto it = error_map.find(error);
     if (it != error_map.end()) {
         EventBusManager::instance().publish("/network/have_recv_error", it->second);
     }
-    else{
+    else {
         EventBusManager::instance().publish("/network/have_recv_error", std::string("未知接收错误"));
     }
     control_msg_network_driver->resetConnection();
+    GlobalStatusManager::getInstance().setConnectStatus(false);
 }
 
 void NetworkController::onConnClosed()
@@ -168,4 +179,13 @@ void NetworkController::onConnClosed()
     EventBusManager::instance().publish("/network/connection_closed");
     //重置驱动上下文
     control_msg_network_driver->resetConnection();
+    GlobalStatusManager::getInstance().setConnectStatus(false);
+}
+
+void NetworkController::onSendSyncAddFiles(std::vector<std::string> files, uint8_t stride)
+{
+    auto sync_builder = json_builder->getBuilder(Json::BuilderType::Sync);
+    control_msg_network_driver->sendMsg(
+        sync_builder->buildSyncMsg(Json::MessageType::Sync::AddFiles, std::move(files)
+            , stride));
 }

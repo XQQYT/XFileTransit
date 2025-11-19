@@ -5,8 +5,10 @@
 #include <QtCore/QList>
 #include <QtGui/QIcon>
 #include <QtCore/QDir>
-#include <QDirIterator>
+#include <QtCore/QDirIterator>
 #include "model/FileIconManager.h"
+
+#include <iostream>
 
 struct FileInfo
 {
@@ -122,8 +124,8 @@ public:
   }
   static bool isDirectoryWithQDir(const QString& filePath)
   {
-    QDir dir(filePath);
-    return dir.exists();
+    QFileInfo fileInfo(filePath);
+    return fileInfo.exists() && fileInfo.isDir();
   }
   FileInfo(const bool irf, const QString& url, const quint32 file_id = 0, const quint64 size = 0, const QString& fn = QString())
     : is_remote_file(irf), file_url(url)
@@ -136,9 +138,9 @@ public:
     if (!is_remote_file)
     {
       id = (current_type == idType::LOW) ? file_id_counter++ : file_id_counter--;
-      is_folder = isDirectoryWithQDir(source_path);
       file_name = getFileName(url);
       source_path = getFilePath(url);
+      is_folder = isDirectoryWithQDir(source_path);
       file_url = url;
       if (is_folder)
       {

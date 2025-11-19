@@ -43,48 +43,52 @@ void JsonParser::resonpeResult(std::unique_ptr<Json::Parser> parser)
 {
     auto arg0 = JsonMessageType::parseResultType(parser->getValue("arg0"));
     auto subtype = JsonMessageType::parseResponseType(parser->getValue("subtype"));
-    switch(subtype)
+    switch (subtype)
     {
-        case JsonMessageType::ResponseType::CONNECT_REQUEST_RESPONSE:
-            publishResponse("/network/have_connect_request_result", arg0,
-                GlobalStatusManager::getInstance().getCurrentDeviceIP());
-            break;
-        default:
-            break;
+    case JsonMessageType::ResponseType::CONNECT_REQUEST_RESPONSE:
+        publishResponse("/network/have_connect_request_result", arg0,
+            GlobalStatusManager::getInstance().getCurrentDeviceIP());
+        break;
+    default:
+        break;
     }
 }
 
 void JsonParser::publishResponse(std::string&& event_name, JsonMessageType::ResultType type)
 {
-    switch(type)
+    switch (type)
     {
-        case JsonMessageType::ResultType::SUCCESS:
-            EventBusManager::instance().publish(event_name, true);
-            break;
-        case JsonMessageType::ResultType::FAILED:
-            EventBusManager::instance().publish(event_name, false);
-            break;
-        case JsonMessageType::ResultType::UNKNOWN:
-            break;
-        default:
-            break;
+    case JsonMessageType::ResultType::SUCCESS:
+        EventBusManager::instance().publish(event_name, true);
+        break;
+    case JsonMessageType::ResultType::FAILED:
+        EventBusManager::instance().publish(event_name, false);
+        break;
+    case JsonMessageType::ResultType::UNKNOWN:
+        break;
+    default:
+        break;
     }
 }
 
 void JsonParser::publishResponse(std::string&& event_name, JsonMessageType::ResultType type, std::string arg0)
 {
-    switch(type)
+    switch (type)
     {
-        case JsonMessageType::ResultType::SUCCESS:
-            EventBusManager::instance().publish(event_name, true, arg0);
-            break;
-        case JsonMessageType::ResultType::FAILED:
-            EventBusManager::instance().publish(event_name, false, arg0);
-            break;
-        case JsonMessageType::ResultType::UNKNOWN:
-            break;
-        default:
-            break;
+    case JsonMessageType::ResultType::SUCCESS:
+        EventBusManager::instance().publish(event_name, true, arg0);
+        break;
+    case JsonMessageType::ResultType::FAILED:
+        EventBusManager::instance().publish(event_name, false, arg0);
+        break;
+    case JsonMessageType::ResultType::UNKNOWN:
+        break;
+    default:
+        break;
     }
 }
 
+void JsonParser::syncAddFiles(std::unique_ptr<Json::Parser> parser)
+{
+
+}

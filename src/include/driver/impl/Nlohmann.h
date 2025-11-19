@@ -32,19 +32,22 @@ public:
 class UserMsgBuilder : public Json::JsonBuilder
 {
 public:
-    template<class Map>
-    std::string buildImpl(uint64_t type, Map&& args);
-    std::string build(uint64_t type, std::map<std::string, std::string>& args) override
+    std::string buildUserMsg(Json::MessageType::User::Type type, std::map<std::string, std::string>&& args) override;
+    std::string buildSyncMsg(Json::MessageType::Sync::Type type, std::vector<std::string>&& args, uint8_t stride) override
     {
-        return buildImpl(type, args);
-    }
-    std::string build(uint64_t type, std::map<std::string, std::string>&& args) override
-    {
-        return buildImpl(type, std::move(args));
+        return "Don't use UserMsgBuilder to build SyncMsg";
     }
 private:
-    uint64_t current_type;
-    std::map<std::string, std::string> fields;
     Json::MessageRegistry registry;
+};
+
+class SyncMsgBuilder : public Json::JsonBuilder
+{
+public:
+    std::string buildUserMsg(Json::MessageType::User::Type type, std::map<std::string, std::string>&& args) override
+    {
+        return "Don't use SyncMsgBuilder to build UserMsg";
+    }
+    std::string buildSyncMsg(Json::MessageType::Sync::Type type, std::vector<std::string>&& args, uint8_t stride) override;
 };
 #endif

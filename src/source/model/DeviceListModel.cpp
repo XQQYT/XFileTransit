@@ -8,16 +8,16 @@ DeviceListModel::DeviceListModel(QObject* parent) :
         emit DeviceListModel::scanFinished();
         scanning = false;
         emit scanningChanged();
-    });
-    EventBusManager::instance().subscribe("/network/have_connect_request_result",[this](bool ret, std::string di){
+        });
+    EventBusManager::instance().subscribe("/network/have_connect_request_result", [this](bool ret, std::string di) {
         QMetaObject::invokeMethod(this, [this, ret, di]() {
             emit connectResult(ret, QString::fromStdString(di));
-        }, Qt::QueuedConnection);
-    });
+            }, Qt::QueuedConnection);
+        });
     QObject::connect(&icmp_scanner, &ICMPScanner::foundOne, this, &DeviceListModel::onFoundOne);
-    QObject::connect(&icmp_scanner, &ICMPScanner::scanProgress,this,[=](int progress){
+    QObject::connect(&icmp_scanner, &ICMPScanner::scanProgress, this, [=](int progress) {
         emit scanProgress(progress);
-    });
+        });
 }
 DeviceListModel::~DeviceListModel()
 {
@@ -57,6 +57,10 @@ QHash<int, QByteArray> DeviceListModel::roleNames() const
 }
 void DeviceListModel::startScan()
 {
+    EventBusManager::instance().publish("/network/send_connect_request",
+        icmp_scanner.getLocalComputerName().toStdString(),
+        QString("1111").toStdString(),
+        std::string("192.168.1.65"));
     clearAll();
     icmp_scanner.startScan();
     scanning = true;
@@ -112,5 +116,5 @@ void DeviceListModel::connectToTarget(const int index)
     EventBusManager::instance().publish("/network/send_connect_request",
         icmp_scanner.getLocalComputerName().toStdString(),
         icmp_scanner.findMatchingLocalIp(device.device_ip).toStdString(),
-        std::string("192.168.6.137"));
+        std::string("192.168.1.65"));
 }

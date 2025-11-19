@@ -14,11 +14,12 @@ public:
 private:
     void onSendConnectRequest(std::string sender_device_name, std::string sender_device_ip, std::string target_device_ip);
     void onSendConnectRequestResult(bool res);
-    void onHaveConnectRequestResult(bool res);
+    void onHaveConnectRequestResult(bool res, std::string);
     void onDisconnect();
     void onConnectError(const NetworkInterface::ConnectError error);
     void onRecvError(const NetworkInterface::RecvError error);
     void onConnClosed();
+    void onSendSyncAddFiles(std::vector<std::string> files, uint8_t stride);
 
 private:
     std::unique_ptr<NetworkInterface> control_msg_network_driver;

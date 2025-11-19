@@ -1,4 +1,6 @@
 #include "model/FileListModel.h"
+#include "control/EventBusManager.h"
+#include "control/GlobalStatusManager.h"
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
 #include <QtCore/QUrl>
@@ -68,11 +70,20 @@ void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
     if (files.isEmpty())
         return;
 
-    QList<FileInfo> unique_files;
-    for (const QString& file : files) 
+    QVector<FileInfo> unique_files;
+    std::vector<std::string> files_to_send;
+    for (const QString& file : files)
     {
-        if(!isFileExists(file)) {
-            unique_files.append(FileInfo(is_remote_file, file));
+        if (!isFileExists(file)) {
+            FileInfo cur_file(is_remote_file, file);
+            //步长为3
+            if (GlobalStatusManager::getInstance().getConnectStatus())
+            {
+                files_to_send.push_back(std::to_string(cur_file.id));
+                files_to_send.push_back(cur_file.file_name.toStdString());
+                files_to_send.push_back(cur_file.format_file_size.toStdString());
+            }
+            unique_files.append(std::move(cur_file));
         }
     }
 
@@ -83,15 +94,19 @@ void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
         endInsertRows();
     }
 
+    if (GlobalStatusManager::getInstance().getConnectStatus())
+    {
+        EventBusManager::instance().publish("/sync/send_addfiles", files_to_send, uint8_t(3));
+    }
     qDebug() << "文件添加完成，当前文件数:" << file_list.size();
 }
 
 bool FileListModel::isFileExists(const QString& filePath)
 {
     return std::any_of(file_list.begin(), file_list.end(),
-                      [&](const FileInfo& info) {
-                          return info.file_url == filePath;
-                      });
+        [&](const FileInfo& info) {
+            return info.file_url == filePath;
+        });
 }
 
 void FileListModel::removeFile(int index)

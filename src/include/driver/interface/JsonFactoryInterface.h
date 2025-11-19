@@ -53,15 +53,21 @@ namespace Json
 
         namespace Sync
         {
-            // enum Type
-            // {
+            enum Type
+            {
+                AddFiles,
+                RemoveFile
+            };
 
-            // };
-
-            // constexpr const char* toString(Type type)
-            // {
-
-            // }
+            constexpr const char* toString(Type type)
+            {
+                switch (type)
+                {
+                case AddFiles: return "add_files";
+                case RemoveFile: return "remove_files";
+                default: return "unknown";
+                }
+            }
         }
     }
 
@@ -124,9 +130,8 @@ namespace Json
     class JsonBuilder
     {
     public:
-        virtual std::string build(uint64_t type, std::map<std::string, std::string>& args) = 0;
-        virtual std::string build(uint64_t type, std::map<std::string, std::string>&& args) = 0;
-        std::string buildImpl(uint64_t type, std::map<std::string, std::string>&& args) { return "please refence buildImpl template in drived class"; }
+        virtual std::string buildUserMsg(MessageType::User::Type type, std::map<std::string, std::string>&& args) = 0;
+        virtual std::string buildSyncMsg(MessageType::Sync::Type type, std::vector<std::string>&& args, uint8_t stride) = 0;
         virtual ~JsonBuilder() = default;
     };
     class JsonFactoryInterface

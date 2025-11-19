@@ -23,7 +23,7 @@ namespace JsonMessageType {
         static const std::map<std::string, ResponseType> mapping = {
             {"connect_request_response", ResponseType::CONNECT_REQUEST_RESPONSE},
         };
-        
+
         auto it = mapping.find(type);
         return it != mapping.end() ? it->second : ResponseType::UNKNOWN;
     }
@@ -33,7 +33,7 @@ namespace JsonMessageType {
             {"success", ResultType::SUCCESS},
             {"failed", ResultType::FAILED}
         };
-        
+
         auto it = mapping.find(result);
         return it != mapping.end() ? it->second : ResultType::UNKNOWN;
     }
@@ -47,6 +47,7 @@ public:
 private:
     void connectRequest(std::unique_ptr<Json::Parser> parser);
     void resonpeResult(std::unique_ptr<Json::Parser> parser);
+    void syncAddFiles(std::unique_ptr<Json::Parser> parser);
     void publishResponse(std::string&& event_name, JsonMessageType::ResultType type);
     void publishResponse(std::string&& event_name, JsonMessageType::ResultType type, std::string arg0);
 private:
