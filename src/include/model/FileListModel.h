@@ -5,12 +5,13 @@
 #include <QtCore/QList>
 #include <QtGui/QIcon>
 #include <QtCore/QDir>
+#include <QDirIterator>
 #include "model/FileIconManager.h"
 
 struct FileInfo
 {
 public:
-  enum class idType{
+  enum class idType {
     LOW,
     HIGH,
     UNDEFINED
@@ -56,33 +57,50 @@ public:
 
   static QString getFileName(const QString& file_url)
   {
-      int last_separator_index = file_url.lastIndexOf('/');
-      if (last_separator_index == -1)
-          last_separator_index = file_url.lastIndexOf('\\');
-      return file_url.mid(last_separator_index + 1);
+    int last_separator_index = file_url.lastIndexOf('/');
+    if (last_separator_index == -1)
+      last_separator_index = file_url.lastIndexOf('\\');
+    return file_url.mid(last_separator_index + 1);
   }
 
   static QString getFilePath(const QString& file_url)
   {
-      if (file_url.startsWith("file:///")) {
-  #ifdef Q_OS_WIN
-          return QUrl(file_url).toLocalFile();
-  #else
-          return file_url.mid(7);
-  #endif
-      }
-      return file_url;
+    if (file_url.startsWith("file:///")) {
+#ifdef Q_OS_WIN
+      return QUrl(file_url).toLocalFile();
+#else
+      return file_url.mid(7);
+#endif
+    }
+    return file_url;
   }
 
   static quint64 getFileSize(const QString& file_url)
   {
-      QString file_path = getFilePath(file_url);
-      QFile file(file_path);
-      if (!file.exists()) {
-          qDebug() << "文件不存在:" << file_path;
-          return 0;
-      }
-      return file.size();
+    QString file_path = getFilePath(file_url);
+    QFile file(file_path);
+    if (!file.exists()) {
+      qDebug() << "文件不存在:" << file_path;
+      return 0;
+    }
+    return file.size();
+  }
+
+  //TODO
+  //改为生产消费模型 ，防止大文件卡死
+  static quint64 getFolderSize(const QString& folderPath)
+  {
+    quint64 totalSize = 0;
+
+    // 递归遍历所有文件和目录
+    QDirIterator it(folderPath, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+
+    while (it.hasNext()) {
+      it.next();
+      totalSize += it.fileInfo().size();
+    }
+
+    return totalSize;
   }
 
   static QString formatFileSize(quint64 bytes)
@@ -92,39 +110,46 @@ public:
     int i = 0;
 
     while (size >= 1024 && i < 5) {
-        size /= 1024;
-        ++i;
+      size /= 1024;
+      ++i;
     }
 
     // 保留两位小数（当数值大于1KB时）
     if (i == 0)
-        return QString::number(static_cast<qulonglong>(size)) + " " + suffixes[i];
+      return QString::number(static_cast<qulonglong>(size)) + " " + suffixes[i];
     else
-        return QString("%1 %2").arg(QString::number(size, 'f', 2)).arg(suffixes[i]);
+      return QString("%1 %2").arg(QString::number(size, 'f', 2)).arg(suffixes[i]);
   }
   static bool isDirectoryWithQDir(const QString& filePath)
   {
-      QDir dir(filePath);
-      return dir.exists();
+    QDir dir(filePath);
+    return dir.exists();
   }
   FileInfo(const bool irf, const QString& url, const quint32 file_id = 0, const quint64 size = 0, const QString& fn = QString())
     : is_remote_file(irf), file_url(url)
   {
-    if(current_type == idType::UNDEFINED)
+    if (current_type == idType::UNDEFINED)
     {
       throw std::runtime_error("Please set id begin");
     }
     //不是远程文件时，从本地获取文件信息
-    if(!is_remote_file)
+    if (!is_remote_file)
     {
-      id = (current_type == idType::LOW) ? file_id_counter++ : file_id_counter--; 
+      id = (current_type == idType::LOW) ? file_id_counter++ : file_id_counter--;
+      is_folder = isDirectoryWithQDir(source_path);
       file_name = getFileName(url);
       source_path = getFilePath(url);
       file_url = url;
-      file_size = getFileSize(url);
+      if (is_folder)
+      {
+        file_size = getFolderSize(source_path);
+      }
+      else
+      {
+        file_size = getFileSize(url);
+      }
       format_file_size = formatFileSize(file_size);
-      icon = FileIconManager::getInstance().getFileIcon(url, isDirectoryWithQDir(source_path));
-      qDebug()<<icon<<source_path;
+      icon = FileIconManager::getInstance().getFileIcon(url, is_folder);
     }
     else//远程文件时只需要id,file name, file size即可
     {
@@ -150,7 +175,7 @@ public:
   };
   Q_ENUM(FileStatus)
 
-  enum Roles {
+    enum Roles {
     FileNameRole = Qt::UserRole + 1,
     FileSourcePathRole,
     FileUrlRole,
