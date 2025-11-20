@@ -127,39 +127,54 @@ public:
     QFileInfo fileInfo(filePath);
     return fileInfo.exists() && fileInfo.isDir();
   }
+  static QString getFileSuffix(const QString& fileName)
+  {
+    int last_dot = fileName.lastIndexOf('.');
+    if (last_dot != -1 && last_dot < fileName.length() - 1) {
+      return fileName.mid(last_dot + 1).toLower();
+    }
+    return "";
+  }
+  //一般用于本地文件构造
   FileInfo(const bool irf, const QString& url, const quint32 file_id = 0, const quint64 size = 0, const QString& fn = QString())
-    : is_remote_file(irf), file_url(url)
+    : is_remote_file(irf), file_url(url), file_status(0)
   {
     if (current_type == idType::UNDEFINED)
     {
       throw std::runtime_error("Please set id begin");
     }
+    if (irf)
+    {
+      throw std::runtime_error("Don'n use this Constructor to construct locate file");
+    }
+
     //不是远程文件时，从本地获取文件信息
-    if (!is_remote_file)
+    id = (current_type == idType::LOW) ? file_id_counter++ : file_id_counter--;
+    file_name = getFileName(url);
+    source_path = getFilePath(url);
+    is_folder = isDirectoryWithQDir(source_path);
+    file_url = url;
+    if (is_folder)
     {
-      id = (current_type == idType::LOW) ? file_id_counter++ : file_id_counter--;
-      file_name = getFileName(url);
-      source_path = getFilePath(url);
-      is_folder = isDirectoryWithQDir(source_path);
-      file_url = url;
-      if (is_folder)
-      {
-        file_size = getFolderSize(source_path);
-      }
-      else
-      {
-        file_size = getFileSize(url);
-      }
-      format_file_size = formatFileSize(file_size);
-      icon = FileIconManager::getInstance().getFileIcon(url, is_folder);
+      file_size = getFolderSize(source_path);
     }
-    else//远程文件时只需要id,file name, file size即可
+    else
     {
-      id = file_id;
-      file_name = fn;
-      file_size = size;
+      file_size = getFileSize(url);
     }
-    file_status = 0;
+    format_file_size = formatFileSize(file_size);
+    icon = FileIconManager::getInstance().getFileIcon(url, is_folder);
+  }
+
+  //一般用于远程文件构建
+  FileInfo(const bool irf, const quint32 file_id, const bool is_folder, const QString fn, const QString ffs)
+    : is_remote_file(irf), id(file_id), is_folder(this->is_folder), file_name(fn), format_file_size(ffs), file_status(0)
+  {
+    if (!irf)
+    {
+      throw std::runtime_error("Don'n use this Constructor to construct remote file");
+    }
+    icon = FileIconManager::getInstance().getFileIconBySuffix(getFileSuffix(file_name), is_folder);
   }
 };
 
@@ -198,6 +213,8 @@ public:
   Q_INVOKABLE void removeFile(int index);
   Q_INVOKABLE void clearAll();
   Q_INVOKABLE int getFileCount() const;
+
+  void addRemoteFiles(std::vector<std::vector<std::string>> files);
 
 private:
   bool isFileExists(const QString& filePath);

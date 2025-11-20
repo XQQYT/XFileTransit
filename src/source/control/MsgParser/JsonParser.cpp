@@ -9,6 +9,9 @@ JsonParser::JsonParser() :
 {
     type_funcfion_map["connect_request"] = std::bind(JsonParser::connectRequest, this, std::placeholders::_1);
     type_funcfion_map["response"] = std::bind(JsonParser::resonpeResult, this, std::placeholders::_1);
+
+    type_funcfion_map["add_files"] = std::bind(JsonParser::syncAddFiles, this, std::placeholders::_1);
+
 }
 
 void JsonParser::parse(std::vector<uint8_t>&& data)
@@ -90,5 +93,11 @@ void JsonParser::publishResponse(std::string&& event_name, JsonMessageType::Resu
 
 void JsonParser::syncAddFiles(std::unique_ptr<Json::Parser> parser)
 {
-
+    auto array = parser->getArray("files");
+    std::vector<std::vector<std::string>> files;
+    for (auto& cur_arr : array)
+    {
+        files.push_back(cur_arr->getArrayItems());
+    }
+    EventBusManager::instance().publish("/sync/have_addfiles", files);
 }

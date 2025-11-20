@@ -18,6 +18,7 @@ public:
     bool contain(const std::string&& key) override;
     std::string toString() override;
     std::vector<std::unique_ptr<Parser>> getArray(const std::string&& key) override;
+    std::vector<std::string> getArrayItems() override;
 private:
     json msg_json;
 };

@@ -84,6 +84,71 @@ QString FileIconManager::getFileTypeIcon(const QString& file_url)
     return QString();
 }
 
+QUrl FileIconManager::getFileIconBySuffix(const QString& suffix, bool is_folder)
+{
+    if (is_folder)
+    {
+        return QUrl("qrc:/file_icon/FileIcons/folder.svg");
+    }
+
+    // 生成缓存键
+    QString cache_key = suffix.toLower();
+    if (cache_key.isEmpty()) {
+        cache_key = "file";
+    }
+
+    // 检查缓存
+    if (icon_cache.contains(cache_key)) {
+        return icon_cache[cache_key];
+    }
+
+    // 获取系统图标
+    QString icon_path = getFileTypeIconBySuffix(suffix);
+
+    QUrl icon_url;
+    if (!icon_path.isEmpty()) {
+        icon_url = QUrl::fromLocalFile(icon_path);
+        icon_cache[cache_key] = icon_url;
+    }
+    else {
+        // 如果获取系统图标失败，使用默认图标
+        icon_cache[cache_key] = QUrl("qrc:/file_icon/FileIcons/unknow_file.svg");
+    }
+
+    return icon_url;
+}
+
+QString FileIconManager::getFileTypeIconBySuffix(const QString& suffix)
+{
+    // 创建一个虚拟文件名来获取图标
+    QString virtual_file;
+    if (suffix.isEmpty()) {
+        virtual_file = "dummy.file";
+    }
+    else {
+        virtual_file = "dummy." + suffix;
+    }
+
+    SHFILEINFO shfi;
+    std::wstring widePath = virtual_file.toStdWString();
+
+    // 使用文件属性方式获取图标（文件不存在时）
+    if (SHGetFileInfo(widePath.c_str(),
+        FILE_ATTRIBUTE_NORMAL,
+        &shfi,
+        sizeof(shfi),
+        SHGFI_ICON | SHGFI_LARGEICON | SHGFI_USEFILEATTRIBUTES)) {
+
+        QString cache_suffix = suffix.toLower();
+        if (cache_suffix.isEmpty()) {
+            cache_suffix = "file";
+        }
+        return saveIconToTemp(shfi.hIcon, cache_suffix);
+    }
+
+    return QString();
+}
+
 QString FileIconManager::saveIconToTemp(HICON hIcon, const QString& type)
 {
     if (!hIcon) return QString();

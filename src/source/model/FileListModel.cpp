@@ -13,6 +13,11 @@ FileListModel::FileListModel(QObject* parent) :
 {
     //FileInfo默认为LOW
     FileInfo::setIdBegin(FileInfo::idType::LOW);
+
+    EventBusManager::instance().subscribe("/sync/have_addfiles",
+        std::bind(&FileListModel::addRemoteFiles,
+            this,
+            std::placeholders::_1));
 }
 
 FileListModel::~FileListModel()
@@ -65,6 +70,7 @@ QHash<int, QByteArray> FileListModel::roleNames() const
     return roles;
 }
 
+//添加本地文件
 void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
 {
     if (files.isEmpty())
@@ -80,6 +86,7 @@ void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
             if (GlobalStatusManager::getInstance().getConnectStatus())
             {
                 files_to_send.push_back(std::to_string(cur_file.id));
+                files_to_send.push_back(std::to_string(cur_file.is_folder));
                 files_to_send.push_back(cur_file.file_name.toStdString());
                 files_to_send.push_back(cur_file.format_file_size.toStdString());
             }
@@ -94,11 +101,29 @@ void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
         endInsertRows();
     }
 
-    if (GlobalStatusManager::getInstance().getConnectStatus())
+    if (GlobalStatusManager::getInstance().getConnectStatus() && !files_to_send.empty())
     {
-        EventBusManager::instance().publish("/sync/send_addfiles", files_to_send, uint8_t(3));
+        EventBusManager::instance().publish("/sync/send_addfiles", files_to_send, uint8_t(4));
     }
     qDebug() << "文件添加完成，当前文件数:" << file_list.size();
+}
+
+void FileListModel::addRemoteFiles(std::vector<std::vector<std::string>> files)
+{
+    QVector<FileInfo> remote_files;
+    for (const auto& file : files)
+    {
+        remote_files.append(FileInfo(true,
+            std::stoul(file[0]), std::stoi(file[1]) != 0,
+            QString::fromStdString(file[2]), QString::fromStdString(file[3])));
+    }
+
+    if (!remote_files.empty())
+    {
+        beginInsertRows(QModelIndex(), file_list.size(), file_list.size() + remote_files.size() - 1);
+        file_list.append(remote_files);
+        endInsertRows();
+    }
 }
 
 bool FileListModel::isFileExists(const QString& filePath)

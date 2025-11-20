@@ -30,6 +30,8 @@ void initRegisterEvents()
 
     //发送添加文件消息
     EventBusManager::instance().registerEvent("/sync/send_addfiles");
+    //收到添加文件消息
+    EventBusManager::instance().registerEvent("/sync/have_addfiles");
 
 }
 int main(int argc, char* argv[])

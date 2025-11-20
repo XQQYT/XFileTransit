@@ -57,7 +57,7 @@ std::vector<std::unique_ptr<Json::Parser>> NlohmannJsonParser::getArray(const st
     {
         for (const auto& item : msg_json[key])
         {
-            if (item.is_object())
+            if (item.is_array())
             {
                 result.push_back(std::make_unique<NlohmannJsonParser>(item));
             }
@@ -65,6 +65,22 @@ std::vector<std::unique_ptr<Json::Parser>> NlohmannJsonParser::getArray(const st
     }
 
     return result;
+}
+std::vector<std::string> NlohmannJsonParser::getArrayItems()
+{
+    if (msg_json.empty())
+    {
+        return {};
+    }
+    std::vector<std::string> items;
+    for (const auto& item : msg_json)
+    {
+        if (item.is_string())
+        {
+            items.push_back(item);
+        }
+    }
+    return items;
 }
 std::string NlohmannJsonParser::toString()
 {
@@ -117,7 +133,9 @@ std::string SyncMsgBuilder::buildSyncMsg(Json::MessageType::Sync::Type type, std
 {
     json result_json;
     result_json["type"] = Json::MessageType::Sync::toString(type);
-    json content_json = json::array();
+
+    json content_json = json::object();
+    json files_array = json::array();
 
     // 按步长处理参数
     for (size_t i = 0; i < args.size(); i += stride) {
@@ -125,9 +143,10 @@ std::string SyncMsgBuilder::buildSyncMsg(Json::MessageType::Sync::Type type, std
         for (size_t j = 0; j < stride && (i + j) < args.size(); ++j) {
             group.push_back(args[i + j]);
         }
-        content_json.push_back(group);
+        files_array.push_back(group);
     }
 
+    content_json["files"] = files_array;
     result_json["content"] = content_json;
     return result_json.dump();
 }

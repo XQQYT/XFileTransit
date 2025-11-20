@@ -125,6 +125,7 @@ namespace Json
         virtual bool contain(const std::string&& key) = 0;
         virtual std::string toString() = 0;
         virtual std::vector<std::unique_ptr<Parser>> getArray(const std::string&& key) = 0;
+        virtual std::vector<std::string> getArrayItems() = 0;
         virtual ~Parser() = default;
     };
     class JsonBuilder
