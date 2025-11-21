@@ -1,4 +1,5 @@
 #include "model/FileListModel.h"
+#include "model/ModelManager.h"
 #include "control/EventBusManager.h"
 #include "control/GlobalStatusManager.h"
 #include <QtCore/QDebug>
@@ -35,7 +36,7 @@ QVariant FileListModel::data(const QModelIndex& index, int role) const
 
     switch (role) {
     case Qt::ToolTipRole:
-        return file.file_name + "\n路径: " + file.source_path + "\n大小: " + file.format_file_size + "\nid: "+QString::number(file.id);
+        return file.file_name + "\n路径: " + (file.is_remote_file ? "remote file" : file.source_path) + "\n大小: " + file.format_file_size;
     case FileNameRole:
         return file.file_name;
     case FileSourcePathRole:
@@ -157,4 +158,47 @@ void FileListModel::clearAll()
 int FileListModel::getFileCount() const
 {
     return file_list.size();
+}
+
+void FileListModel::onConnectionClosed()
+{
+    removeAllRemoteFiles();
+}
+
+void FileListModel::removeAllRemoteFiles()
+{
+    beginResetModel();
+    file_list.erase(std::remove_if(file_list.begin(), file_list.end(),
+                          [](const FileInfo& info) { return info.is_remote_file; }),
+           file_list.end());
+    endResetModel();
+}
+
+void FileListModel::updateFilesId()
+{
+    for(auto& file : file_list)
+    {
+        file.id = GlobalStatusManager::getInstance().getFileId();
+    }
+}
+
+void FileListModel::syncCurrentFiles()
+{
+    std::vector<std::string> files_to_send;
+    files_to_send.reserve(file_list.size());
+    for(auto& cur_file: file_list)
+    {
+        if(cur_file.is_remote_file) continue;
+        //先更新当前所有文件的id
+        cur_file.id = GlobalStatusManager::getInstance().getFileId();
+
+        files_to_send.push_back(std::to_string(cur_file.id));
+        files_to_send.push_back(std::to_string(cur_file.is_folder));
+        files_to_send.push_back(cur_file.file_name.toStdString());
+        files_to_send.push_back(cur_file.format_file_size.toStdString());
+    }
+    if (GlobalStatusManager::getInstance().getConnectStatus() && !files_to_send.empty())
+    {
+        EventBusManager::instance().publish("/sync/send_addfiles", files_to_send, uint8_t(4));
+    }
 }

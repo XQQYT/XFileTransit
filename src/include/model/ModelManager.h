@@ -1,39 +1,28 @@
 #ifndef _MODELMANAGER_H
 #define _MODELMANAGER_H
 
+#include <QObject>
+#include <memory>
+
 #include "model/DeviceListModel.h"
 #include "model/FileListModel.h"
 #include "model/ConnectionManager.h"
-#include <memory>
 
-class ModelManager
+class ModelManager : public QObject
 {
+    Q_OBJECT
 public:
-    static ModelManager& getInstance() {
-        static ModelManager  instance;
-        return instance;
-    }
+    static ModelManager& getInstance();
 
-    std::shared_ptr<DeviceListModel> getDeviceModel() {
-        return device_model;
-    }
+    std::shared_ptr<DeviceListModel> getDeviceModel();
+    std::shared_ptr<FileListModel> getFileListModel();
+    std::shared_ptr<ConnectionManager> getConnectionManager();
 
-    std::shared_ptr<FileListModel> getFileListModel() {
-        return file_list_model;
-    }
-
-    std::shared_ptr<ConnectionManager> getConnectionManager() {
-        return connection_manager;
-    }
 private:
-    ModelManager() :
-        device_model(std::make_shared<DeviceListModel>()),
-        file_list_model(std::make_shared<FileListModel>()),
-        connection_manager(std::make_shared<ConnectionManager>())
-    {
-    }
+    ModelManager();
     ModelManager(const ModelManager&) = delete;
     ModelManager& operator=(const ModelManager&) = delete;
+    ~ModelManager() = default;
 
 private:
     std::shared_ptr<DeviceListModel> device_model;

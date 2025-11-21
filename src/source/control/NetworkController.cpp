@@ -157,6 +157,8 @@ void NetworkController::onConnectError(const NetworkInterface::ConnectError erro
         EventBusManager::instance().publish("/network/have_connect_error", std::string("未知连接错误"));
     }
     control_msg_network_driver->resetConnection();
+    GlobalStatusManager::getInstance().setConnectStatus(false);
+    GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
 }
 
 void NetworkController::onRecvError(const NetworkInterface::RecvError error)
@@ -180,6 +182,7 @@ void NetworkController::onRecvError(const NetworkInterface::RecvError error)
     }
     control_msg_network_driver->resetConnection();
     GlobalStatusManager::getInstance().setConnectStatus(false);
+    GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
 }
 
 void NetworkController::onConnClosed()
@@ -188,6 +191,7 @@ void NetworkController::onConnClosed()
     //重置驱动上下文
     control_msg_network_driver->resetConnection();
     GlobalStatusManager::getInstance().setConnectStatus(false);
+    GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
 }
 
 void NetworkController::onSendSyncAddFiles(std::vector<std::string> files, uint8_t stride)

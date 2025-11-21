@@ -73,7 +73,7 @@ ApplicationWindow  {
             }
         }
         
-        function onConnectionClosed() {
+        function onPeerClosed() {
             if (generalDialogLoader.status === Loader.Ready) {
                 generalDialogLoader.item.iconType = generalDialogLoader.item.error
                 generalDialogLoader.item.text = "对方断开连接"
@@ -678,6 +678,20 @@ ApplicationWindow  {
                 function onAccepted(ip, name) {
                     current_device = (name == "UnKnown" ? ip : name);
                     isConnected = true;
+                    if(fileGridView.count){
+                        if (generalDialogLoader.status === Loader.Ready) {
+                            generalDialogLoader.item.iconType = generalDialogLoader.item.info
+                            generalDialogLoader.item.text = "是否同步当前文件"
+                            generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
+                                
+                            // 动态设置当前的处理函数
+                            root.currentAcceptHandler = function() {
+                                file_list_model.syncCurrentFiles()
+                            }
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
+                        }
+                    }
                 }
                 
                 function onRejected(ip, name) {
@@ -691,6 +705,20 @@ ApplicationWindow  {
                     if(ret){
                         current_device = ip;
                         isConnected = true;
+                        if(fileGridView.count){
+                            if (generalDialogLoader.status === Loader.Ready) {
+                                generalDialogLoader.item.iconType = generalDialogLoader.item.info
+                                generalDialogLoader.item.text = "是否同步当前文件"
+                                generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
+                                
+                                // 动态设置当前的处理函数
+                                root.currentAcceptHandler = function() {
+                                    file_list_model.syncCurrentFiles()
+                                }
+                                generalDialogLoader.item.show()
+                                generalDialogLoader.item.requestActivate()
+                            }
+                        }
                     }
                 }
             }

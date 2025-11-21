@@ -181,11 +181,15 @@ public:
   Q_INVOKABLE void removeFile(int index);
   Q_INVOKABLE void clearAll();
   Q_INVOKABLE int getFileCount() const;
-
+  Q_INVOKABLE void syncCurrentFiles();
+  Q_INVOKABLE void updateFilesId();
   void addRemoteFiles(std::vector<std::vector<std::string>> files);
 
+public slots:
+  void onConnectionClosed();
 private:
   bool isFileExists(const QString& filePath);
+  void removeAllRemoteFiles();
 private:
   QList<FileInfo> file_list;
 };

@@ -14,7 +14,7 @@ ConnectionManager::ConnectionManager()
     EventBusManager::instance().subscribe("/network/have_recv_error", std::bind(&ConnectionManager::onHaveRecvError,
         this,
         std::placeholders::_1));
-    EventBusManager::instance().subscribe("/network/connection_closed", std::bind(&ConnectionManager::onConnectionClosed,
+    EventBusManager::instance().subscribe("/network/connection_closed", std::bind(&ConnectionManager::onPeerClosed,
         this));
 }
 
@@ -44,6 +44,7 @@ void ConnectionManager::onHaveConnectError(std::string message)
 {
     QMetaObject::invokeMethod(this, [this, message]() {
         emit haveConnectError(QString::fromStdString(message));
+        emit connectionClosed();
     }, Qt::QueuedConnection);
 }
 
@@ -51,12 +52,14 @@ void ConnectionManager::onHaveRecvError(std::string message)
 {
     QMetaObject::invokeMethod(this, [this, message]() {
         emit haveRecvError(QString::fromStdString(message));
+        emit connectionClosed();
     }, Qt::QueuedConnection);
 }
 
-void ConnectionManager::onConnectionClosed()
+void ConnectionManager::onPeerClosed()
 {
     QMetaObject::invokeMethod(this, [this]() {
+        emit peerClosed();
         emit connectionClosed();
     }, Qt::QueuedConnection);
 }
