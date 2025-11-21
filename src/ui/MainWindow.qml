@@ -399,6 +399,7 @@ ApplicationWindow  {
                         width: 8
                         height: 8
                         radius: 4
+                        visible: model.isRemote || (model.fileStatus === file_list_model.StatusUploading)
                         anchors.verticalCenter: parent.verticalCenter
                         
                         color: {

@@ -48,6 +48,8 @@ QVariant FileListModel::data(const QModelIndex& index, int role) const
         return file.icon;
     case FileStatusRole:
         return file.file_status;
+    case isRemoteRole:
+        return file.is_remote_file;
     default:
         return QVariant();
     }
@@ -62,6 +64,7 @@ QHash<int, QByteArray> FileListModel::roleNames() const
         {FileSizeRole, "fileSize"},
         {FileIconRole, "fileIcon"},
         {FileStatusRole, "fileStatus"},
+        {isRemoteRole, "isRemote"},
         {Qt::ToolTipRole, "toolTip"}
     };
     return roles;

@@ -165,7 +165,8 @@ public:
     FileUrlRole,
     FileSizeRole,
     FileIconRole,
-    FileStatusRole
+    FileStatusRole,
+    isRemoteRole
   };
 
   explicit FileListModel(QObject* parent = nullptr);
