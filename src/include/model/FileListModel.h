@@ -143,7 +143,7 @@ public:
       throw std::runtime_error("Don'n use this Constructor to construct remote file");
     }
     icon = FileIconManager::getInstance().getFileIconBySuffix(getFileSuffix(file_name), is_folder);
-    file_status = 0;  //StatusPending
+    file_status = 1;  //StatusPending
   }
 };
 
@@ -154,6 +154,7 @@ class FileListModel : public QAbstractListModel
 public:
   enum FileStatus {
     StatusPending = 0,     // 等待
+    StatusDefault,
     StatusUploading,       // 上传中
     StatusDownloading,     // 下载中  
     StatusCompleted,       // 完成

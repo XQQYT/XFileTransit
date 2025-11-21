@@ -474,11 +474,13 @@ ApplicationWindow  {
                         anchors.verticalCenter: parent.verticalCenter
                         
                         color: {
-                            if (model.fileStatus === file_list_model.StatusCompleted) return "#4CAF50"
-                            else if (model.fileStatus === file_list_model.StatusUploading) return "#2196F3"
-                            else if (model.fileStatus === file_list_model.StatusDownloading) return "#FF9800"
-                            else if (model.fileStatus === file_list_model.StatusError) return "#F44336"
-                            else return "#9E9E9E"
+                            if (model.fileStatus === file_list_model.StatusCompleted) return "#4CAF50"    // 完成 - 绿色 
+                            else if (model.fileStatus === file_list_model.StatusDefault) return "#9E9E9E" // 默认 - 灰色
+                            else if (model.fileStatus === file_list_model.StatusUploading) return "#2196F3" // 上传中 - 蓝色
+                            else if (model.fileStatus === file_list_model.StatusDownloading) return "#FF9800" // 下载中 - 橙色
+                            else if (model.fileStatus === file_list_model.StatusError) return "#F44336"    // 错误 - 红色 
+                            else if (model.fileStatus === file_list_model.StatusPending) return "#FFC107"  // 等待中 - 黄色
+                            else return "#607D8B"  // 其他状态 - 蓝灰色
                         }
                     }
                     
