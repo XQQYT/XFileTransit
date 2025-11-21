@@ -5,14 +5,11 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QUrl>
 
-FileInfo::idType FileInfo::current_type = FileInfo::idType::LOW;
-quint32 FileInfo::file_id_counter = 0;
-
 FileListModel::FileListModel(QObject* parent) :
     QAbstractListModel(parent)
 {
     //FileInfo默认为LOW
-    FileInfo::setIdBegin(FileInfo::idType::LOW);
+    GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
 
     EventBusManager::instance().subscribe("/sync/have_addfiles",
         std::bind(&FileListModel::addRemoteFiles,
@@ -38,7 +35,7 @@ QVariant FileListModel::data(const QModelIndex& index, int role) const
 
     switch (role) {
     case Qt::ToolTipRole:
-        return file.file_name + "\n路径: " + file.source_path + "\n大小: " + file.format_file_size;
+        return file.file_name + "\n路径: " + file.source_path + "\n大小: " + file.format_file_size + "\nid: "+QString::number(file.id);
     case FileNameRole:
         return file.file_name;
     case FileSourcePathRole:

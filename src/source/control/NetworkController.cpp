@@ -103,7 +103,11 @@ void NetworkController::onSendConnectRequestResult(bool res)
         }
     );
     control_msg_network_driver->sendMsg(msg);
-    if (!res)//拒绝连接
+    if (res)//接受连接
+    {
+        GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::High);
+    }
+    else//拒绝连接
     {
         control_msg_network_driver->resetConnection();
     }
@@ -112,7 +116,11 @@ void NetworkController::onSendConnectRequestResult(bool res)
 
 void NetworkController::onHaveConnectRequestResult(bool res, std::string)
 {
-    if (!res)
+    if (res)
+    {
+        GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
+    }
+    else
     {
         control_msg_network_driver->resetConnection();
     }

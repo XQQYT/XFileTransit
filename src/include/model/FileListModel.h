@@ -7,21 +7,13 @@
 #include <QtCore/QDir>
 #include <QtCore/QDirIterator>
 #include "model/FileIconManager.h"
+#include "control/GlobalStatusManager.h"
 
 #include <iostream>
 
 struct FileInfo
 {
 public:
-  enum class idType {
-    LOW,
-    HIGH,
-    UNDEFINED
-  };
-
-public:
-  static quint32 file_id_counter;
-  static idType current_type;
   quint32 id;
   bool is_remote_file;
   bool is_folder;
@@ -35,27 +27,6 @@ public:
 
 public:
   FileInfo() = default;
-
-  static void setIdBegin(idType type)
-  {
-    current_type = type;
-    switch (type)
-    {
-    case idType::LOW:
-      file_id_counter = 0;
-      break;
-    case idType::HIGH:
-      file_id_counter = UINT32_MAX;
-      break;
-    default:
-      break;
-    }
-  }
-
-  static void reset()
-  {
-    current_type = idType::UNDEFINED;
-  }
 
   static QString getFileName(const QString& file_url)
   {
@@ -139,17 +110,13 @@ public:
   FileInfo(const bool irf, const QString& url, const quint32 file_id = 0, const quint64 size = 0, const QString& fn = QString())
     : is_remote_file(irf), file_url(url), file_status(0)
   {
-    if (current_type == idType::UNDEFINED)
-    {
-      throw std::runtime_error("Please set id begin");
-    }
     if (irf)
     {
       throw std::runtime_error("Don'n use this Constructor to construct locate file");
     }
 
     //不是远程文件时，从本地获取文件信息
-    id = (current_type == idType::LOW) ? file_id_counter++ : file_id_counter--;
+    id = GlobalStatusManager::getInstance().getFileId();
     file_name = getFileName(url);
     source_path = getFilePath(url);
     is_folder = isDirectoryWithQDir(source_path);
