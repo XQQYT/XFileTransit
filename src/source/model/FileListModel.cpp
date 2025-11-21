@@ -5,6 +5,8 @@
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
 #include <QtCore/QUrl>
+#include <QtGui/QGuiApplication>
+#include <QtGui/QClipboard>
 
 FileListModel::FileListModel(QObject* parent) :
     QAbstractListModel(parent)
@@ -201,4 +203,10 @@ void FileListModel::syncCurrentFiles()
     {
         EventBusManager::instance().publish("/sync/send_addfiles", files_to_send, uint8_t(4));
     }
+}
+
+void FileListModel::copyText(const QString &text)
+{
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    clipboard->setText(text);
 }

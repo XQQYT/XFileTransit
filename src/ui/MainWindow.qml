@@ -343,6 +343,77 @@ ApplicationWindow  {
             radius: 8
             border.color: "#40000000"
             border.width: 1
+
+            // 右键菜单
+            Menu {
+                id: contextMenu
+                MenuItem {
+                    text: "打开文件"
+                    enabled: model.fileStatus === file_list_model.StatusCompleted | !model.isRemote
+                    onTriggered: {
+                        if (model.fileUrl) {
+                            Qt.openUrlExternally(model.fileUrl)
+                        } else if (model.filePath) {
+                            var fileUrl = model.filePath.startsWith("file://") ? model.filePath : "file:///" + model.filePath
+                            Qt.openUrlExternally(fileUrl)
+                        }
+                    }
+                }
+                
+                MenuSeparator {}
+                
+                MenuItem {
+                    text: "复制文件名"
+                    onTriggered: {
+                        file_list_model.copyText(model.fileName)
+                    }
+                }
+                
+                MenuItem {
+                    text: "复制文件路径"
+                    enabled: model.filePath
+                    onTriggered: {
+                        if (model.filePath) {
+                            file_list_model.copyText(model.filePath)
+                        }
+                    }
+                }
+                
+                MenuSeparator {}
+                
+                MenuItem {
+                    text: "下载文件"
+                    enabled: model.isRemote && model.fileStatus !== file_list_model.StatusDownloading && model.fileStatus !==file_list_model.StatusCompleted
+                    onTriggered: {
+                        // 触发文件下载
+                        // file_list_model.downloadFile(index)
+                    }
+                }
+                
+                MenuItem {
+                    text: "刷新"
+                    onTriggered: {
+                        // 重新上传文件
+                        // file_list_model.retryUpload(index)
+                    }
+                }
+                
+                MenuSeparator {}
+                
+                MenuItem {
+                    text: "删除"
+                    onTriggered: {
+                        file_list_model.removeFile(index)
+                    }
+                }
+                
+                MenuItem {
+                    text: "属性"
+                    onTriggered: {
+                        // showFileProperties(index)
+                    }
+                }
+            }
             
             // 文件项的拖拽源
             Drag.active: fileDragArea.drag.active
@@ -357,7 +428,7 @@ ApplicationWindow  {
                 id: fileToolTip
                 visible: fileDragArea.containsMouse
                 text: model.toolTip
-                delay: 500
+                delay: 1500
                 timeout: 5000
             }
 
@@ -442,29 +513,47 @@ ApplicationWindow  {
                 }
             }
             
+            Item {
+                id: dragProxy
+                width: 1; height: 1 
+                visible: false
+
+                Drag.active: false
+                Drag.dragType: Drag.Automatic
+                Drag.supportedActions: Qt.CopyAction
+                Drag.mimeData: {
+                    "text/uri-list": model.fileUrl ? [model.fileUrl.toString()] : [],
+                    "text/plain": model.filePath || ""
+                }
+                Drag.imageSource: model.fileIcon
+            }
             // 文件拖拽区域
             MouseArea {
                 id: fileDragArea
                 anchors.fill: parent
-                drag.target: null
                 enabled: true
                 hoverEnabled: true
-                onPressed: {
-                    // 创建拖拽可视化项
-                    fileDragItem.parent = root.contentItem
-                    var globalPos = mapToGlobal(mouseX, mouseY)
-                    var itemPos = root.contentItem.mapFromGlobal(globalPos.x, globalPos.y)
-                    fileDragItem.x = itemPos.x - fileDragItem.width / 2
-                    fileDragItem.y = itemPos.y - fileDragItem.height / 2
-                    fileDragItem.visible = true
-                    
-                    fileDragItem.Drag.active = true
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+                drag.target: dragProxy
+                drag.axis: Drag.XandYAxis
+
+                onPressed: function(mouse) {
+                    if (mouse.button === Qt.RightButton) {
+                        contextMenu.open()
+                    } else if (mouse.button === Qt.LeftButton) {
+                        if (model.fileStatus === file_list_model.StatusCompleted || !model.isRemote) {
+                            dragProxy.Drag.active = true
+                        }
+                    }
                 }
-                
-                onPositionChanged: {
-                    if (drag.active) {
-                        fileDragItem.x = mapToItem(root, mouseX, mouseY).x - fileDragItem.width / 2
-                        fileDragItem.y = mapToItem(root, mouseX, mouseY).y - fileDragItem.height / 2
+
+                onPositionChanged: function(mouse) {
+                    if (fileDragItem.visible && fileDragItem.Drag.active) {
+                        var globalPos = mapToGlobal(mouse.x, mouse.y)
+                        var itemPos = root.contentItem.mapFromGlobal(globalPos.x, globalPos.y)
+                        fileDragItem.x = itemPos.x - fileDragItem.width / 2
+                        fileDragItem.y = itemPos.y - fileDragItem.height / 2
                     }
                 }
                 
@@ -487,33 +576,6 @@ ApplicationWindow  {
                 }
                 onExited:{
                     mouseIsInWindow = false
-                }
-            }
-            
-            // 拖拽可视化项
-            Rectangle {
-                id: fileDragItem
-                visible: false
-
-                // 拖拽支持
-                Drag.active: false
-                Drag.dragType: Drag.Automatic
-                Drag.supportedActions: Qt.CopyAction
-                Drag.mimeData: {
-                    "text/uri-list": model.fileUrl ? [model.fileUrl.toString()] : [],
-                    "text/plain": model.filePath || model.fileUrl || ""
-                }
-                Drag.hotSpot.x: width / 2
-                Drag.hotSpot.y: height / 2
-                
-                // 拖拽提示
-                Text {
-                    anchors {
-                        top: parent.top
-                        right: parent.right
-                        margins: 5
-                    }
-                    text: "📄"
                 }
             }
             

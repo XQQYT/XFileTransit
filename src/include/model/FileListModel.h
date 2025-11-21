@@ -131,6 +131,7 @@ public:
     }
     format_file_size = formatFileSize(file_size);
     icon = FileIconManager::getInstance().getFileIcon(url, is_folder);
+    file_status = 3; //StatusCompleted
   }
 
   //一般用于远程文件构建
@@ -142,6 +143,7 @@ public:
       throw std::runtime_error("Don'n use this Constructor to construct remote file");
     }
     icon = FileIconManager::getInstance().getFileIconBySuffix(getFileSuffix(file_name), is_folder);
+    file_status = 0;  //StatusPending
   }
 };
 
@@ -183,6 +185,7 @@ public:
   Q_INVOKABLE int getFileCount() const;
   Q_INVOKABLE void syncCurrentFiles();
   Q_INVOKABLE void updateFilesId();
+  Q_INVOKABLE void copyText(const QString &text);
   void addRemoteFiles(std::vector<std::vector<std::string>> files);
 
 public slots:
