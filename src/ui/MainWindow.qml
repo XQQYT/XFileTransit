@@ -551,17 +551,17 @@ ApplicationWindow  {
                 }
 
                 onPositionChanged: function(mouse) {
-                    if (fileDragItem.visible && fileDragItem.Drag.active) {
+                    if (dragProxy.visible && dragProxy.Drag.active) {
                         var globalPos = mapToGlobal(mouse.x, mouse.y)
                         var itemPos = root.contentItem.mapFromGlobal(globalPos.x, globalPos.y)
-                        fileDragItem.x = itemPos.x - fileDragItem.width / 2
-                        fileDragItem.y = itemPos.y - fileDragItem.height / 2
+                        dragProxy.x = itemPos.x - dragProxy.width / 2
+                        dragProxy.y = itemPos.y - dragProxy.height / 2
                     }
                 }
                 
                 onReleased: {
-                    fileDragItem.visible = false
-                    fileDragItem.Drag.active = false
+                    dragProxy.visible = false
+                    dragProxy.Drag.active = false
                 }
                 
                 // 双击打开文件
