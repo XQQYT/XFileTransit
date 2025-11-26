@@ -53,6 +53,7 @@ NetworkController::NetworkController() :
     json_parser(std::make_unique<JsonParser>())
 {
     initSubscribe();
+    //设置安全实例驱动才会按照加密协议进行通信
     control_msg_network_driver->setSecurityInstance(security_driver);
     control_msg_network_driver->startListen("0.0.0.0", "7777", "7778", nullptr, [this](bool connect_status) -> bool
         {
@@ -67,7 +68,8 @@ NetworkController::NetworkController() :
 
 void NetworkController::onSendConnectRequest(std::string sender_device_name, std::string sender_device_ip, std::string target_device_ip)
 {
-    control_msg_network_driver->initSocket(target_device_ip, "7777", "7778");
+    control_msg_network_driver->initTlsSocket(target_device_ip, "7777");
+    control_msg_network_driver->initTcpSocket(target_device_ip, "7778");
     control_msg_network_driver->connectTo([=](bool ret)
         {
             if (ret)

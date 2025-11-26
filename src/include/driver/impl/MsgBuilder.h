@@ -13,8 +13,9 @@ public:
     MsgBuilder(std::shared_ptr<SecurityInterface> instance = nullptr);
     ~MsgBuilder() = default;
     std::unique_ptr<MsgBuilderInterface::UserMsg> buildMsg(std::string payload) override;
-
+    std::unique_ptr<MsgBuilderInterface::UserMsg> buildMsg(std::vector<uint8_t> payload) override;
 private:
+    std::unique_ptr<MsgBuilderInterface::UserMsg> build(std::vector<uint8_t> payload) override;
     uint8_t version;
 };
 

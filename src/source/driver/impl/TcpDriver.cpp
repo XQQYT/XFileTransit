@@ -24,13 +24,16 @@ TcpDriver::~TcpDriver()
         closeSocket();
 }
 
-void TcpDriver::initSocket(const std::string& address, const std::string& tls_port, const std::string& tcp_port)
+void TcpDriver::initTlsSocket(const std::string& address, const std::string& tls_port)
 {
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
     client_tls_addr.sin_family = AF_INET;
     client_tls_addr.sin_port = htons(std::stoi(tls_port));
     inet_pton(AF_INET, address.c_str(), &client_tls_addr.sin_addr);
+}
 
+void TcpDriver::initTcpSocket(const std::string& address, const std::string& tcp_port)
+{
     client_tcp_addr.sin_family = AF_INET;
     client_tcp_addr.sin_port = htons(std::stoi(tcp_port));
     inet_pton(AF_INET, address.c_str(), &client_tcp_addr.sin_addr);
@@ -319,7 +322,10 @@ void TcpDriver::startListen(const std::string& address, const std::string& tls_p
     const std::string& tcp_port,std::function<bool(bool)> tls_callback, std::function<bool(bool)> tcp_callback)
 {
     listen_running = true;
-    startTlsListen(address, tls_port, tls_callback);
+    if(security_instance)
+    {
+        startTlsListen(address, tls_port, tls_callback);
+    }
     startTcpListen(address, tcp_port, tcp_callback);
 }
 

@@ -46,8 +46,10 @@ public:
 public:
     virtual ~MsgBuilderInterface() {};
     virtual std::unique_ptr<UserMsg> buildMsg(std::string payload) = 0;
+    virtual std::unique_ptr<UserMsg> buildMsg(std::vector<uint8_t> payload) = 0;
     virtual void setSecurityInstance(std::shared_ptr<SecurityInterface> instance) { security_instance = instance; }
-
+private:
+    virtual std::unique_ptr<UserMsg> build(std::vector<uint8_t> payload) = 0;
 protected:
     std::shared_ptr<SecurityInterface> security_instance;
 };
