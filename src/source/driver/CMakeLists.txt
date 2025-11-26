@@ -1,14 +1,15 @@
 set(DRIVER_SOURCES
     impl/Nlohmann.cpp
     impl/TcpDriver.cpp
-    impl/MsgBuilder.cpp
+    impl/OuterMsgBuilder.cpp
     impl/OpensslDriver.cpp
+    impl/OuterMsgParser.cpp
 )
 
 set(DRIVER_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/impl/Nlohmann.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/JsonFactoryInterface.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/MsgBuilderInterface.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/OuterMsgBuilderInterface.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/NetworkInterface.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/SecurityInterface.h
 )

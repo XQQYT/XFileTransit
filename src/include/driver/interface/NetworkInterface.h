@@ -4,16 +4,11 @@
 #include <memory>
 #include <functional>
 #include "driver/interface/SecurityInterface.h"
-#include "driver/interface/MsgBuilderInterface.h"
+#include "driver/interface/OuterMsgBuilderInterface.h"
+#include "driver/interface/OuterMsgParserInterface.h"
 
 class NetworkInterface {
 public:
-    struct ParsedMsg {
-        std::vector<uint8_t> iv;
-        std::vector<uint8_t> data;
-        std::vector<uint8_t> sha256;
-        MsgBuilderInterface::Header header;
-    };
     enum class ConnectError{
         CONNECT_REFUSED = 10001,          // WSAECONNREFUSED (10061) - 连接被拒绝
         CONNECT_TIMEOUT = 10002,          // WSAETIMEDOUT (10060) - 连接超时
@@ -52,7 +47,7 @@ public:
     virtual void startTlsListen(const std::string& address, const std::string& tls_port, std::function<bool(bool)> tls_callback) = 0;
     virtual void startTcpListen(const std::string& address, const std::string& tcp_port, std::function<bool(bool)> tcp_callback) = 0;
     virtual void sendMsg(const std::string& msg) = 0;
-    virtual void recvMsg(std::function<void(ParsedMsg&&)> callback) = 0;
+    virtual void recvMsg(std::function<void(std::unique_ptr<OuterMsgParserInterface::ParsedMsg>)> callback) = 0;
     virtual void closeSocket() = 0;
     virtual void resetConnection() = 0;
     virtual void setSecurityInstance(std::shared_ptr<SecurityInterface> instance) { security_instance = instance; }

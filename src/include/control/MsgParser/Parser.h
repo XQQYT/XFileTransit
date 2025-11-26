@@ -1,13 +1,13 @@
 #ifndef _PARSER_H
 #define _PARSER_H
 
-#include <vector>
-#include <cstdint>
+#include <memory>
+#include "driver/interface/OuterMsgParserInterface.h"
 
 class Parser
 {
 public:
-    virtual void parse(std::vector<uint8_t>&& data) = 0;
+    virtual void parse(std::unique_ptr<OuterMsgParserInterface::ParsedMsg> data) = 0;
 };
 
 #endif

@@ -2,7 +2,8 @@
 #define _TCPDRIVER_H
 
 #include "driver/interface/NetworkInterface.h"
-#include "driver/interface/MsgBuilderInterface.h"
+#include "driver/interface/OuterMsgBuilderInterface.h"
+#include "driver/interface/OuterMsgParserInterface.h"
 #include <thread>
 #include <atomic>
 
@@ -25,7 +26,7 @@ public:
         std::function<bool(bool)> tls_callback,std::function<bool(bool)> tcp_callback) override;
     void startTlsListen(const std::string& address, const std::string& tls_port, std::function<bool(bool)> tls_callback) override;
     void startTcpListen(const std::string& address, const std::string& tcp_port, std::function<bool(bool)> tcp_callback) override;
-    void recvMsg(std::function<void(ParsedMsg&& parsed_msg)> callback) override;
+    void recvMsg(std::function<void(std::unique_ptr<OuterMsgParserInterface::ParsedMsg>)> callback) override;
     void closeSocket() override;
     void setSecurityInstance(std::shared_ptr<SecurityInterface> instance) override;
     void resetConnection() override;
@@ -47,7 +48,8 @@ private:
     SOCKET tcp_listen_socket = INVALID_SOCKET;
 
     std::string candidate_ip;
-    std::unique_ptr<MsgBuilderInterface> msg_builder;
+    std::unique_ptr<OuterMsgBuilderInterface> msg_builder;
+    std::unique_ptr<OuterMsgParserInterface> msg_parser;
 
     sockaddr_in client_tls_addr;
     sockaddr_in client_tcp_addr;

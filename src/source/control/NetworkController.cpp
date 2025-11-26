@@ -61,10 +61,10 @@ NetworkController::NetworkController() :
     control_msg_network_driver->setSecurityInstance(security_driver);
     control_msg_network_driver->startListen("0.0.0.0", "7777", "7778", nullptr, [this](bool connect_status) -> bool
         {
-            control_msg_network_driver->recvMsg([this](NetworkInterface::ParsedMsg&& msg)
+            control_msg_network_driver->recvMsg([this](std::unique_ptr<OuterMsgParserInterface::ParsedMsg> msg)
                 {
-                    std::cout << "recv msg -> " << std::string(msg.data.data(), msg.data.data() + msg.data.size()) << std::endl;
-                    json_parser->parse(std::move(msg.data));
+                    std::cout << "recv msg -> " << std::string(msg->data.data(), msg->data.data() + msg->data.size()) << std::endl;
+                    json_parser->parse(std::move(msg));
                 });
             return true;
         });
@@ -78,10 +78,10 @@ void NetworkController::onSendConnectRequest(std::string sender_device_name, std
         {
             if (ret)
             {
-                control_msg_network_driver->recvMsg([this](NetworkInterface::ParsedMsg&& msg)
+                control_msg_network_driver->recvMsg([this](std::unique_ptr<OuterMsgParserInterface::ParsedMsg> msg)
                     {
-                        std::cout << "recv msg -> " << std::string(msg.data.data(), msg.data.data() + msg.data.size()) << std::endl;
-                        json_parser->parse(std::move(msg.data));
+                        std::cout << "recv msg -> " << std::string(msg->data.data(), msg->data.data() + msg->data.size()) << std::endl;
+                        json_parser->parse(std::move(msg));
                     });
                 GlobalStatusManager::getInstance().setCurrentDeviceIP(target_device_ip);
                 std::string msg = json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(

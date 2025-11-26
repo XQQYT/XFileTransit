@@ -1,10 +1,12 @@
 #include "driver/impl/TcpDriver.h"
-#include "driver/impl/MsgBuilder.h"
+#include "driver/impl/OuterMsgBuilder.h"
+#include "driver/impl/OuterMsgParser.h"
 #include <iostream>
 #include <memory.h>
 #include <iomanip>
 
-TcpDriver::TcpDriver() : msg_builder(std::make_unique<MsgBuilder>(security_instance)),
+TcpDriver::TcpDriver() : msg_builder(std::make_unique<OuterMsgBuilder>(security_instance)),
+msg_parser(std::make_unique<OuterMsgParser>()),
 client_tls_addr({}),
 client_tcp_addr({}),
 receive_thread(nullptr),
@@ -162,7 +164,7 @@ void printHex(const std::vector<uint8_t>& data) {
 
 void TcpDriver::sendMsg(const std::string& msg)
 {
-    std::unique_ptr<MsgBuilderInterface::UserMsg> ready_to_send_msg = std::move(msg_builder->buildMsg(msg));
+    std::unique_ptr<OuterMsgBuilderInterface::UserMsg> ready_to_send_msg = std::move(msg_builder->buildMsg(msg));
 
     size_t final_msg_length = ready_to_send_msg->msg->size();
     size_t sended_length = 0;
@@ -329,40 +331,7 @@ void TcpDriver::startListen(const std::string& address, const std::string& tls_p
     startTcpListen(address, tcp_port, tcp_callback);
 }
 
-NetworkInterface::ParsedMsg parseMsgPayload(const uint8_t* full_msg, const uint32_t length, const uint8_t flag)
-{
-    NetworkInterface::ParsedMsg result;
-
-    size_t offset = 0;
-
-    // 检查标志位
-    bool is_encrypt = static_cast<bool>((flag) & static_cast<uint8_t>(MsgBuilderInterface::Flag::IS_ENCRYPT));
-
-    if (is_encrypt)
-    {
-        // 解析 IV（16字节）
-        result.iv.assign(full_msg + offset, full_msg + offset + 16);
-        offset += 16;
-
-        // 解析 SHA256（32字节）
-        result.sha256.assign(full_msg + offset, full_msg + offset + 32);
-        offset += 32;
-    }
-
-    // 解析密文
-    size_t cipher_len = length;
-    if (is_encrypt)
-    {
-        cipher_len = length - 16 - 32;
-    }
-
-    result.data.assign(full_msg + offset, full_msg + offset + cipher_len);
-    offset += cipher_len;
-
-    return result;
-}
-
-void TcpDriver::recvMsg(std::function<void(ParsedMsg&& parsed_msg)> callback)
+void TcpDriver::recvMsg(std::function<void(std::unique_ptr<OuterMsgParserInterface::ParsedMsg> parsed_msg)> callback)
 {
     if (!connect_status)
     {
@@ -395,11 +364,12 @@ void TcpDriver::recvMsg(std::function<void(ParsedMsg&& parsed_msg)> callback)
                         uint8_t flag = 0x0;
                         memcpy(&flag, buffer + 7, sizeof(flag));
 
-                        uint8_t* receive_msg = new uint8_t[payload_length];
+                        std::vector<uint8_t> receive_msg;
+                        receive_msg.reserve(payload_length);
                         uint32_t readed_length = 0;
 
                         while (readed_length < payload_length) {
-                            int read_byte = recv(client_socket, reinterpret_cast<char*>(receive_msg + readed_length),
+                            int read_byte = recv(client_socket, reinterpret_cast<char*>(receive_msg.data() + readed_length),
                                 payload_length - readed_length, 0);
                             if (read_byte == 0) {
                                 throw std::runtime_error("peer closed");
@@ -411,15 +381,14 @@ void TcpDriver::recvMsg(std::function<void(ParsedMsg&& parsed_msg)> callback)
                             std::cout << readed_length << " / " << payload_length << std::endl;
                         }
 
-                        printHex(std::vector<uint8_t>(buffer, buffer + 8));
-                        auto parsed = parseMsgPayload(receive_msg, payload_length, flag);
-                        memcpy(&parsed.header, buffer, HEADER_SIZE);
+                        auto parsed = msg_parser->parse(std::move(receive_msg), payload_length, flag);
+                        memcpy(&parsed->header, buffer, HEADER_SIZE);
                         std::vector<uint8_t> result_vec;
-                        result_vec.reserve(parsed.data.size());
-                        if (flag & static_cast<uint8_t>(MsgBuilderInterface::Flag::IS_ENCRYPT) &&
-                            security_instance->verifyAndDecrypt(parsed.data, security_instance->getTlsInfo().key.get(), parsed.iv, result_vec, parsed.sha256))
+                        result_vec.reserve(parsed->data.size());
+                        if (flag & static_cast<uint8_t>(OuterMsgBuilderInterface::Flag::IS_ENCRYPT) &&
+                            security_instance->verifyAndDecrypt(parsed->data, security_instance->getTlsInfo().key.get(), parsed->iv, result_vec, parsed->sha256))
                         {
-                            parsed.data.assign(result_vec.begin(), result_vec.end());
+                            parsed->data.assign(result_vec.begin(), result_vec.end());
                             callback(std::move(parsed));
                         }
                         else

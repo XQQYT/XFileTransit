@@ -14,11 +14,11 @@ JsonParser::JsonParser() :
     type_funcfion_map["remove_files"] = std::bind(JsonParser::syncDeleteFiles, this, std::placeholders::_1);
 }
 
-void JsonParser::parse(std::vector<uint8_t>&& data)
+void JsonParser::parse(std::unique_ptr<OuterMsgParserInterface::ParsedMsg> data)
 {
     auto parser = json_driver->getParser();
-    std::string data_str(std::make_move_iterator(data.begin()),
-        std::make_move_iterator(data.end()));
+    std::string data_str(std::make_move_iterator(data->data.begin()),
+        std::make_move_iterator(data->data.end()));
     parser->loadJson(data_str);
     std::string type = parser->getValue("type");
     auto deal_func = type_funcfion_map.find(type);

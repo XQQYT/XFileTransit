@@ -1,25 +1,25 @@
-#include "driver/impl/MsgBuilder.h"
+#include "driver/impl/OuterMsgBuilder.h"
 #include <memory.h>
 #include <iostream>
 #include <fstream>
 
-MsgBuilder::MsgBuilder(std::shared_ptr<SecurityInterface> instance)
+OuterMsgBuilder::OuterMsgBuilder(std::shared_ptr<SecurityInterface> instance)
     :version(0x01)
 {
     security_instance = instance;
 }
 
-std::unique_ptr<MsgBuilderInterface::UserMsg> MsgBuilder::buildMsg(std::string payload) 
+std::unique_ptr<OuterMsgBuilderInterface::UserMsg> OuterMsgBuilder::buildMsg(std::string payload) 
 {
     return build(std::vector<uint8_t>(reinterpret_cast<const uint8_t*>(payload.data()), reinterpret_cast<const uint8_t*>(payload.data()) + payload.size()));
 }
 
-std::unique_ptr<MsgBuilderInterface::UserMsg> MsgBuilder::buildMsg(std::vector<uint8_t> payload)
+std::unique_ptr<OuterMsgBuilderInterface::UserMsg> OuterMsgBuilder::buildMsg(std::vector<uint8_t> payload)
 {
     return build(std::move(payload));
 }
 
-std::unique_ptr<MsgBuilderInterface::UserMsg> MsgBuilder::build(std::vector<uint8_t> real_msg)
+std::unique_ptr<OuterMsgBuilderInterface::UserMsg> OuterMsgBuilder::build(std::vector<uint8_t> real_msg)
 {
     //构造Header
     Header header;
@@ -84,7 +84,7 @@ std::unique_ptr<MsgBuilderInterface::UserMsg> MsgBuilder::build(std::vector<uint
     }
     //拷贝加密后的数据
     memcpy(msg.data() + offset, real_msg.data(), real_msg.size()); offset += real_msg.size();
-    auto user_msg = std::make_unique<MsgBuilderInterface::UserMsg>();
+    auto user_msg = std::make_unique<OuterMsgBuilderInterface::UserMsg>();
     user_msg->iv = iv;
     user_msg->sha256 = sha256;
     user_msg->msg = std::make_unique<std::vector<uint8_t>>(std::move(msg));
