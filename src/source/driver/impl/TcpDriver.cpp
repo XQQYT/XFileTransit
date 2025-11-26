@@ -43,7 +43,7 @@ void TcpDriver::initTcpSocket(const std::string& address, const std::string& tcp
 
 void TcpDriver::dealConnectError()
 {
-    if(this->dce_cb)
+    if (this->dce_cb)
     {
         int error_code = WSAGetLastError();
         switch (error_code) {
@@ -80,50 +80,10 @@ void TcpDriver::dealConnectError()
         default:
             std::cerr << "Connect unknown error" << std::endl;
             break;
-        }        
+        }
     }
 }
 
-void TcpDriver::dealRecvError()
-{
-    if(this->dre_cb)
-    {
-        int error_code = WSAGetLastError();
-        switch (error_code) {
-        case WSAECONNRESET:
-            //对方正常关闭
-            if(this->dcc_cb)
-            {
-                this->dcc_cb();
-            }
-            break;
-        case WSAECONNABORTED:
-            this->dre_cb(RecvError::RECV_CONN_ABORTED);
-            break;
-        case WSAENOTCONN:
-            this->dre_cb(RecvError::RECV_NOT_CONNECTED);
-            break;
-        case WSAENETDOWN:
-            this->dre_cb(RecvError::RECV_NETWORK_DOWN);
-            break;
-        case WSAETIMEDOUT:
-            this->dre_cb(RecvError::RECV_TIMED_OUT);
-            break;
-        case WSAEINTR:
-            this->dre_cb(RecvError::RECV_INTERRUPTED);
-            break;
-        case WSAESHUTDOWN:
-            this->dre_cb(RecvError::RECV_SHUTDOWN);
-            break;
-        case WSAENETRESET:
-            this->dre_cb(RecvError::RECV_NETWORK_RESET);
-            break;
-        default:
-            std::cerr << "Recv unknown error" << std::endl;
-            break;
-        }        
-    }
-}
 
 void TcpDriver::connectTo(std::function<void(bool)> callback)
 {
@@ -164,14 +124,14 @@ void printHex(const std::vector<uint8_t>& data) {
 
 void TcpDriver::sendMsg(const std::string& msg)
 {
-    std::unique_ptr<OuterMsgBuilderInterface::UserMsg> ready_to_send_msg = std::move(msg_builder->buildMsg(msg));
+    std::unique_ptr<NetworkInterface::UserMsg> ready_to_send_msg = std::move(msg_builder->buildMsg(msg));
 
-    size_t final_msg_length = ready_to_send_msg->msg->size();
+    size_t final_msg_length = ready_to_send_msg->data.size();
     size_t sended_length = 0;
 
     while (sended_length < final_msg_length)
     {
-        int ret = send(client_socket, reinterpret_cast<const char*>(ready_to_send_msg->msg->data() + sended_length),
+        int ret = send(client_socket, reinterpret_cast<const char*>(ready_to_send_msg->data.data() + sended_length),
             final_msg_length - sended_length, 0);
         if (ret <= 0)
         {
@@ -187,29 +147,29 @@ void TcpDriver::sendMsg(const std::string& msg)
 SOCKET TcpDriver::createListenSocket(const std::string& address, const std::string& port) {
     SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock == INVALID_SOCKET) return INVALID_SOCKET;
-        
+
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
     addr.sin_port = htons(std::stoi(port));
     inet_pton(AF_INET, address.c_str(), &addr.sin_addr);
-        
+
     if (bind(sock, (sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR) {
         closesocket(sock);
         return INVALID_SOCKET;
     }
-        
+
     if (listen(sock, 5) == SOCKET_ERROR) {
         closesocket(sock);
         return INVALID_SOCKET;
     }
-        
+
     return sock;
 }
 
 void TcpDriver::startTlsListen(const std::string& address, const std::string& tls_port, std::function<bool(bool)> tls_callback)
 {
     //初始化tls监听
-    tls_listen_socket =  createListenSocket(address, tls_port);
+    tls_listen_socket = createListenSocket(address, tls_port);
 
     tls_listen_thread = new std::thread([this, cb = std::move(tls_callback)]()
         {
@@ -220,11 +180,11 @@ void TcpDriver::startTlsListen(const std::string& address, const std::string& tl
             while (this->listen_running)
             {
                 //只有在等待TLS请求时才接收
-                if(this->connection_status == ConnectionStatus::WAITING_TLS)
+                if (this->connection_status == ConnectionStatus::WAITING_TLS)
                 {
                     int result = WSAPoll(fds, 1, 100);
 
-                    if (result > 0 && (fds[0].revents & POLLRDNORM)) 
+                    if (result > 0 && (fds[0].revents & POLLRDNORM))
                     {
                         int accept_addr_len = sizeof(accept_addr);
                         SOCKET accepted_socket = accept(tls_listen_socket, (sockaddr*)&accept_addr, &accept_addr_len);
@@ -244,9 +204,9 @@ void TcpDriver::startTlsListen(const std::string& address, const std::string& tl
                                         security_instance->setTlsInfo(info);
                                         connection_status = ConnectionStatus::TLS_CONNECTED;
                                     }
-                                    if(cb)
+                                    if (cb)
                                         cb(ret);
-                                });
+                                    });
                             }
                         }
                         else {
@@ -268,7 +228,7 @@ void TcpDriver::startTlsListen(const std::string& address, const std::string& tl
 void TcpDriver::startTcpListen(const std::string& address, const std::string& tcp_port, std::function<bool(bool)> tcp_callback)
 {
     //初始化tcp监听
-    tcp_listen_socket =  createListenSocket(address, tcp_port);
+    tcp_listen_socket = createListenSocket(address, tcp_port);
 
     tcp_listen_thread = new std::thread([this, cb = std::move(tcp_callback)]()
         {
@@ -279,7 +239,7 @@ void TcpDriver::startTcpListen(const std::string& address, const std::string& tc
             while (this->listen_running)
             {
                 //只有在tls建立成功时才监听
-                if(this->connection_status == ConnectionStatus::TLS_CONNECTED)
+                if (this->connection_status == ConnectionStatus::TLS_CONNECTED)
                 {
                     int result = WSAPoll(fds, 1, 100);
 
@@ -298,7 +258,7 @@ void TcpDriver::startTcpListen(const std::string& address, const std::string& tc
                                 {
                                     client_socket = accepted_socket;
                                     connect_status = true;
-                                    if(cb)
+                                    if (cb)
                                         cb(true);
                                     this->connection_status = ConnectionStatus::TCP_ESTABLISHED;
                                 }
@@ -320,18 +280,18 @@ void TcpDriver::startTcpListen(const std::string& address, const std::string& tc
             closesocket(tcp_listen_socket); });
 }
 
-void TcpDriver::startListen(const std::string& address, const std::string& tls_port, 
-    const std::string& tcp_port,std::function<bool(bool)> tls_callback, std::function<bool(bool)> tcp_callback)
+void TcpDriver::startListen(const std::string& address, const std::string& tls_port,
+    const std::string& tcp_port, std::function<bool(bool)> tls_callback, std::function<bool(bool)> tcp_callback)
 {
     listen_running = true;
-    if(security_instance)
+    if (security_instance)
     {
         startTlsListen(address, tls_port, tls_callback);
     }
     startTcpListen(address, tcp_port, tcp_callback);
 }
 
-void TcpDriver::recvMsg(std::function<void(std::unique_ptr<OuterMsgParserInterface::ParsedMsg> parsed_msg)> callback)
+void TcpDriver::recvMsg(std::function<void(std::unique_ptr<UserMsg> parsed_msg)> callback)
 {
     if (!connect_status)
     {
@@ -340,80 +300,13 @@ void TcpDriver::recvMsg(std::function<void(std::unique_ptr<OuterMsgParserInterfa
     recv_running = true;
     receive_thread = new std::thread([this, callback = std::move(callback)]()
         {
+            std::function<void()> dealConnectError_cb = std::bind(dealConnectError, this);
             while (recv_running)
             {
-                uint8_t peek_buffer[2];
-                int peeked = recv(client_socket, reinterpret_cast<char*>(peek_buffer), sizeof(peek_buffer), MSG_PEEK);
-                if (peeked > 0) {
-                    if (peek_buffer[0] == 0xAB && peek_buffer[1] == 0xCD)
-                    {
-                        constexpr int HEADER_SIZE = 8;
-                        uint8_t buffer[HEADER_SIZE] = { 0 };
-                        uint32_t header_received = 0;
-                        while (header_received < HEADER_SIZE) {
-                            int n = recv(client_socket, reinterpret_cast<char*>(buffer + header_received),
-                                HEADER_SIZE - header_received, 0);
-                            if (n <= 0) throw std::runtime_error("Header recv error");
-                            header_received += n;
-                        }
-
-                        uint32_t payload_length = 0;
-                        memcpy(&payload_length, buffer + 3, sizeof(payload_length));
-                        payload_length = ntohl(payload_length);
-
-                        uint8_t flag = 0x0;
-                        memcpy(&flag, buffer + 7, sizeof(flag));
-
-                        std::vector<uint8_t> receive_msg;
-                        receive_msg.reserve(payload_length);
-                        uint32_t readed_length = 0;
-
-                        while (readed_length < payload_length) {
-                            int read_byte = recv(client_socket, reinterpret_cast<char*>(receive_msg.data() + readed_length),
-                                payload_length - readed_length, 0);
-                            if (read_byte == 0) {
-                                throw std::runtime_error("peer closed");
-                            }
-                            if (read_byte < 0) {
-                                throw std::runtime_error("recv error");
-                            }
-                            readed_length += read_byte;
-                            std::cout << readed_length << " / " << payload_length << std::endl;
-                        }
-
-                        auto parsed = msg_parser->parse(std::move(receive_msg), payload_length, flag);
-                        memcpy(&parsed->header, buffer, HEADER_SIZE);
-                        std::vector<uint8_t> result_vec;
-                        result_vec.reserve(parsed->data.size());
-                        if (flag & static_cast<uint8_t>(OuterMsgBuilderInterface::Flag::IS_ENCRYPT) &&
-                            security_instance->verifyAndDecrypt(parsed->data, security_instance->getTlsInfo().key.get(), parsed->iv, result_vec, parsed->sha256))
-                        {
-                            parsed->data.assign(result_vec.begin(), result_vec.end());
-                            callback(std::move(parsed));
-                        }
-                        else
-                        {
-                            callback(std::move(parsed));
-                        }
-                    }
-                    else
-                    {
-                        char dump_buffer[4];
-                        recv(client_socket, dump_buffer, sizeof(dump_buffer), 0);
-                    }
-
-                }//对方正常关闭
-                else if (peeked == 0) {
-                    if(this->dcc_cb)
-                    {
-                        this->dcc_cb();
-                    }
-                }else if (peeked == SOCKET_ERROR) {//错误处理
-                    dealRecvError();
-                }
-            } });
+                msg_parser->delegateRecv(client_socket, callback, this->dcc_cb, this->dre_cb, security_instance);
+            }
+        });
 }
-
 void TcpDriver::closeSocket()
 {
     listen_running = false;

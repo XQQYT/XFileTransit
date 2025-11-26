@@ -12,10 +12,10 @@ class OuterMsgBuilder : public OuterMsgBuilderInterface
 public:
     OuterMsgBuilder(std::shared_ptr<SecurityInterface> instance = nullptr);
     ~OuterMsgBuilder() = default;
-    std::unique_ptr<OuterMsgBuilderInterface::UserMsg> buildMsg(std::string payload) override;
-    std::unique_ptr<OuterMsgBuilderInterface::UserMsg> buildMsg(std::vector<uint8_t> payload) override;
+    std::unique_ptr<NetworkInterface::UserMsg> buildMsg(std::string payload) override;
+    std::unique_ptr<NetworkInterface::UserMsg> buildMsg(std::vector<uint8_t> payload) override;
 private:
-    std::unique_ptr<OuterMsgBuilderInterface::UserMsg> build(std::vector<uint8_t> payload) override;
+    std::unique_ptr<NetworkInterface::UserMsg> build(std::vector<uint8_t> payload) override;
     uint8_t version;
 };
 

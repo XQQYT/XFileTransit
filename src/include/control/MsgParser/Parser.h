@@ -2,12 +2,12 @@
 #define _PARSER_H
 
 #include <memory>
-#include "driver/interface/OuterMsgParserInterface.h"
+#include "driver/interface/NetworkInterface.h"
 
 class Parser
 {
 public:
-    virtual void parse(std::unique_ptr<OuterMsgParserInterface::ParsedMsg> data) = 0;
+    virtual void parse(std::unique_ptr<NetworkInterface::UserMsg> data) = 0;
 };
 
 #endif

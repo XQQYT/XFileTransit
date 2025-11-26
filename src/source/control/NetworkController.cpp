@@ -35,7 +35,7 @@ void NetworkController::initSubscribe()
     EventBusManager::instance().subscribe("/sync/send_deletefiles",
         std::bind(&NetworkController::onSendSyncDeleteFile,
             this,
-            std::placeholders::_1));   
+            std::placeholders::_1));
     //设置错误处理回调函数
     control_msg_network_driver->setDealConnectErrorCb(std::bind(
         &NetworkController::onConnectError,
@@ -61,7 +61,7 @@ NetworkController::NetworkController() :
     control_msg_network_driver->setSecurityInstance(security_driver);
     control_msg_network_driver->startListen("0.0.0.0", "7777", "7778", nullptr, [this](bool connect_status) -> bool
         {
-            control_msg_network_driver->recvMsg([this](std::unique_ptr<OuterMsgParserInterface::ParsedMsg> msg)
+            control_msg_network_driver->recvMsg([this](std::unique_ptr<NetworkInterface::UserMsg> msg)
                 {
                     std::cout << "recv msg -> " << std::string(msg->data.data(), msg->data.data() + msg->data.size()) << std::endl;
                     json_parser->parse(std::move(msg));
@@ -78,7 +78,7 @@ void NetworkController::onSendConnectRequest(std::string sender_device_name, std
         {
             if (ret)
             {
-                control_msg_network_driver->recvMsg([this](std::unique_ptr<OuterMsgParserInterface::ParsedMsg> msg)
+                control_msg_network_driver->recvMsg([this](std::unique_ptr<NetworkInterface::UserMsg> msg)
                     {
                         std::cout << "recv msg -> " << std::string(msg->data.data(), msg->data.data() + msg->data.size()) << std::endl;
                         json_parser->parse(std::move(msg));
@@ -212,5 +212,5 @@ void NetworkController::onSendSyncDeleteFile(uint32_t id)
 {
     auto sync_builder = json_builder->getBuilder(Json::BuilderType::Sync);
     control_msg_network_driver->sendMsg(
-        sync_builder->buildSyncMsg(Json::MessageType::Sync::RemoveFile, {std::to_string(id)}, 1));
+        sync_builder->buildSyncMsg(Json::MessageType::Sync::RemoveFile, { std::to_string(id) }, 1));
 }

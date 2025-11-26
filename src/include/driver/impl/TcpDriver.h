@@ -23,15 +23,15 @@ public:
     void sendMsg(const std::string& msg) override;
     //设置安全实例才会开启tls监听
     void startListen(const std::string& address, const std::string& tls_port, const std::string& tcp_port,
-        std::function<bool(bool)> tls_callback,std::function<bool(bool)> tcp_callback) override;
+        std::function<bool(bool)> tls_callback, std::function<bool(bool)> tcp_callback) override;
     void startTlsListen(const std::string& address, const std::string& tls_port, std::function<bool(bool)> tls_callback) override;
     void startTcpListen(const std::string& address, const std::string& tcp_port, std::function<bool(bool)> tcp_callback) override;
-    void recvMsg(std::function<void(std::unique_ptr<OuterMsgParserInterface::ParsedMsg>)> callback) override;
+    void recvMsg(std::function<void(std::unique_ptr<NetworkInterface::UserMsg>)> callback) override;
     void closeSocket() override;
     void setSecurityInstance(std::shared_ptr<SecurityInterface> instance) override;
     void resetConnection() override;
 private:
-    enum class ConnectionStatus{
+    enum class ConnectionStatus {
         WAITING_TLS,
         TLS_CONNECTED,
         TCP_ESTABLISHED
@@ -39,7 +39,6 @@ private:
 
     SOCKET createListenSocket(const std::string& address, const std::string& port);
     void dealConnectError();
-    void dealRecvError();
 private:
     WSADATA wsa_data;
 

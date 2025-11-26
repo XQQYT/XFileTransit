@@ -43,7 +43,7 @@ class JsonParser : public Parser
 {
 public:
     JsonParser();
-    void parse(std::unique_ptr<OuterMsgParserInterface::ParsedMsg> data) override;
+    void parse(std::unique_ptr<NetworkInterface::UserMsg> data) override;
 private:
     void connectRequest(std::unique_ptr<Json::Parser> parser);
     void resonpeResult(std::unique_ptr<Json::Parser> parser);

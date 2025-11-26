@@ -6,7 +6,15 @@
 class OuterMsgParser : public OuterMsgParserInterface
 {
 public:
-    std::unique_ptr<OuterMsgParserInterface::ParsedMsg> parse(std::vector<uint8_t>&& msg, const uint32_t length, const uint8_t flag) override;
+    void delegateRecv(SOCKET client_socket,
+        std::function<void(std::unique_ptr<NetworkInterface::UserMsg> parsed_msg)> callback,
+        std::function<void()> dcc_cb,
+        std::function<void(const NetworkInterface::RecvError error)> dre_cb,
+        std::shared_ptr<SecurityInterface> security_instance) override;
+private:
+    void dealRecvError(std::function<void()> dcc_cb,
+        std::function<void(const NetworkInterface::RecvError error)> dre_cb);
+    std::unique_ptr<NetworkInterface::UserMsg> parse(std::vector<uint8_t>&& msg, const uint32_t length, const uint8_t flag) override;
 };
 
 #endif

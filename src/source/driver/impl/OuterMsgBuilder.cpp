@@ -9,22 +9,22 @@ OuterMsgBuilder::OuterMsgBuilder(std::shared_ptr<SecurityInterface> instance)
     security_instance = instance;
 }
 
-std::unique_ptr<OuterMsgBuilderInterface::UserMsg> OuterMsgBuilder::buildMsg(std::string payload) 
+std::unique_ptr<NetworkInterface::UserMsg> OuterMsgBuilder::buildMsg(std::string payload)
 {
     return build(std::vector<uint8_t>(reinterpret_cast<const uint8_t*>(payload.data()), reinterpret_cast<const uint8_t*>(payload.data()) + payload.size()));
 }
 
-std::unique_ptr<OuterMsgBuilderInterface::UserMsg> OuterMsgBuilder::buildMsg(std::vector<uint8_t> payload)
+std::unique_ptr<NetworkInterface::UserMsg> OuterMsgBuilder::buildMsg(std::vector<uint8_t> payload)
 {
     return build(std::move(payload));
 }
 
-std::unique_ptr<OuterMsgBuilderInterface::UserMsg> OuterMsgBuilder::build(std::vector<uint8_t> real_msg)
+std::unique_ptr<NetworkInterface::UserMsg> OuterMsgBuilder::build(std::vector<uint8_t> real_msg)
 {
     //构造Header
-    Header header;
+    NetworkInterface::Header header;
 
-    uint16_t net_magic = htons(magic);
+    uint16_t net_magic = htons(NetworkInterface::magic);
 
     memcpy(&header.magic, &net_magic, sizeof(net_magic));
     memcpy(&header.version, &version, sizeof(version));
@@ -32,7 +32,7 @@ std::unique_ptr<OuterMsgBuilderInterface::UserMsg> OuterMsgBuilder::build(std::v
     uint8_t flag = 0x0;
     if (security_instance.operator bool())
     {
-        flag |= static_cast<uint8_t>(Flag::IS_ENCRYPT);
+        flag |= static_cast<uint8_t>(NetworkInterface::Flag::IS_ENCRYPT);
     }
     memcpy(&header.flag, &flag, sizeof(flag));
 
@@ -61,7 +61,7 @@ std::unique_ptr<OuterMsgBuilderInterface::UserMsg> OuterMsgBuilder::build(std::v
     {
         payload_length = real_msg.size();
     }
-    std::vector<uint8_t> msg(sizeof(Header) + payload_length);
+    std::vector<uint8_t> msg(sizeof(NetworkInterface::Header) + payload_length);
 
     //补上Header中的payload length字段
     payload_length = htonl(payload_length);
@@ -69,7 +69,7 @@ std::unique_ptr<OuterMsgBuilderInterface::UserMsg> OuterMsgBuilder::build(std::v
 
     size_t offset = 0;
     //0-7字节，消息头
-    memcpy(msg.data() + offset, &header, sizeof(Header)); offset += sizeof(Header);
+    memcpy(msg.data() + offset, &header, sizeof(NetworkInterface::Header)); offset += sizeof(NetworkInterface::Header);
 
     //加密则写入iv(16字节)sha256(32字节)，不加密则不写入
     if (iv)
@@ -84,10 +84,10 @@ std::unique_ptr<OuterMsgBuilderInterface::UserMsg> OuterMsgBuilder::build(std::v
     }
     //拷贝加密后的数据
     memcpy(msg.data() + offset, real_msg.data(), real_msg.size()); offset += real_msg.size();
-    auto user_msg = std::make_unique<OuterMsgBuilderInterface::UserMsg>();
-    user_msg->iv = iv;
-    user_msg->sha256 = sha256;
-    user_msg->msg = std::make_unique<std::vector<uint8_t>>(std::move(msg));
+    auto user_msg = std::make_unique<NetworkInterface::UserMsg>();
+    user_msg->iv.assign(iv, iv + 16);
+    user_msg->sha256.assign(sha256, sha256 + 32);
+    user_msg->data = std::move(msg);
 
     return user_msg;
 }
