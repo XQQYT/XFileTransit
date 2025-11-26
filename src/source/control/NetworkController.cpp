@@ -32,6 +32,10 @@ void NetworkController::initSubscribe()
             this,
             std::placeholders::_1,
             std::placeholders::_2));
+    EventBusManager::instance().subscribe("/sync/send_deletefiles",
+        std::bind(&NetworkController::onSendSyncDeleteFile,
+            this,
+            std::placeholders::_1));   
     //设置错误处理回调函数
     control_msg_network_driver->setDealConnectErrorCb(std::bind(
         &NetworkController::onConnectError,
@@ -202,4 +206,11 @@ void NetworkController::onSendSyncAddFiles(std::vector<std::string> files, uint8
     control_msg_network_driver->sendMsg(
         sync_builder->buildSyncMsg(Json::MessageType::Sync::AddFiles, std::move(files)
             , stride));
+}
+
+void NetworkController::onSendSyncDeleteFile(uint32_t id)
+{
+    auto sync_builder = json_builder->getBuilder(Json::BuilderType::Sync);
+    control_msg_network_driver->sendMsg(
+        sync_builder->buildSyncMsg(Json::MessageType::Sync::RemoveFile, {std::to_string(id)}, 1));
 }

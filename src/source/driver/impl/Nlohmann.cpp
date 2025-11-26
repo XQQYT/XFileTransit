@@ -57,10 +57,7 @@ std::vector<std::unique_ptr<Json::Parser>> NlohmannJsonParser::getArray(const st
     {
         for (const auto& item : msg_json[key])
         {
-            if (item.is_array())
-            {
-                result.push_back(std::make_unique<NlohmannJsonParser>(item));
-            }
+            result.push_back(std::make_unique<NlohmannJsonParser>(item));
         }
     }
 
@@ -135,18 +132,26 @@ std::string SyncMsgBuilder::buildSyncMsg(Json::MessageType::Sync::Type type, std
     result_json["type"] = Json::MessageType::Sync::toString(type);
 
     json content_json = json::object();
-    json files_array = json::array();
-
-    // 按步长处理参数
-    for (size_t i = 0; i < args.size(); i += stride) {
-        json group = json::array();
-        for (size_t j = 0; j < stride && (i + j) < args.size(); ++j) {
-            group.push_back(args[i + j]);
+    
+    if (type == Json::MessageType::Sync::Type::RemoveFile) {
+        // removeFiles 使用简单数组结构: {"files":["2","3","5"]}
+        content_json["files"] = args;
+    } else {
+        // 其他类型使用原来的嵌套数组结构
+        json files_array = json::array();
+        
+        // 按步长处理参数
+        for (size_t i = 0; i < args.size(); i += stride) {
+            json group = json::array();
+            for (size_t j = 0; j < stride && (i + j) < args.size(); ++j) {
+                group.push_back(args[i + j]);
+            }
+            files_array.push_back(group);
         }
-        files_array.push_back(group);
+        
+        content_json["files"] = files_array;
     }
-
-    content_json["files"] = files_array;
+    
     result_json["content"] = content_json;
     return result_json.dump();
 }

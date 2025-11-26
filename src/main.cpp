@@ -32,7 +32,10 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/sync/send_addfiles");
     //收到添加文件消息
     EventBusManager::instance().registerEvent("/sync/have_addfiles");
-
+    //发送删除文件消息
+    EventBusManager::instance().registerEvent("/sync/send_deletefiles");
+    //收到删除文件消息
+    EventBusManager::instance().registerEvent("/sync/have_deletefiles");
 }
 int main(int argc, char* argv[])
 {

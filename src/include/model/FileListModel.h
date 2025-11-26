@@ -194,6 +194,8 @@ public slots:
 private:
   bool isFileExists(const QString& filePath);
   void removeAllRemoteFiles();
+  void deleteFile(int index);
+  void removeFileById(std::vector<std::string> id);
 private:
   QList<FileInfo> file_list;
 };

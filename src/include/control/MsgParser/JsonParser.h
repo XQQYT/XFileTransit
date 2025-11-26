@@ -48,6 +48,7 @@ private:
     void connectRequest(std::unique_ptr<Json::Parser> parser);
     void resonpeResult(std::unique_ptr<Json::Parser> parser);
     void syncAddFiles(std::unique_ptr<Json::Parser> parser);
+    void syncDeleteFiles(std::unique_ptr<Json::Parser> parser);
     void publishResponse(std::string&& event_name, JsonMessageType::ResultType type);
     void publishResponse(std::string&& event_name, JsonMessageType::ResultType type, std::string arg0);
 private:

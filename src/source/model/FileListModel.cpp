@@ -18,6 +18,10 @@ FileListModel::FileListModel(QObject* parent) :
         std::bind(&FileListModel::addRemoteFiles,
             this,
             std::placeholders::_1));
+    EventBusManager::instance().subscribe("/sync/have_deletefiles",
+        std::bind(&FileListModel::removeFileById,
+            this,
+            std::placeholders::_1));
 }
 
 FileListModel::~FileListModel()
@@ -142,6 +146,7 @@ void FileListModel::removeFile(int index)
     if (index < 0 || index >= file_list.size())
         return;
 
+    deleteFile(index);
     beginRemoveRows(QModelIndex(), index, index);
     file_list.removeAt(index);
     endRemoveRows();
@@ -209,4 +214,24 @@ void FileListModel::copyText(const QString &text)
 {
     QClipboard *clipboard = QGuiApplication::clipboard();
     clipboard->setText(text);
+}
+
+void FileListModel::deleteFile(int index)
+{
+    quint32 file_id = file_list[index].id;
+    EventBusManager::instance().publish("/sync/send_deletefiles", static_cast<uint32_t>(file_id));
+}
+
+void FileListModel::removeFileById(std::vector<std::string> id)
+{
+    beginResetModel();
+    for(auto file : id)
+    {
+        uint32_t target_id = std::stoul(file);
+        std::cout<<"id "<<target_id<<std::endl;
+            file_list.erase(std::remove_if(file_list.begin(), file_list.end(),
+                          [&target_id](const FileInfo& info) { return info.id == target_id; }),
+           file_list.end());
+    }
+    endResetModel();
 }

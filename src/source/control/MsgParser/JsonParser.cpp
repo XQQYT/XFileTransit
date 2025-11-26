@@ -11,7 +11,7 @@ JsonParser::JsonParser() :
     type_funcfion_map["response"] = std::bind(JsonParser::resonpeResult, this, std::placeholders::_1);
 
     type_funcfion_map["add_files"] = std::bind(JsonParser::syncAddFiles, this, std::placeholders::_1);
-
+    type_funcfion_map["remove_files"] = std::bind(JsonParser::syncDeleteFiles, this, std::placeholders::_1);
 }
 
 void JsonParser::parse(std::vector<uint8_t>&& data)
@@ -100,4 +100,15 @@ void JsonParser::syncAddFiles(std::unique_ptr<Json::Parser> parser)
         files.push_back(cur_arr->getArrayItems());
     }
     EventBusManager::instance().publish("/sync/have_addfiles", files);
+}
+
+void JsonParser::syncDeleteFiles(std::unique_ptr<Json::Parser> parser)
+{
+    std::vector<std::string> files;
+    auto file_ids = parser->getArray("files");
+    for (const auto& id : file_ids) {
+        auto tmp = id->getArrayItems();
+        files.insert(files.end(), tmp.begin(), tmp.end());
+    }
+    EventBusManager::instance().publish("/sync/have_deletefiles", files);
 }
