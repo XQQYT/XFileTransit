@@ -56,7 +56,8 @@ namespace Json
             enum Type
             {
                 AddFiles,
-                RemoveFile
+                RemoveFile,
+                DownloadFile
             };
 
             constexpr const char* toString(Type type)
@@ -65,6 +66,7 @@ namespace Json
                 {
                 case AddFiles: return "add_files";
                 case RemoveFile: return "remove_files";
+                case DownloadFile: return "download_file";
                 default: return "unknown";
                 }
             }

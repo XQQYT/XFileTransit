@@ -20,15 +20,17 @@ public:
     void start(std::string address, std::string recv_port, std::shared_ptr<SecurityInterface> instance);
     void stop();
     void onHaveFileToSend(uint32_t id, std::string path);
+    std::pair<uint32_t, std::string> getPendingFile();
+    void receiveProgress(uint32_t id, float progress);
 private:
-    std::vector<FileSenderInterface> file_senders;
+    std::vector<std::shared_ptr<FileSenderInterface>> file_senders;
     std::unique_ptr<FileReceiverInterface> file_receiver;
     std::shared_ptr<std::condition_variable> cv;
     std::mutex mtx;
 private:
     std::shared_ptr<OuterMsgBuilderInterface> outer_msg_builder;
     std::shared_ptr<OuterMsgParserInterface> outer_msg_parser;
-    std::queue<std:pair<uint32_t,std::string>> pending_send_files;
+    std::queue<std::pair<uint32_t, std::string> > pending_send_files;
 };
 
 #endif

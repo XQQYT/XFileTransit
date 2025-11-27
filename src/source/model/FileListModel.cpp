@@ -22,6 +22,10 @@ FileListModel::FileListModel(QObject* parent) :
         std::bind(&FileListModel::removeFileById,
             this,
             std::placeholders::_1));
+    EventBusManager::instance().subscribe("/file/have_download_request",
+        std::bind(&FileListModel::haveDownLoadRequest,
+            this,
+            std::placeholders::_1));
 }
 
 FileListModel::~FileListModel()
@@ -112,7 +116,6 @@ void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
     {
         EventBusManager::instance().publish("/sync/send_addfiles", files_to_send, uint8_t(4));
     }
-    qDebug() << "文件添加完成，当前文件数:" << file_list.size();
 }
 
 void FileListModel::addRemoteFiles(std::vector<std::vector<std::string>> files)
@@ -228,10 +231,25 @@ void FileListModel::removeFileById(std::vector<std::string> id)
     for(auto file : id)
     {
         uint32_t target_id = std::stoul(file);
-        std::cout<<"id "<<target_id<<std::endl;
             file_list.erase(std::remove_if(file_list.begin(), file_list.end(),
                           [&target_id](const FileInfo& info) { return info.id == target_id; }),
            file_list.end());
     }
     endResetModel();
+}
+
+void FileListModel::downloadFile(int index)
+{
+    auto target_file = file_list[index];
+    EventBusManager::instance().publish("/file/send_get_file", uint32_t(target_file.id));
+}
+
+void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
+{
+    for(auto id : file_ids)
+    {
+        uint32_t target_id = std::stoul(id);
+        file_list[target_id].file_status = FileStatus::StatusPending;
+        EventBusManager::instance().publish("/file/have_file_to_send", target_id, file_list[target_id].source_path.toStdString());
+    }
 }

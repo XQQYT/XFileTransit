@@ -2,10 +2,10 @@
 
 bool FileReceiver::initialize()
 {
-
+    return true;
 }
 
-void FileReceiver::start(std::function<std::string()> receiveded_cb)
+void FileReceiver::start(std::function<void(uint32_t id, float progress)> progress_cb)
 {
 
 }

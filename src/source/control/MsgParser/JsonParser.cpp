@@ -10,8 +10,9 @@ JsonParser::JsonParser() :
     type_funcfion_map["connect_request"] = std::bind(JsonParser::connectRequest, this, std::placeholders::_1);
     type_funcfion_map["response"] = std::bind(JsonParser::resonpeResult, this, std::placeholders::_1);
 
-    type_funcfion_map["add_files"] = std::bind(JsonParser::syncAddFiles, this, std::placeholders::_1);
-    type_funcfion_map["remove_files"] = std::bind(JsonParser::syncDeleteFiles, this, std::placeholders::_1);
+    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::AddFiles)] = std::bind(JsonParser::syncAddFiles, this, std::placeholders::_1);
+    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::RemoveFile)] = std::bind(JsonParser::syncDeleteFiles, this, std::placeholders::_1);
+    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::DownloadFile)] = std::bind(JsonParser::downloadFile, this, std::placeholders::_1);
 }
 
 void JsonParser::parse(std::unique_ptr<NetworkInterface::UserMsg> data)
@@ -111,4 +112,16 @@ void JsonParser::syncDeleteFiles(std::unique_ptr<Json::Parser> parser)
         files.insert(files.end(), tmp.begin(), tmp.end());
     }
     EventBusManager::instance().publish("/sync/have_deletefiles", files);
+}
+
+void JsonParser::downloadFile(std::unique_ptr<Json::Parser> parser)
+{
+    std::vector<std::string> files;
+    auto file_ids = parser->getArray("files");
+    for (const auto& id : file_ids) {
+        auto tmp = id->getArrayItems();
+        files.insert(files.end(), tmp.begin(), tmp.end());
+    }
+    std::cout<<"file id "<<files[0]<<std::endl;
+    EventBusManager::instance().publish("/file/have_download_request", files);
 }

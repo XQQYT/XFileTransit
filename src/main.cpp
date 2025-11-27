@@ -6,6 +6,7 @@
 // control
 #include "control/EventBusManager.h"
 #include "control/NetworkController.h"
+#include "control/FileSyncEngine/FileSyncEngine.h"
 
 #include <QtGui/QFont>
 
@@ -37,6 +38,14 @@ void initRegisterEvents()
     //收到删除文件消息
     EventBusManager::instance().registerEvent("/sync/have_deletefiles");
 
+    EventBusManager::instance().registerEvent("/file/initialize_FileSyncCore");
+
+    EventBusManager::instance().registerEvent("/file/close_FileSyncCore");
+
+    EventBusManager::instance().registerEvent("/file/send_get_file");
+
+    EventBusManager::instance().registerEvent("/file/have_download_request");
+
     EventBusManager::instance().registerEvent("/file/have_file_to_send");
 }
 int main(int argc, char* argv[])
@@ -54,6 +63,7 @@ int main(int argc, char* argv[])
     initRegisterEvents();
 
     NetworkController network_controller;
+    FileSyncEngine file_sync_engine;
 
     // 创建模型实例
     auto file_list_model = ModelManager::getInstance().getFileListModel();

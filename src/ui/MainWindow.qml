@@ -217,7 +217,6 @@ ApplicationWindow  {
         DropArea {
             anchors.fill: parent
             onEntered: function(drag){
-                console.log("触发窗口: 拖拽进入, hasUrls:", drag.hasUrls)
                 if (!root.expanded) {
                     root.expanded = true
                 }
@@ -227,7 +226,6 @@ ApplicationWindow  {
                 }
             }
             onDropped: function(drop) {
-                console.log("触发窗口: 文件拖放, hasUrls:", drop.hasUrls, "urls count:", drop.urls ? drop.urls.length : 0)
                 if (drop.hasUrls && drop.urls) {
                     var newFiles = []
                     for (var i = 0; i < drop.urls.length; i++) {
@@ -386,7 +384,7 @@ ApplicationWindow  {
                     enabled: model.isRemote && model.fileStatus !== file_list_model.StatusDownloading && model.fileStatus !==file_list_model.StatusCompleted
                     onTriggered: {
                         // 触发文件下载
-                        // file_list_model.downloadFile(index)
+                        file_list_model.downloadFile(index)
                     }
                 }
                 

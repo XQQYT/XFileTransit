@@ -1,24 +1,38 @@
 #include "driver/impl/FileSyncEngine/FileSender.h"
 #include <iostream>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+#pragma comment(lib, "ws2_32.lib")
+
 
 bool FileSender::initialize()
 {
+    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0)
+    {
+        std::cerr << "WSAStartup failed\n";
+        return false;
+    }
+    client_socket = socket(AF_INET, SOCK_STREAM, 0);
     client_tcp_addr.sin_family = AF_INET;
     client_tcp_addr.sin_port = htons(std::stoi(port));
     inet_pton(AF_INET, address.c_str(), &client_tcp_addr.sin_addr);
-    connect(client_socket, nullptr, sizeof(client_tcp_addr));
+    connect(client_socket, (sockaddr*)&client_tcp_addr, sizeof(client_tcp_addr));
+    return true;
 }
 
-void FileSender::start(std::function<std::pair<uint32_t,std::string>()> get_task_cb)
+void FileSender::start(std::function<std::pair<uint32_t, std::string>()> get_task_cb)
 {
     running = true;
-    while(running)
-    {
-        std::unique_lock<std::mutex> lock(mtx);
-        cv->wait(lock);
-        auto pending_file = get_task_cb();
-        std::cout<<"发送 "<< pending_file.first <<" path "<<pending_file.second<<std::endl;
-    }
+    send_thread = new std::thread([=]() {
+        while (running)
+        {
+            std::unique_lock<std::mutex> lock(mtx);
+            cv->wait(lock);
+            auto pending_file = get_task_cb();
+            std::cout << "发送 " << pending_file.first << " path " << pending_file.second << std::endl;
+        }
+        });
 }
 
 void FileSender::stop()

@@ -300,7 +300,6 @@ void TcpDriver::recvMsg(std::function<void(std::unique_ptr<UserMsg> parsed_msg)>
     recv_running = true;
     receive_thread = new std::thread([this, callback = std::move(callback)]()
         {
-            std::function<void()> dealConnectError_cb = std::bind(dealConnectError, this);
             while (recv_running)
             {
                 msg_parser->delegateRecv(client_socket, callback, this->dcc_cb, this->dre_cb, security_instance);

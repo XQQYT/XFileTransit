@@ -4,6 +4,10 @@ set(DRIVER_SOURCES
     impl/OuterMsgBuilder.cpp
     impl/OpensslDriver.cpp
     impl/OuterMsgParser.cpp
+    impl/FileSyncEngine/FileReceiver.cpp
+    impl/FileSyncEngine/FileSender.cpp
+    impl/FileSyncEngine/FileParser.cpp
+    impl/FileSyncEngine/FileMsgBuilder.cpp
 )
 
 set(DRIVER_HEADERS
@@ -12,6 +16,10 @@ set(DRIVER_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/OuterMsgBuilderInterface.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/NetworkInterface.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/SecurityInterface.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/FileSyncEngine/FileMsgBuilderInterface.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/FileSyncEngine/FileParserInterface.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/FileSyncEngine/FileReceiverInterface.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/FileSyncEngine/FileSenderInterface.h
 )
 
 set(OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL-Win64")

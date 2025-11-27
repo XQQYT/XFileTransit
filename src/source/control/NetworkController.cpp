@@ -36,6 +36,10 @@ void NetworkController::initSubscribe()
         std::bind(&NetworkController::onSendSyncDeleteFile,
             this,
             std::placeholders::_1));
+    EventBusManager::instance().subscribe("/file/send_get_file",
+        std::bind(&NetworkController::onSendGetFile,
+            this,
+            std::placeholders::_1));
     //设置错误处理回调函数
     control_msg_network_driver->setDealConnectErrorCb(std::bind(
         &NetworkController::onConnectError,
@@ -79,7 +83,7 @@ void NetworkController::onSendConnectRequest(std::string sender_device_name, std
             if (ret)
             {
                 control_msg_network_driver->recvMsg([this](std::unique_ptr<NetworkInterface::UserMsg> msg)
-                    {
+                    {                       
                         std::cout << "recv msg -> " << std::string(msg->data.data(), msg->data.data() + msg->data.size()) << std::endl;
                         json_parser->parse(std::move(msg));
                     });
@@ -112,6 +116,8 @@ void NetworkController::onSendConnectRequestResult(bool res)
     if (res)//接受连接
     {
         GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::High);
+        EventBusManager::instance().publish("/file/initialize_FileSyncCore", 
+            GlobalStatusManager::getInstance().getCurrentDeviceIP(), std::string("7779"), security_driver);
     }
     else//拒绝连接
     {
@@ -125,6 +131,8 @@ void NetworkController::onHaveConnectRequestResult(bool res, std::string)
     if (res)
     {
         GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
+        EventBusManager::instance().publish("/file/initialize_FileSyncCore", 
+            GlobalStatusManager::getInstance().getCurrentDeviceIP(), std::string("7779"), security_driver);
     }
     else
     {
@@ -137,6 +145,7 @@ void NetworkController::onDisconnect()
 {
     control_msg_network_driver->resetConnection();
     GlobalStatusManager::getInstance().setConnectStatus(false);
+    EventBusManager::instance().publish("/file/close_FileSyncCore");
 }
 
 void NetworkController::onConnectError(const NetworkInterface::ConnectError error)
@@ -165,6 +174,7 @@ void NetworkController::onConnectError(const NetworkInterface::ConnectError erro
     control_msg_network_driver->resetConnection();
     GlobalStatusManager::getInstance().setConnectStatus(false);
     GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
+    EventBusManager::instance().publish("/file/close_FileSyncCore");
 }
 
 void NetworkController::onRecvError(const NetworkInterface::RecvError error)
@@ -189,6 +199,7 @@ void NetworkController::onRecvError(const NetworkInterface::RecvError error)
     control_msg_network_driver->resetConnection();
     GlobalStatusManager::getInstance().setConnectStatus(false);
     GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
+    EventBusManager::instance().publish("/file/close_FileSyncCore");
 }
 
 void NetworkController::onConnClosed()
@@ -198,6 +209,7 @@ void NetworkController::onConnClosed()
     control_msg_network_driver->resetConnection();
     GlobalStatusManager::getInstance().setConnectStatus(false);
     GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
+    EventBusManager::instance().publish("/file/close_FileSyncCore");
 }
 
 void NetworkController::onSendSyncAddFiles(std::vector<std::string> files, uint8_t stride)
@@ -213,4 +225,12 @@ void NetworkController::onSendSyncDeleteFile(uint32_t id)
     auto sync_builder = json_builder->getBuilder(Json::BuilderType::Sync);
     control_msg_network_driver->sendMsg(
         sync_builder->buildSyncMsg(Json::MessageType::Sync::RemoveFile, { std::to_string(id) }, 1));
+}
+
+void NetworkController::onSendGetFile(uint32_t id)
+{
+    auto sync_builder = json_builder->getBuilder(Json::BuilderType::Sync);
+    control_msg_network_driver->sendMsg(
+        sync_builder->buildSyncMsg(Json::MessageType::Sync::DownloadFile, { std::to_string(id) }, 1));
+    std::cout<<sync_builder->buildSyncMsg(Json::MessageType::Sync::DownloadFile, { std::to_string(id) }, 1)<<std::endl;
 }

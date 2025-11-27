@@ -187,8 +187,9 @@ public:
   Q_INVOKABLE void syncCurrentFiles();
   Q_INVOKABLE void updateFilesId();
   Q_INVOKABLE void copyText(const QString &text);
+  Q_INVOKABLE void downloadFile(int index);
   void addRemoteFiles(std::vector<std::vector<std::string>> files);
-
+  void haveDownLoadRequest(std::vector<std::string> file_ids);
 public slots:
   void onConnectionClosed();
 private:
