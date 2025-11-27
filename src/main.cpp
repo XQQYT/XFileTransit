@@ -36,6 +36,8 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/sync/send_deletefiles");
     //收到删除文件消息
     EventBusManager::instance().registerEvent("/sync/have_deletefiles");
+
+    EventBusManager::instance().registerEvent("/file/have_file_to_send");
 }
 int main(int argc, char* argv[])
 {
