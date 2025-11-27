@@ -122,6 +122,5 @@ void JsonParser::downloadFile(std::unique_ptr<Json::Parser> parser)
         auto tmp = id->getArrayItems();
         files.insert(files.end(), tmp.begin(), tmp.end());
     }
-    std::cout<<"file id "<<files[0]<<std::endl;
     EventBusManager::instance().publish("/file/have_download_request", files);
 }

@@ -48,6 +48,7 @@ target_include_directories(driver PUBLIC
 target_link_libraries(driver PUBLIC 
     "${OPENSSL_SSL_LIBRARY}"
     "${OPENSSL_CRYPTO_LIBRARY}"
+    ws2_32
     crypt32
     bcrypt
 )

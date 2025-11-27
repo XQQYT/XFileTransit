@@ -31,6 +31,7 @@ private:
     std::shared_ptr<OuterMsgBuilderInterface> outer_msg_builder;
     std::shared_ptr<OuterMsgParserInterface> outer_msg_parser;
     std::queue<std::pair<uint32_t, std::string> > pending_send_files;
+    bool is_start{false};
 };
 
 #endif

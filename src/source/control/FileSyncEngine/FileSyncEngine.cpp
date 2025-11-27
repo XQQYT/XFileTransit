@@ -50,12 +50,20 @@ void FileSyncEngine::receiveProgress(uint32_t id, float progress)
 
 }
 
-
 void FileSyncEngine::start(std::string address, std::string recv_port,
     std::shared_ptr<SecurityInterface> instance)
 {
     std::cout << "FileSyncCore start" << std::endl;
 
+    //初始化receiver
+    file_receiver = std::make_unique<FileReceiver>("0.0.0.0", recv_port, instance);
+
+    if (file_receiver->initialize())
+    {
+        file_receiver->start(std::bind(&FileSyncEngine::receiveProgress, this, std::placeholders::_1, std::placeholders::_2));
+    }
+
+    //初始化sender
     std::vector<std::shared_ptr<FileSender>> initialized_senders;
     for (int i = 0; i < sender_num; ++i)
     {
@@ -71,27 +79,20 @@ void FileSyncEngine::start(std::string address, std::string recv_port,
     {
         sender->start(std::bind(&FileSyncEngine::getPendingFile, this));
         file_senders.push_back(sender);
-        std::cout << "Sender started: " << file_senders.size() << std::endl;
     }
-
-    // 3. 初始化receiver
-    file_receiver = std::make_unique<FileReceiver>(address, recv_port, instance);
-
-    if (file_receiver->initialize())
-    {
-        file_receiver->start(std::bind(&FileSyncEngine::receiveProgress, this, std::placeholders::_1, std::placeholders::_2));
-    }
+    is_start = true;
 }
 
 void FileSyncEngine::stop()
 {
+    if(!is_start) return;
+    is_start = false;
     std::cout << "FileSyncCore stop" << std::endl;
     //关闭线程
     for (auto& i : file_senders)
     {
         i->stop();
     }
-    std::cout << file_receiver.get() << std::endl;
     file_receiver->stop();
     //销毁资源
     file_senders.clear();

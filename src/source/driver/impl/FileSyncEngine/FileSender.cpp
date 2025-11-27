@@ -3,8 +3,6 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
-#pragma comment(lib, "ws2_32.lib")
-
 
 bool FileSender::initialize()
 {
@@ -30,7 +28,7 @@ void FileSender::start(std::function<std::pair<uint32_t, std::string>()> get_tas
             std::unique_lock<std::mutex> lock(mtx);
             cv->wait(lock);
             auto pending_file = get_task_cb();
-            std::cout << "发送 " << pending_file.first << " path " << pending_file.second << std::endl;
+            std::cout <<std::this_thread::get_id()<< " sended " << pending_file.first << " path " << pending_file.second << std::endl;
         }
         });
 }
