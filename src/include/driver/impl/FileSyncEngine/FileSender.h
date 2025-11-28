@@ -1,4 +1,5 @@
 #include "driver/interface/FileSyncEngine/FileSenderInterface.h"
+#include "driver/interface/FileSyncEngine/FileMsgBuilderInterface.h"
 #include <mutex>
 #include <thread>
 
@@ -16,4 +17,6 @@ private:
 
     std::mutex mtx;
     std::thread* send_thread{ nullptr };
+
+    std::unique_ptr<FileMsgBuilderInterface> file_msg_builder;
 };

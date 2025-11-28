@@ -30,25 +30,55 @@ public:
     std::unique_ptr<Json::JsonBuilder> getBuilder(const Json::BuilderType type) override;
 };
 
-class UserMsgBuilder : public Json::JsonBuilder
+class UserJsonMsgBuilder : public Json::JsonBuilder
 {
 public:
     std::string buildUserMsg(Json::MessageType::User::Type type, std::map<std::string, std::string>&& args) override;
     std::string buildSyncMsg(Json::MessageType::Sync::Type type, std::vector<std::string>&& args, uint8_t stride) override
     {
-        return "Don't use UserMsgBuilder to build SyncMsg";
+        throw std::runtime_error("Don't use UserJsonMsgBuilder to build SyncMsg");
+    }
+    std::string buildFileMsg(Json::MessageType::File::Type type, std::map<std::string, std::string> args) override
+    {
+        throw std::runtime_error("Don't use UserJsonMsgBuilder to build FileMsg");
     }
 private:
     Json::MessageRegistry registry;
 };
 
-class SyncMsgBuilder : public Json::JsonBuilder
+class SyncJsonMsgBuilder : public Json::JsonBuilder
 {
 public:
     std::string buildUserMsg(Json::MessageType::User::Type type, std::map<std::string, std::string>&& args) override
     {
-        return "Don't use SyncMsgBuilder to build UserMsg";
+        throw std::runtime_error("Don't use SyncJsonMsgBuilder to build UserMsg");
     }
     std::string buildSyncMsg(Json::MessageType::Sync::Type type, std::vector<std::string>&& args, uint8_t stride) override;
+    std::string buildFileMsg(Json::MessageType::File::Type type, std::map<std::string, std::string> args) override
+    {
+        throw std::runtime_error("Don't use SyncJsonMsgBuilder to build FilecMsg");
+    }
+};
+
+class FileJsonMsgBuilder : public Json::JsonBuilder
+{
+public:
+    static std::string vectorToJsonString(const std::vector<std::string>& array) {
+        nlohmann::json jArray = array;
+        return jArray.dump();
+    }
+    std::string buildUserMsg(Json::MessageType::User::Type type, std::map<std::string, std::string>&& args) override
+    {
+        throw std::runtime_error("Don't use FileJsonMsgBuilder to build UserMsg");
+    }
+    std::string buildSyncMsg(Json::MessageType::Sync::Type type, std::vector<std::string>&& args, uint8_t stride) override
+    {
+        throw std::runtime_error("Don't use FileJsonMsgBuilder to build SyncMsg");
+    }
+    std::string buildFileMsg(Json::MessageType::File::Type type, std::map<std::string, std::string> args) override;
+private:
+    void buildFileHeader(json& result, Json::MessageType::File::Type type, const std::map<std::string, std::string>& args);
+    void buildDirHeader(json& result, Json::MessageType::File::Type type, const std::map<std::string, std::string>& args);
+    void buildDirItemHeader(json& result, Json::MessageType::File::Type type, const std::map<std::string, std::string>& args);
 };
 #endif

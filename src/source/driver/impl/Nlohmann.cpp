@@ -1,4 +1,5 @@
 #include "driver/impl/Nlohmann.h"
+#include "driver/impl/FileUtility.h"
 #include <iostream>
 
 void NlohmannJsonParser::loadJson(const std::string& msg)
@@ -96,15 +97,17 @@ std::unique_ptr<Json::JsonBuilder> NlohmannJson::getBuilder(const Json::BuilderT
     switch (type)
     {
     case Json::BuilderType::User:
-        return std::make_unique<UserMsgBuilder>();
+        return std::make_unique<UserJsonMsgBuilder>();
     case Json::BuilderType::Sync:
-        return std::make_unique<SyncMsgBuilder>();
+        return std::make_unique<SyncJsonMsgBuilder>();
+    case Json::BuilderType::File:
+        return std::make_unique<FileJsonMsgBuilder>();
     default:
         return nullptr;
     }
 }
 
-std::string UserMsgBuilder::buildUserMsg(Json::MessageType::User::Type type, std::map<std::string, std::string>&& args)
+std::string UserJsonMsgBuilder::buildUserMsg(Json::MessageType::User::Type type, std::map<std::string, std::string>&& args)
 {
     if (!registry.validateFields(type, args)) {
         throw std::invalid_argument("Missing required fields for message type");
@@ -126,20 +129,21 @@ std::string UserMsgBuilder::buildUserMsg(Json::MessageType::User::Type type, std
     return result_json.dump();
 }
 
-std::string SyncMsgBuilder::buildSyncMsg(Json::MessageType::Sync::Type type, std::vector<std::string>&& args, uint8_t stride)
+std::string SyncJsonMsgBuilder::buildSyncMsg(Json::MessageType::Sync::Type type, std::vector<std::string>&& args, uint8_t stride)
 {
     json result_json;
     result_json["type"] = Json::MessageType::Sync::toString(type);
 
     json content_json = json::object();
-    
+
     if (type == Json::MessageType::Sync::Type::RemoveFile) {
         // removeFiles 使用简单数组结构: {"files":["2","3","5"]}
         content_json["files"] = args;
-    } else {
+    }
+    else {
         // 其他类型使用原来的嵌套数组结构
         json files_array = json::array();
-        
+
         // 按步长处理参数
         for (size_t i = 0; i < args.size(); i += stride) {
             json group = json::array();
@@ -148,10 +152,83 @@ std::string SyncMsgBuilder::buildSyncMsg(Json::MessageType::Sync::Type type, std
             }
             files_array.push_back(group);
         }
-        
+
         content_json["files"] = files_array;
     }
-    
+
     result_json["content"] = content_json;
     return result_json.dump();
+}
+
+void FileJsonMsgBuilder::buildFileHeader(json& result, Json::MessageType::File::Type type, const std::map<std::string, std::string>& args)
+{
+    try {
+        json content;
+        result["type"] = Json::MessageType::File::toString(type);
+
+        content["id"] = args.at("id");
+        content["total_size"] = args.at("total_size");
+        content["total_blocks"] = args.at("total_blocks");
+        content["block_size"] = args.at("block_size");
+
+        result["content"] = content;
+    }
+    catch (const std::out_of_range& e) {
+        throw std::runtime_error("Missing required field in file header");
+    }
+}
+
+void FileJsonMsgBuilder::buildDirHeader(json& result, Json::MessageType::File::Type type, const std::map<std::string, std::string>& args)
+{
+    try {
+        json content;
+        result["type"] = Json::MessageType::File::toString(type);
+        content["id"] = args.at("id");
+        content["leaf_paths"] = args.at("leaf_paths");
+        content["total_paths"] = args.at("total_paths");
+
+        result["content"] = content;
+    }
+    catch (const std::out_of_range& e) {
+        throw std::runtime_error("Missing required field in file header");
+    }
+}
+
+void FileJsonMsgBuilder::buildDirItemHeader(json& result, Json::MessageType::File::Type type, const std::map<std::string, std::string>& args)
+{
+    try {
+        json content;
+        result["type"] = Json::MessageType::File::toString(type);
+
+        content["id"] = args.at("id");
+        content["path"] = args.at("path");
+        content["total_size"] = args.at("total_size");
+        content["total_blocks"] = args.at("total_blocks");
+        content["block_size"] = args.at("block_size");
+
+        result["content"] = content;
+    }
+    catch (const std::out_of_range& e) {
+        throw std::runtime_error("Missing required field in file header");
+    }
+}
+
+std::string FileJsonMsgBuilder::buildFileMsg(Json::MessageType::File::Type type, std::map<std::string, std::string> args)
+{
+    json result;
+    switch (type)
+    {
+    case Json::MessageType::File::Type::FileHeader:
+        buildFileHeader(result, type, args);
+        break;
+    case Json::MessageType::File::DirectoryHeader:
+        buildDirHeader(result, type, args);
+        break;
+    case Json::MessageType::File::DirectoryItemHeader:
+        buildDirItemHeader(result, type, args);
+        break;
+    default:
+        break;
+    }
+    return result.dump();
 }

@@ -40,15 +40,23 @@ namespace Json
 
         namespace File
         {
-            // enum Type
-            // {
+            enum Type
+            {
+                FileHeader,
+                DirectoryHeader,
+                DirectoryItemHeader
+            };
 
-            // };
-
-            // constexpr const char* toString(Type type)
-            // {
-
-            // }
+            constexpr const char* toString(Type type)
+            {
+                switch (type)
+                {
+                case FileHeader: return "file_header";
+                case DirectoryHeader: return "dir_header";
+                case DirectoryItemHeader: return "dir_item_header";
+                default: return "unknown";
+                }
+            }
         }
 
         namespace Sync
@@ -135,6 +143,7 @@ namespace Json
     public:
         virtual std::string buildUserMsg(MessageType::User::Type type, std::map<std::string, std::string>&& args) = 0;
         virtual std::string buildSyncMsg(MessageType::Sync::Type type, std::vector<std::string>&& args, uint8_t stride) = 0;
+        virtual std::string buildFileMsg(MessageType::File::Type type, std::map<std::string, std::string> args) = 0;
         virtual ~JsonBuilder() = default;
     };
     class JsonFactoryInterface
