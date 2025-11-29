@@ -18,9 +18,31 @@ bool FileSender::initialize()
     inet_pton(AF_INET, address.c_str(), &client_tcp_addr.sin_addr);
     connect(client_socket, (sockaddr*)&client_tcp_addr, sizeof(client_tcp_addr));
     file_msg_builder = std::make_unique<FileMsgBuilder>();
+    getOuterMsgBuilder().setSecurityInstance(security_instance);
     return true;
 }
+void FileSender::sendMsg(std::vector<uint8_t>&& msg)
+{
+    std::unique_ptr<NetworkInterface::UserMsg> ready_to_send_msg = std::move(getOuterMsgBuilder().buildMsg(msg));
 
+    size_t final_msg_length = ready_to_send_msg->data.size();
+    size_t sended_length = 0;
+
+    while (sended_length < final_msg_length)
+    {
+        int ret = send(client_socket, reinterpret_cast<const char*>(ready_to_send_msg->data.data() + sended_length),
+            final_msg_length - sended_length, 0);
+        if (ret <= 0)
+        {
+            if (errno == EINTR)
+                continue;
+            perror("write failed");
+            break;
+        }
+        sended_length += ret;
+        std::cout << sended_length << " / " << final_msg_length << std::endl;
+    }
+}
 void FileSender::start(std::function<std::pair<uint32_t, std::string>()> get_task_cb)
 {
     running = true;
@@ -30,6 +52,8 @@ void FileSender::start(std::function<std::pair<uint32_t, std::string>()> get_tas
             std::unique_lock<std::mutex> lock(mtx);
             cv->wait(lock);
             auto pending_file = get_task_cb();
+            std::string test_msg = "hello i am file sender";
+            sendMsg(std::vector<uint8_t>(test_msg.begin(), test_msg.begin() + test_msg.size()));
             std::cout << std::this_thread::get_id() << " sended " << pending_file.first << " path " << pending_file.second << std::endl;
         }
         });
@@ -37,5 +61,11 @@ void FileSender::start(std::function<std::pair<uint32_t, std::string>()> get_tas
 
 void FileSender::stop()
 {
-
+    running = false;
+    if (send_thread->joinable())
+    {
+        send_thread->join();
+    }
+    delete send_thread;
+    closesocket(client_socket);
 }

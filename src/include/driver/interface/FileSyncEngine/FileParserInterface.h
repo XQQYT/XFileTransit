@@ -3,11 +3,12 @@
 
 #include <vector>
 #include <stdint.h>
+#include "driver/interface/NetworkInterface.h"
 
 class FileParserInterface
 {
 public:
-    virtual void parse(std::vector<uint8_t> payload) = 0;
+    virtual void parse(std::unique_ptr<NetworkInterface::UserMsg> msg) = 0;
 };
 
 #endif

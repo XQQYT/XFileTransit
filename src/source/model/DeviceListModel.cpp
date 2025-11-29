@@ -59,8 +59,8 @@ void DeviceListModel::startScan()
 {
     EventBusManager::instance().publish("/network/send_connect_request",
         icmp_scanner.getLocalComputerName().toStdString(),
-        std::string("192.168.6.1"),
-        std::string("192.168.6.139"));
+        std::string("192.168.154.1"),
+        std::string("192.168.154.134"));
     clearAll();
     icmp_scanner.startScan();
     scanning = true;

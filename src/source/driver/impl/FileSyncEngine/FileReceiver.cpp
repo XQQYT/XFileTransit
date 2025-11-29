@@ -33,10 +33,11 @@ SOCKET FileReceiver::createListenSocket(const std::string& address, const std::s
     return sock;
 }
 
-void FileReceiver::start(std::function<void(uint32_t id, float progress)> progress_cb)
+void FileReceiver::start(std::function<void(SOCKET)> accept_cb,
+    std::function<void(SOCKET socket, std::unique_ptr<NetworkInterface::UserMsg>)> msg_cb)
 {
     running = true;
-    tcp_listen_thread = new std::thread([this, cb = std::move(progress_cb)]()
+    tcp_listen_thread = new std::thread([this, accept_cb = std::move(accept_cb), msg_cb = std::move(msg_cb)]()
         {
             WSAPOLLFD fds[1];
             fds[0].fd = listen_socket;
@@ -46,51 +47,55 @@ void FileReceiver::start(std::function<void(uint32_t id, float progress)> progre
             {
                 int result = WSAPoll(fds, 1, 100);
 
-                if (result > 0 && (fds[0].revents & POLLRDNORM)) 
+                if (result > 0 && (fds[0].revents & POLLRDNORM))
                 {
                     int accept_addr_len = sizeof(accept_addr);
                     SOCKET accepted_socket = accept(listen_socket, (sockaddr*)&accept_addr, &accept_addr_len);
                     if (accepted_socket != INVALID_SOCKET)
                     {
                         receive_sockets.push_back(accepted_socket);
-                        std::cout<<"accept a socket"<<std::endl;
-                        std::thread* t = new std::thread([=](){
-                            while(running)
+                        std::cout << "accept a socket" << std::endl;
+                        accept_cb(accepted_socket);
+                        std::thread* t = new std::thread([=]() {
+                            while (running)
                             {
-                                outer_parser->delegateRecv(accepted_socket,nullptr,nullptr,nullptr,security_instance);
+                                outer_parser->delegateRecv(accepted_socket,
+                                    [accepted_socket, msg_cb](std::unique_ptr<NetworkInterface::UserMsg> parsed_msg) {
+                                        msg_cb(accepted_socket, std::move(parsed_msg));
+                                    }, nullptr, nullptr, security_instance);
                             }
-                        });
+                            });
                     }
-                    else 
+                    else
                     {
                         std::cerr << "fail to accept" << WSAGetLastError() << std::endl;
                     }
                 }
-                else if (result < 0) 
+                else if (result < 0)
                 {
                     std::cerr << "error in WSAPoll" << WSAGetLastError() << std::endl;
                 }
-        }
+            }
 
-        closesocket(listen_socket); });
+            closesocket(listen_socket); });
 }
 
 void FileReceiver::closeReceiver()
 {
     running = false;
-    for(auto it = receive_threads.begin(); it < receive_threads.end(); it++)
+    for (auto it = receive_threads.begin(); it < receive_threads.end(); it++)
     {
-        if((*it)->joinable())
+        if ((*it)->joinable())
         {
             (*it)->join();
         }
         receive_threads.erase(it);
     }
-    if(tcp_listen_thread->joinable())
+    if (tcp_listen_thread->joinable())
     {
         tcp_listen_thread->join();
     }
-    for(auto& i : receive_sockets)
+    for (auto& i : receive_sockets)
     {
         closesocket(i);
     }

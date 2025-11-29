@@ -11,6 +11,8 @@ public:
     void start(std::function<std::pair<uint32_t, std::string>()> get_task_cb) override;
     void stop() override;
 private:
+    void sendMsg(std::vector<uint8_t>&& msg);
+private:
     sockaddr_in client_tcp_addr;
     SOCKET client_socket = INVALID_SOCKET;
     WSADATA wsa_data;

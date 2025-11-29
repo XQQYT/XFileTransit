@@ -2,6 +2,7 @@
 #define FILERECEIVERINTERFACE_H
 
 #include "driver/interface/SecurityInterface.h"
+#include "driver/interface/NetworkInterface.h"
 #include <string>
 
 class FileReceiverInterface
@@ -12,7 +13,8 @@ public:
     }
     virtual ~FileReceiverInterface() = default;
     virtual bool initialize() = 0;
-    virtual void start(std::function<void(uint32_t id, float progress)> progress_cb) = 0;
+    virtual void start(std::function<void(SOCKET)> accept_cb,
+        std::function<void(SOCKET socket, std::unique_ptr<NetworkInterface::UserMsg>)> msg_cb) = 0;
     virtual void stop() = 0;
 protected:
     std::shared_ptr<SecurityInterface> security_instance;

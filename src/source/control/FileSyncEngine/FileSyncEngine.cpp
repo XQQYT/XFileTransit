@@ -3,13 +3,11 @@
 #include "driver/impl/OuterMsgParser.h"
 #include "driver/impl/FileSyncEngine/FileSender.h"
 #include "driver/impl/FileSyncEngine/FileReceiver.h"
+#include "driver/impl/FileSyncEngine/FileParser.h"
 #include "control/EventBusManager.h"
 #include <iostream>
 
-FileSyncEngine::FileSyncEngine() :
-    outer_msg_builder(std::make_shared<OuterMsgBuilder>()),
-    outer_msg_parser(std::make_shared<OuterMsgParser>()),
-    cv(std::make_shared<std::condition_variable>())
+FileSyncEngine::FileSyncEngine()
 {
     EventBusManager::instance().subscribe("/file/initialize_FileSyncCore", std::bind(
         &FileSyncEngine::start,
@@ -45,9 +43,17 @@ std::pair<uint32_t, std::string> FileSyncEngine::getPendingFile()
     return file;
 }
 
-void FileSyncEngine::receiveProgress(uint32_t id, float progress)
+void FileSyncEngine::haveFileConnection(SOCKET socket)
 {
+    if (file_parser_map.find(socket) == file_parser_map.end())
+    {
+        file_parser_map[socket] = std::make_unique<FileParser>();
+    }
+}
 
+void FileSyncEngine::haveFileMsg(SOCKET socket, std::unique_ptr<NetworkInterface::UserMsg> msg)
+{
+    file_parser_map[socket]->parse(std::move(msg));
 }
 
 void FileSyncEngine::start(std::string address, std::string recv_port,
@@ -57,10 +63,12 @@ void FileSyncEngine::start(std::string address, std::string recv_port,
 
     //初始化receiver
     file_receiver = std::make_unique<FileReceiver>("0.0.0.0", recv_port, instance);
+    cv = std::make_shared<std::condition_variable>();
 
     if (file_receiver->initialize())
     {
-        file_receiver->start(std::bind(&FileSyncEngine::receiveProgress, this, std::placeholders::_1, std::placeholders::_2));
+        file_receiver->start(std::bind(&FileSyncEngine::haveFileConnection, this, std::placeholders::_1),
+            std::bind(&FileSyncEngine::haveFileMsg, this, std::placeholders::_1, std::placeholders::_2));
     }
 
     //初始化sender
@@ -85,7 +93,7 @@ void FileSyncEngine::start(std::string address, std::string recv_port,
 
 void FileSyncEngine::stop()
 {
-    if(!is_start) return;
+    if (!is_start) return;
     is_start = false;
     std::cout << "FileSyncCore stop" << std::endl;
     //关闭线程
@@ -97,4 +105,5 @@ void FileSyncEngine::stop()
     //销毁资源
     file_senders.clear();
     file_receiver.release();
+    cv.reset();
 }

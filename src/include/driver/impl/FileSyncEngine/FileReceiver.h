@@ -11,7 +11,8 @@ class FileReceiver : public FileReceiverInterface
 public:
     using FileReceiverInterface::FileReceiverInterface;
     bool initialize() override;
-    void start(std::function<void(uint32_t id, float progress)> progress_cb) override;
+    void start(std::function<void(SOCKET)> accept_cb,
+        std::function<void(SOCKET socket, std::unique_ptr<NetworkInterface::UserMsg>)> msg_cb) override;
     void stop() override;
 private:
     SOCKET createListenSocket(const std::string& address, const std::string& port);

@@ -2,10 +2,10 @@
 #define _FILESYNCENGINE_H
 
 #include "driver/interface/SecurityInterface.h"
-#include "driver/interface/OuterMsgBuilderInterface.h"
-#include "driver/interface/OuterMsgParserInterface.h"
+#include "driver/interface/NetworkInterface.h"
 #include "driver/interface/FileSyncEngine/FileSenderInterface.h"
 #include "driver/interface/FileSyncEngine/FileReceiverInterface.h"
+#include "driver/interface/FileSyncEngine/FileParserInterface.h"
 #include <queue>
 #include <condition_variable>
 #include <mutex>
@@ -21,17 +21,17 @@ public:
     void stop();
     void onHaveFileToSend(uint32_t id, std::string path);
     std::pair<uint32_t, std::string> getPendingFile();
-    void receiveProgress(uint32_t id, float progress);
+    void haveFileConnection(SOCKET socket);
+    void haveFileMsg(SOCKET socket, std::unique_ptr<NetworkInterface::UserMsg> msg);
 private:
     std::vector<std::shared_ptr<FileSenderInterface>> file_senders;
     std::unique_ptr<FileReceiverInterface> file_receiver;
+    std::unordered_map<SOCKET, std::unique_ptr<FileParserInterface>> file_parser_map;
     std::shared_ptr<std::condition_variable> cv;
     std::mutex mtx;
 private:
-    std::shared_ptr<OuterMsgBuilderInterface> outer_msg_builder;
-    std::shared_ptr<OuterMsgParserInterface> outer_msg_parser;
     std::queue<std::pair<uint32_t, std::string> > pending_send_files;
-    bool is_start{false};
+    bool is_start{ false };
 };
 
 #endif

@@ -40,7 +40,10 @@ struct FileBlock {
     uint32_t index;        // 块索引 (0-based)
     uint32_t data_size;    // 当前块实际数据大小
     uint8_t* data;        // 可变长度数据
-};*/
+};
+
+文件接收流程:
+accept连接-回调，有新连接-分配消息处理器上下文-接收消息-解析消息到结构体-回调-获取消息处理器上下文-处理*/
 
 #include <stdint.h>
 
