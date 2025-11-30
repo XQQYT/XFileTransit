@@ -55,8 +55,11 @@ void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::stri
             if (pending_file.has_value())
             {
                 auto& [id, file_path] = pending_file.value();
-                std::string test_msg = std::string("id: " + std::to_string(id) + "file_path: " + file_path);
-                sendMsg(std::vector<uint8_t>(test_msg.begin(), test_msg.begin() + test_msg.size()));
+                file_msg_builder->setFileInfo(id, file_path);
+                while (auto msg = file_msg_builder->getStream())
+                {
+                    sendMsg(std::move(*msg));
+                }
             }
             else
             {

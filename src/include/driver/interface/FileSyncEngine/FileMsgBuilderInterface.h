@@ -8,7 +8,12 @@
 class FileMsgBuilderInterface
 {
 public:
-    virtual std::unique_ptr<std::vector<uint8_t>> build(uint32_t id, std::string path) = 0;
+    virtual void setFileInfo(uint32_t id, const std::string& path) { file_id = id; file_path = path; is_initialized = true; }
+    virtual std::unique_ptr<std::vector<uint8_t>> getStream() = 0;
+protected:
+    uint32_t file_id;
+    std::string file_path;
+    bool is_initialized{ false };
 };
 
 #endif
