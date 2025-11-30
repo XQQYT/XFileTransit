@@ -135,6 +135,17 @@ public:
             return absolutePath;
         }
     }
+    static bool createDirectoryRecursive(const std::string& path) {
+        std::error_code ec;
+        bool result = std::filesystem::create_directories(path, ec);
+        return result && !ec;
+    }
+
+    static bool directoryExists(const std::string& path) {
+        std::error_code ec;
+        return std::filesystem::exists(path, ec) &&
+            std::filesystem::is_directory(path, ec);
+    }
 private:
     static void findLeafFoldersRecursive(const fs::path& basePath,
         const fs::path& currentPath,

@@ -126,6 +126,7 @@ void FileListModel::addRemoteFiles(std::vector<std::vector<std::string>> files)
         remote_files.append(FileInfo(true,
             std::stoul(file[0]), std::stoi(file[1]) != 0,
             QString::fromStdString(file[2]), QString::fromStdString(file[3])));
+        GlobalStatusManager::getInstance().insertFile(remote_files.back().id, remote_files.back().file_name.toStdString());
     }
 
     if (!remote_files.empty())
@@ -150,6 +151,7 @@ void FileListModel::removeFile(int index)
         return;
 
     deleteFile(index);
+    GlobalStatusManager::getInstance().removeFile(file_list[index].id);
     beginRemoveRows(QModelIndex(), index, index);
     file_list.removeAt(index);
     endRemoveRows();
@@ -179,14 +181,14 @@ void FileListModel::removeAllRemoteFiles()
 {
     beginResetModel();
     file_list.erase(std::remove_if(file_list.begin(), file_list.end(),
-                          [](const FileInfo& info) { return info.is_remote_file; }),
-           file_list.end());
+        [](const FileInfo& info) { return info.is_remote_file; }),
+        file_list.end());
     endResetModel();
 }
 
 void FileListModel::updateFilesId()
 {
-    for(auto& file : file_list)
+    for (auto& file : file_list)
     {
         file.id = GlobalStatusManager::getInstance().getFileId();
     }
@@ -196,9 +198,9 @@ void FileListModel::syncCurrentFiles()
 {
     std::vector<std::string> files_to_send;
     files_to_send.reserve(file_list.size());
-    for(auto& cur_file: file_list)
+    for (auto& cur_file : file_list)
     {
-        if(cur_file.is_remote_file) continue;
+        if (cur_file.is_remote_file) continue;
         //先更新当前所有文件的id
         cur_file.id = GlobalStatusManager::getInstance().getFileId();
 
@@ -213,9 +215,9 @@ void FileListModel::syncCurrentFiles()
     }
 }
 
-void FileListModel::copyText(const QString &text)
+void FileListModel::copyText(const QString& text)
 {
-    QClipboard *clipboard = QGuiApplication::clipboard();
+    QClipboard* clipboard = QGuiApplication::clipboard();
     clipboard->setText(text);
 }
 
@@ -228,12 +230,12 @@ void FileListModel::deleteFile(int index)
 void FileListModel::removeFileById(std::vector<std::string> id)
 {
     beginResetModel();
-    for(auto file : id)
+    for (auto file : id)
     {
         uint32_t target_id = std::stoul(file);
-            file_list.erase(std::remove_if(file_list.begin(), file_list.end(),
-                          [&target_id](const FileInfo& info) { return info.id == target_id; }),
-           file_list.end());
+        file_list.erase(std::remove_if(file_list.begin(), file_list.end(),
+            [&target_id](const FileInfo& info) { return info.id == target_id; }),
+            file_list.end());
     }
     endResetModel();
 }
@@ -246,7 +248,7 @@ void FileListModel::downloadFile(int index)
 
 void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
 {
-    for(auto id : file_ids)
+    for (auto id : file_ids)
     {
         uint32_t target_id = std::stoul(id);
         file_list[target_id].file_status = FileStatus::StatusPending;

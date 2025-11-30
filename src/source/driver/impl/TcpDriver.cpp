@@ -124,7 +124,8 @@ void printHex(const std::vector<uint8_t>& data) {
 
 void TcpDriver::sendMsg(const std::string& msg)
 {
-    std::unique_ptr<NetworkInterface::UserMsg> ready_to_send_msg = std::move(msg_builder->buildMsg(msg));
+    NetworkInterface::Flag flag = NetworkInterface::Flag::IS_ENCRYPT;
+    std::unique_ptr<NetworkInterface::UserMsg> ready_to_send_msg = std::move(msg_builder->buildMsg(msg, flag));
 
     size_t final_msg_length = ready_to_send_msg->data.size();
     size_t sended_length = 0;

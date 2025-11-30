@@ -21,11 +21,13 @@ bool FileSender::initialize()
     getOuterMsgBuilder().setSecurityInstance(security_instance);
     return true;
 }
-void FileSender::sendMsg(std::vector<uint8_t>&& msg)
+void FileSender::sendMsg(std::vector<uint8_t>&& msg, bool is_binary)
 {
     if (msg.size() <= 0)
         return;
-    std::unique_ptr<NetworkInterface::UserMsg> ready_to_send_msg = std::move(getOuterMsgBuilder().buildMsg(msg));
+    NetworkInterface::Flag flag = NetworkInterface::Flag::IS_ENCRYPT;
+    flag = is_binary ? flag | NetworkInterface::Flag::IS_BINARY : flag;
+    std::unique_ptr<NetworkInterface::UserMsg> ready_to_send_msg = std::move(getOuterMsgBuilder().buildMsg(msg, flag));
 
     size_t final_msg_length = ready_to_send_msg->data.size();
     size_t sended_length = 0;
@@ -58,10 +60,13 @@ void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::stri
             {
                 auto& [id, file_path] = pending_file.value();
                 file_msg_builder->setFileInfo(id, file_path);
-                while (auto msg = file_msg_builder->getStream())
-                {
-                    sendMsg(std::move(*msg));
-                }
+                std::pair<bool, std::unique_ptr<std::vector<uint8_t>>> msg;
+                do {
+                    msg = file_msg_builder->getStream();
+                    if (msg.second) {
+                        sendMsg(std::move(*msg.second), msg.first);
+                    }
+                } while (msg.second);
                 std::cout << "sendmsg done" << std::endl;
             }
             else

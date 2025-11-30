@@ -42,11 +42,11 @@ public:
     }
     uint32_t getFileId()
     {
-        if(current_type == idType::Undefined)
+        if (current_type == idType::Undefined)
         {
             throw std::runtime_error("id type is undefined");
         }
-        if(current_type == idType::Low)
+        if (current_type == idType::Low)
         {
             return file_id_counter++;
         }
@@ -70,6 +70,18 @@ public:
             break;
         }
     }
+    void insertFile(uint32_t id, const std::string& filename)
+    {
+        id_filename.insert({ id,filename });
+    }
+    void removeFile(uint32_t id)
+    {
+        id_filename.erase(id);
+    }
+    std::string getFileName(uint32_t id)
+    {
+        return id_filename.at(id);
+    }
     void reset()
     {
         current_type = idType::Undefined;
@@ -81,6 +93,7 @@ private:
     bool is_connected{ false };
     uint32_t file_id_counter;
     idType current_type;
+    std::unordered_map<uint32_t, std::string> id_filename;
 };
 
 #endif

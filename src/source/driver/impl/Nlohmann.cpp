@@ -214,6 +214,7 @@ void FileJsonMsgBuilder::buildDirItemHeader(json& result, Json::MessageType::Fil
 std::string FileJsonMsgBuilder::buildFileMsg(Json::MessageType::File::Type type, std::map<std::string, std::string> args)
 {
     json result;
+    json content;
     switch (type)
     {
     case Json::MessageType::File::Type::FileHeader:
@@ -225,6 +226,10 @@ std::string FileJsonMsgBuilder::buildFileMsg(Json::MessageType::File::Type type,
     case Json::MessageType::File::DirectoryItemHeader:
         buildDirItemHeader(result, type, args);
         break;
+    case Json::MessageType::File::FileEnd:
+        result["type"] = Json::MessageType::File::toString(Json::MessageType::File::FileEnd);
+        result["content"] = content;
+        return result.dump();
     default:
         break;
     }

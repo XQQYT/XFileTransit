@@ -12,7 +12,7 @@ public:
     void stop() override;
     ~FileSender();
 private:
-    void sendMsg(std::vector<uint8_t>&& msg);
+    void sendMsg(std::vector<uint8_t>&& msg, bool is_binary);
 private:
     sockaddr_in client_tcp_addr;
     SOCKET client_socket = INVALID_SOCKET;

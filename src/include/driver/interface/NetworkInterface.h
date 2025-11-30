@@ -56,6 +56,20 @@ public:
         IS_ENCRYPT = 1 << 1
     };
 
+    friend Flag operator|(Flag lhs, Flag rhs) {
+        return static_cast<Flag>(
+            static_cast<std::underlying_type_t<Flag>>(lhs) |
+            static_cast<std::underlying_type_t<Flag>>(rhs)
+            );
+    }
+
+    friend bool operator&(Flag lhs, Flag rhs) {
+        return static_cast<bool>(
+            static_cast<std::underlying_type_t<Flag>>(lhs) &
+            static_cast<std::underlying_type_t<Flag>>(rhs)
+            );
+    }
+
 public:
     NetworkInterface() {};
     NetworkInterface(const NetworkInterface& obj) = delete;

@@ -44,7 +44,8 @@ namespace Json
             {
                 FileHeader,
                 DirectoryHeader,
-                DirectoryItemHeader
+                DirectoryItemHeader,
+                FileEnd
             };
 
             constexpr const char* toString(Type type)
@@ -54,6 +55,7 @@ namespace Json
                 case FileHeader: return "file_header";
                 case DirectoryHeader: return "dir_header";
                 case DirectoryItemHeader: return "dir_item_header";
+                case FileEnd: return "file_end";
                 default: return "unknown";
                 }
             }
