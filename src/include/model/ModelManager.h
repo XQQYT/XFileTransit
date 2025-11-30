@@ -1,7 +1,7 @@
 #ifndef _MODELMANAGER_H
 #define _MODELMANAGER_H
 
-#include <QObject>
+#include <QtCore/QObject>
 #include <memory>
 
 #include "model/DeviceListModel.h"

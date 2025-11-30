@@ -108,3 +108,8 @@ void FileSyncEngine::stop()
     file_receiver.release();
     cv.reset();
 }
+
+FileSyncEngine::~FileSyncEngine()
+{
+    stop();
+}

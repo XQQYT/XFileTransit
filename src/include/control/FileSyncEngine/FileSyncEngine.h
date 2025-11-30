@@ -23,6 +23,7 @@ public:
     std::optional<std::pair<uint32_t, std::string>> getPendingFile();
     void haveFileConnection(SOCKET socket);
     void haveFileMsg(SOCKET socket, std::unique_ptr<NetworkInterface::UserMsg> msg);
+    ~FileSyncEngine();
 private:
     std::vector<std::shared_ptr<FileSenderInterface>> file_senders;
     std::unique_ptr<FileReceiverInterface> file_receiver;
