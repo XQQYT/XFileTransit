@@ -32,11 +32,11 @@ void FileSyncEngine::onHaveFileToSend(uint32_t id, std::string path)
     cv->notify_one();
 }
 
-std::pair<uint32_t, std::string> FileSyncEngine::getPendingFile()
+std::optional<std::pair<uint32_t, std::string>> FileSyncEngine::getPendingFile()
 {
     std::lock_guard<std::mutex> lock(mtx);
     if (pending_send_files.empty()) {
-        return { 0, "" };
+        return std::nullopt;
     }
     auto file = pending_send_files.front();
     pending_send_files.pop();
@@ -101,6 +101,7 @@ void FileSyncEngine::stop()
     {
         i->stop();
     }
+    cv->notify_all();
     file_receiver->stop();
     //销毁资源
     file_senders.clear();

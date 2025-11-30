@@ -43,7 +43,7 @@ void FileSender::sendMsg(std::vector<uint8_t>&& msg)
         std::cout << sended_length << " / " << final_msg_length << std::endl;
     }
 }
-void FileSender::start(std::function<std::pair<uint32_t, std::string>()> get_task_cb)
+void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::string>>()> get_task_cb)
 {
     running = true;
     send_thread = new std::thread([=]() {
@@ -52,9 +52,16 @@ void FileSender::start(std::function<std::pair<uint32_t, std::string>()> get_tas
             std::unique_lock<std::mutex> lock(mtx);
             cv->wait(lock);
             auto pending_file = get_task_cb();
-            std::string test_msg = "hello i am file sender";
-            sendMsg(std::vector<uint8_t>(test_msg.begin(), test_msg.begin() + test_msg.size()));
-            std::cout << std::this_thread::get_id() << " sended " << pending_file.first << " path " << pending_file.second << std::endl;
+            if (pending_file.has_value())
+            {
+                auto& [id, file_path] = pending_file.value();
+                std::string test_msg = std::string("id: " + std::to_string(id) + "file_path: " + file_path);
+                sendMsg(std::vector<uint8_t>(test_msg.begin(), test_msg.begin() + test_msg.size()));
+            }
+            else
+            {
+                continue;
+            }
         }
         });
 }
@@ -62,6 +69,10 @@ void FileSender::start(std::function<std::pair<uint32_t, std::string>()> get_tas
 void FileSender::stop()
 {
     running = false;
+}
+
+FileSender::~FileSender()
+{
     if (send_thread->joinable())
     {
         send_thread->join();

@@ -20,7 +20,7 @@ public:
     void start(std::string address, std::string recv_port, std::shared_ptr<SecurityInterface> instance);
     void stop();
     void onHaveFileToSend(uint32_t id, std::string path);
-    std::pair<uint32_t, std::string> getPendingFile();
+    std::optional<std::pair<uint32_t, std::string>> getPendingFile();
     void haveFileConnection(SOCKET socket);
     void haveFileMsg(SOCKET socket, std::unique_ptr<NetworkInterface::UserMsg> msg);
 private:
