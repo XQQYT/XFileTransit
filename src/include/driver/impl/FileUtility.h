@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <vector>
 #include <string>
+#include <sstream>
 
 namespace fs = std::filesystem;
 
@@ -67,7 +68,7 @@ public:
         return leafFiles;
     }
 
-    static std::vector<std::string> findAllLeafFolders(const std::string& rootPath) {
+    static std::vector<std::string> findAllLeafFolders(const std::string& rootPath, uint32_t& total_paths) {
         std::vector<std::string> leafFolders;
 
         if (!fs::exists(rootPath)) {
@@ -75,35 +76,83 @@ public:
             return leafFolders;
         }
 
-        // 如果是文件，返回空（不处理文件）
         if (fs::is_regular_file(rootPath)) {
             return leafFolders;
         }
 
-        // 递归查找叶子文件夹
-        findLeafFoldersRecursive(rootPath, leafFolders);
+        fs::path basePath = fs::absolute(rootPath).lexically_normal();
+
+        findLeafFoldersRecursive(basePath, basePath, leafFolders);
+        total_paths = leafFolders.size();
         return leafFolders;
     }
 
+    static std::string vectorToJsonString(const std::vector<std::string>& paths) {
+        std::ostringstream oss;
+        oss << "[";
+        for (size_t i = 0; i < paths.size(); ++i) {
+            if (i > 0) {
+                oss << ",";
+            }
+            std::string escapedPath;
+            for (char c : paths[i]) {
+                if (c == '\\') {
+                    escapedPath += "\\\\";
+                }
+                else if (c == '\"') {
+                    escapedPath += "\\\"";
+                }
+                else {
+                    escapedPath += c;
+                }
+            }
+
+            oss << "\"" << escapedPath << "\"";
+        }
+        oss << "]";
+        return oss.str();
+    }
+
+    static std::string absoluteToRelativePath(const std::string& absolutePath, const std::string& referenceDir) {
+        namespace fs = std::filesystem;
+
+        try {
+            fs::path absPath(absolutePath);
+            fs::path refDir(referenceDir);
+
+            // 确保参考路径是绝对路径
+            if (!refDir.is_absolute()) {
+                refDir = fs::absolute(refDir);
+            }
+
+            // 使用 filesystem 的相对路径函数
+            fs::path relativePath = fs::relative(absPath, refDir);
+
+            return relativePath.string();
+        }
+        catch (const std::exception& e) {
+            // 如果出错，回退到原始路径或抛出异常
+            return absolutePath;
+        }
+    }
 private:
-    static void findLeafFoldersRecursive(const std::string& currentPath,
+    static void findLeafFoldersRecursive(const fs::path& basePath,
+        const fs::path& currentPath,
         std::vector<std::string>& leafFolders) {
         try {
             bool hasSubdirectories = false;
 
-            // 遍历当前目录
             for (const auto& entry : fs::directory_iterator(currentPath)) {
                 if (entry.is_directory()) {
                     hasSubdirectories = true;
-                    findLeafFoldersRecursive(entry.path().string(), leafFolders);
+                    findLeafFoldersRecursive(basePath, entry.path(), leafFolders);
                 }
             }
 
-            // 如果没有子目录，当前目录就是叶子文件夹
             if (!hasSubdirectories) {
-                leafFolders.push_back(currentPath);
+                fs::path relativePath = fs::relative(currentPath, basePath);
+                leafFolders.push_back(relativePath.string());
             }
-
         }
         catch (const fs::filesystem_error& ex) {
             std::cerr << "访问路径错误: " << currentPath << " - " << ex.what() << std::endl;

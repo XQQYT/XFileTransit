@@ -169,7 +169,6 @@ void FileJsonMsgBuilder::buildFileHeader(json& result, Json::MessageType::File::
         content["id"] = args.at("id");
         content["total_size"] = args.at("total_size");
         content["total_blocks"] = args.at("total_blocks");
-        content["block_size"] = args.at("block_size");
 
         result["content"] = content;
     }
@@ -184,7 +183,7 @@ void FileJsonMsgBuilder::buildDirHeader(json& result, Json::MessageType::File::T
         json content;
         result["type"] = Json::MessageType::File::toString(type);
         content["id"] = args.at("id");
-        content["leaf_paths"] = args.at("leaf_paths");
+        content["leaf_paths"] = json::parse(args.at("leaf_paths"));
         content["total_paths"] = args.at("total_paths");
 
         result["content"] = content;
@@ -204,7 +203,6 @@ void FileJsonMsgBuilder::buildDirItemHeader(json& result, Json::MessageType::Fil
         content["path"] = args.at("path");
         content["total_size"] = args.at("total_size");
         content["total_blocks"] = args.at("total_blocks");
-        content["block_size"] = args.at("block_size");
 
         result["content"] = content;
     }

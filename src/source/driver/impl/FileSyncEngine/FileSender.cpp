@@ -23,6 +23,8 @@ bool FileSender::initialize()
 }
 void FileSender::sendMsg(std::vector<uint8_t>&& msg)
 {
+    if (msg.size() <= 0)
+        return;
     std::unique_ptr<NetworkInterface::UserMsg> ready_to_send_msg = std::move(getOuterMsgBuilder().buildMsg(msg));
 
     size_t final_msg_length = ready_to_send_msg->data.size();
@@ -60,6 +62,7 @@ void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::stri
                 {
                     sendMsg(std::move(*msg));
                 }
+                std::cout << "sendmsg done" << std::endl;
             }
             else
             {
