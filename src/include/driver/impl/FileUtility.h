@@ -136,7 +136,7 @@ public:
             return absolutePath;
         }
     }
-    static bool createDirectoryRecursive(const std::string& path) {
+    static bool createDirectoryRecursive(const std::wstring& path) {
         std::error_code ec;
         bool result = std::filesystem::create_directories(path, ec);
         return result && !ec;

@@ -60,7 +60,7 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildHeader()
     else if (is_folder && file_state == State::Header)//是文件夹且需要发送Header，则发送文件项的元信息
     {
         std::string current_file = dir_items[dir_file_index++];
-        file_reader = std::make_unique<std::ifstream>(current_file, std::ios::binary);
+        file_reader = std::make_unique<std::ifstream>(FileSystemUtils::utf8ToWide(current_file).c_str(), std::ios::binary);
         if (file_reader->is_open())
         {
             std::cout << "Failed to open file" << std::endl;

@@ -11,7 +11,7 @@ FileParser::FileParser() :
 {
     if (!FileSystemUtils::directoryExists(FileSyncEngineInterface::tmp_dir))
     {
-        FileSystemUtils::createDirectoryRecursive(FileSyncEngineInterface::tmp_dir);
+        FileSystemUtils::createDirectoryRecursive(FileSystemUtils::utf8ToWide(FileSyncEngineInterface::tmp_dir));
     }
     type_parser_map["file_header"] = std::bind(&FileParser::onFileHeader, this, std::placeholders::_1);
     type_parser_map["dir_header"] = std::bind(&FileParser::onDirHeader, this, std::placeholders::_1);
@@ -74,11 +74,32 @@ void FileParser::onFileHeader(std::unique_ptr<Json::Parser> content_parser)
 void FileParser::onDirHeader(std::unique_ptr<Json::Parser> content_parser)
 {
     std::cout << "Dir Header" << std::endl;
+    uint32_t id = std::stol(content_parser->getValue("id"));
+    std::wstring wide_tmp_dir = FileSystemUtils::utf8ToWide(FileSyncEngineInterface::tmp_dir);
+    std::wstring wide_filename = FileSystemUtils::utf8ToWide(GlobalStatusManager::getInstance().getFileName(id));
+    std::wstring end = FileSystemUtils::utf8ToWide("/");
+    dir_path = wide_tmp_dir + wide_filename + end;
+    auto leaf_paths = content_parser->getArray("leaf_paths");
+    for(auto& i :leaf_paths)
+    {
+        auto tmp = i->getArrayItems();
+        for(auto& a : tmp)
+        {        
+            FileSystemUtils::createDirectoryRecursive(dir_path + FileSystemUtils::utf8ToWide(a));
+        }
+    }
 }
 
 void FileParser::onDirItemHeader(std::unique_ptr<Json::Parser> content_parser)
 {
     std::cout << "Dir Item Header" << std::endl;
+    std::wstring file_relative_path = FileSystemUtils::utf8ToWide(content_parser->getValue("path"));
+    std::wstring full_path = dir_path+file_relative_path;
+    file_stream = std::make_unique<std::ofstream>(full_path.c_str(), std::ios::binary);
+    if (!file_stream->is_open())
+    {
+        std::wcout << L"Failed to open: " << full_path << std::endl;
+    }
 }
 
 void FileParser::onFileEnd(std::unique_ptr<Json::Parser> content_parser)

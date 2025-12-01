@@ -20,6 +20,7 @@ private:
     std::unique_ptr<Json::JsonFactoryInterface> json_parser;
     std::map < std::string, std::function<void(std::unique_ptr<Json::Parser>)>> type_parser_map;
     std::unique_ptr<std::ofstream> file_stream;
+    std::wstring dir_path;
 };
 
 #endif
