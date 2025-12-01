@@ -468,16 +468,24 @@ ApplicationWindow  {
                         width: 8
                         height: 8
                         radius: 4
-                        visible: model.isRemote || (model.fileStatus === file_list_model.StatusUploading)
+                        // visible: model.isRemote || (model.fileStatus === file_list_model.StatusUploading)
+                        visible: model.isRemote || (model.fileStatus === 2)
                         anchors.verticalCenter: parent.verticalCenter
                         
                         color: {
-                            if (model.fileStatus === file_list_model.StatusCompleted) return "#4CAF50"    // 完成 - 绿色 
-                            else if (model.fileStatus === file_list_model.StatusDefault) return "#9E9E9E" // 默认 - 灰色
-                            else if (model.fileStatus === file_list_model.StatusUploading) return "#2196F3" // 上传中 - 蓝色
-                            else if (model.fileStatus === file_list_model.StatusDownloading) return "#FF9800" // 下载中 - 橙色
-                            else if (model.fileStatus === file_list_model.StatusError) return "#F44336"    // 错误 - 红色 
-                            else if (model.fileStatus === file_list_model.StatusPending) return "#FFC107"  // 等待中 - 黄色
+                            // if (model.fileStatus === file_list_model.StatusCompleted) return "#4CAF50"    // 完成 - 绿色 
+                            // else if (model.fileStatus === file_list_model.StatusDefault) return "#9E9E9E" // 默认 - 灰色
+                            // else if (model.fileStatus === file_list_model.StatusUploading) return "#2196F3" // 上传中 - 蓝色
+                            // else if (model.fileStatus === file_list_model.StatusDownloading) return "#FF9800" // 下载中 - 橙色
+                            // else if (model.fileStatus === file_list_model.StatusError) return "#F44336"    // 错误 - 红色 
+                            // else if (model.fileStatus === file_list_model.StatusPending) return "#FFC107"  // 等待中 - 黄色
+                            // else return "#607D8B"  // 其他状态 - 蓝灰色
+                            if (model.fileStatus === 4) return "#4CAF50"    // 完成 - 绿色 
+                            else if (model.fileStatus === 1) return "#9E9E9E" // 默认 - 灰色
+                            else if (model.fileStatus === 2) return "#2196F3" // 上传中 - 蓝色
+                            else if (model.fileStatus === 3) return "#FF9800" // 下载中 - 橙色
+                            else if (model.fileStatus === 5) return "#F44336"    // 错误 - 红色 
+                            else if (model.fileStatus === 0) return "#FFC107"  // 等待中 - 黄色
                             else return "#607D8B"  // 其他状态 - 蓝灰色
                         }
                     }
@@ -490,11 +498,12 @@ ApplicationWindow  {
                         radius: 1.5
                         color: "#e6e6e6"
                         anchors.verticalCenter: parent.verticalCenter
-                        visible: model.fileStatus === file_list_model.StatusUploading || 
-                                model.fileStatus === file_list_model.StatusDownloading
-                        
+                        // visible: model.fileStatus === file_list_model.StatusUploading 
+                        // ||  model.fileStatus === file_list_model.StatusDownloading
+                        visible: model.fileStatus === 2 
+                        ||  model.fileStatus === 3
                         Rectangle {
-                            width: parent.width * (model.fileProgress / 100)
+                            width: Math.max(0, parent.width * (model.fileProgress / 100.0))
                             height: parent.height
                             radius: 1.5
                             color: statusIndicator.color
@@ -504,11 +513,13 @@ ApplicationWindow  {
                     // 进度百分比 - 只在传输状态显示
                     Text {
                         text: qsTr("%1%").arg(model.fileProgress)
-                        font.pixelSize: 7
+                        font.pixelSize: 9
                         color: "#666"
                         anchors.verticalCenter: parent.verticalCenter
-                        visible: model.fileStatus === file_list_model.StatusUploading || 
-                                model.fileStatus === file_list_model.StatusDownloading
+                        // visible: model.fileStatus === file_list_model.StatusUploading || 
+                        //         model.fileStatus === file_list_model.StatusDownloading
+                        visible: model.fileStatus === 2 || 
+                                model.fileStatus === 3
                     }
                 }
             }

@@ -11,6 +11,64 @@
 
 #include <iostream>
 
+struct FileInfo;
+class FileListModel : public QAbstractListModel
+{
+  Q_OBJECT
+
+public:
+  enum FileStatus {
+    StatusPending = 0,     // 等待
+    StatusDefault,
+    StatusUploading,       // 上传中
+    StatusDownloading,     // 下载中  
+    StatusCompleted,       // 完成
+    StatusError           // 错误
+  };
+  Q_ENUM(FileStatus)
+
+    enum Roles {
+    FileNameRole = Qt::UserRole + 1,
+    FileSourcePathRole,
+    FileUrlRole,
+    FileSizeRole,
+    FileIconRole,
+    FileStatusRole,
+    isRemoteRole,
+    FileProgressRole
+  };
+
+  explicit FileListModel(QObject* parent = nullptr);
+  ~FileListModel();
+
+  // QAbstractItemModel接口实现
+  int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+  QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+  QHash<int, QByteArray> roleNames() const override;
+
+  Q_INVOKABLE void addFiles(const QList<QString>& files, bool is_remote_file);
+  Q_INVOKABLE void removeFile(int index);
+  Q_INVOKABLE void clearAll();
+  Q_INVOKABLE int getFileCount() const;
+  Q_INVOKABLE void syncCurrentFiles();
+  Q_INVOKABLE void updateFilesId();
+  Q_INVOKABLE void copyText(const QString& text);
+  Q_INVOKABLE void downloadFile(int index);
+  void addRemoteFiles(std::vector<std::vector<std::string>> files);
+  void haveDownLoadRequest(std::vector<std::string> file_ids);
+public slots:
+  void onConnectionClosed();
+private:
+  bool isFileExists(const QString& filePath);
+  void removeAllRemoteFiles();
+  void deleteFile(int index);
+  void removeFileById(std::vector<std::string> id);
+  void onUploadFileProgress(uint32_t id, uint8_t progress, bool is_end);
+private:
+  QList<FileInfo> file_list;
+  QMap<uint32_t, uint32_t> id_index;
+};
+
 struct FileInfo
 {
 public:
@@ -23,7 +81,8 @@ public:
   quint64 file_size;
   QString format_file_size;
   QUrl icon;
-  quint8 file_status;
+  uint8_t file_status;
+  quint8 progress;
 
 public:
   FileInfo() = default;
@@ -108,7 +167,7 @@ public:
   }
   //一般用于本地文件构造
   FileInfo(const bool irf, const QString& url, const quint32 file_id = 0, const quint64 size = 0, const QString& fn = QString())
-    : is_remote_file(irf), file_url(url), file_status(0)
+    : is_remote_file(irf), file_url(url), file_status(FileListModel::FileStatus::StatusCompleted)
   {
     if (irf)
     {
@@ -131,74 +190,21 @@ public:
     }
     format_file_size = formatFileSize(file_size);
     icon = FileIconManager::getInstance().getFileIcon(url, is_folder);
-    file_status = 3; //StatusCompleted
+    progress = 0;
   }
 
   //一般用于远程文件构建
   FileInfo(const bool irf, const quint32 file_id, const bool is_folder, const QString fn, const QString ffs)
-    : is_remote_file(irf), id(file_id), is_folder(this->is_folder), file_name(fn), format_file_size(ffs), file_status(0)
+    : is_remote_file(irf), id(file_id), is_folder(this->is_folder), file_name(fn), format_file_size(ffs),
+    file_status(FileListModel::FileStatus::StatusPending)
   {
     if (!irf)
     {
       throw std::runtime_error("Don'n use this Constructor to construct remote file");
     }
     icon = FileIconManager::getInstance().getFileIconBySuffix(getFileSuffix(file_name), is_folder);
-    file_status = 1;  //StatusPending
+    progress = 0;
   }
-};
-
-class FileListModel : public QAbstractListModel
-{
-  Q_OBJECT
-
-public:
-  enum FileStatus {
-    StatusPending = 0,     // 等待
-    StatusDefault,
-    StatusUploading,       // 上传中
-    StatusDownloading,     // 下载中  
-    StatusCompleted,       // 完成
-    StatusError           // 错误
-  };
-  Q_ENUM(FileStatus)
-
-    enum Roles {
-    FileNameRole = Qt::UserRole + 1,
-    FileSourcePathRole,
-    FileUrlRole,
-    FileSizeRole,
-    FileIconRole,
-    FileStatusRole,
-    isRemoteRole
-  };
-
-  explicit FileListModel(QObject* parent = nullptr);
-  ~FileListModel();
-
-  // QAbstractItemModel接口实现
-  int rowCount(const QModelIndex& parent = QModelIndex()) const override;
-  QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
-  QHash<int, QByteArray> roleNames() const override;
-
-  Q_INVOKABLE void addFiles(const QList<QString>& files, bool is_remote_file);
-  Q_INVOKABLE void removeFile(int index);
-  Q_INVOKABLE void clearAll();
-  Q_INVOKABLE int getFileCount() const;
-  Q_INVOKABLE void syncCurrentFiles();
-  Q_INVOKABLE void updateFilesId();
-  Q_INVOKABLE void copyText(const QString &text);
-  Q_INVOKABLE void downloadFile(int index);
-  void addRemoteFiles(std::vector<std::vector<std::string>> files);
-  void haveDownLoadRequest(std::vector<std::string> file_ids);
-public slots:
-  void onConnectionClosed();
-private:
-  bool isFileExists(const QString& filePath);
-  void removeAllRemoteFiles();
-  void deleteFile(int index);
-  void removeFileById(std::vector<std::string> id);
-private:
-  QList<FileInfo> file_list;
 };
 
 #endif // FILELISTMODEL_H

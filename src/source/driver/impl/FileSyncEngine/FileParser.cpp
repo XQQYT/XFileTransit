@@ -25,9 +25,7 @@ void FileParser::parse(std::unique_ptr<NetworkInterface::UserMsg> msg)
     {
         if (file_stream)
         {
-            std::cout << "data size " << msg->data.size() << std::endl;;
             file_stream->write(reinterpret_cast<const char*>(msg->data.data()) + 4, msg->data.size() - 4);
-            std::cout << "File read done" << std::endl;
         }
         else
         {
@@ -80,11 +78,11 @@ void FileParser::onDirHeader(std::unique_ptr<Json::Parser> content_parser)
     std::wstring end = FileSystemUtils::utf8ToWide("/");
     dir_path = wide_tmp_dir + wide_filename + end;
     auto leaf_paths = content_parser->getArray("leaf_paths");
-    for(auto& i :leaf_paths)
+    for (auto& i : leaf_paths)
     {
         auto tmp = i->getArrayItems();
-        for(auto& a : tmp)
-        {        
+        for (auto& a : tmp)
+        {
             FileSystemUtils::createDirectoryRecursive(dir_path + FileSystemUtils::utf8ToWide(a));
         }
     }
@@ -94,7 +92,7 @@ void FileParser::onDirItemHeader(std::unique_ptr<Json::Parser> content_parser)
 {
     std::cout << "Dir Item Header" << std::endl;
     std::wstring file_relative_path = FileSystemUtils::utf8ToWide(content_parser->getValue("path"));
-    std::wstring full_path = dir_path+file_relative_path;
+    std::wstring full_path = dir_path + file_relative_path;
     file_stream = std::make_unique<std::ofstream>(full_path.c_str(), std::ios::binary);
     if (!file_stream->is_open())
     {

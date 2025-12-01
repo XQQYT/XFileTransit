@@ -3,7 +3,7 @@
 #include "driver/impl/Nlohmann.h"
 #include "driver/impl/FileUtility.h"
 
-#include <algorithm>  // 需要包含这个头文件
+#include <algorithm>
 
 FileMsgBuilder::FileMsgBuilder() :
     json_builder(std::make_unique<NlohmannJson>())
@@ -36,9 +36,9 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildHeader()
     {
         file_reader = std::make_unique<std::ifstream>(FileSystemUtils::utf8ToWide(file_path).c_str(), std::ios::binary);
         if (!file_reader->is_open())
-        {            
+        {
             std::error_code ec(errno, std::generic_category());
-            std::cout << "Failed to open file: " <<ec.message()<< std::endl;
+            std::cout << "Failed to open file: " << ec.message() << std::endl;
         }
         total_size = FileSystemUtils::getFileSize(file_path);
         uint64_t total_blocks = (total_size + FileSyncEngineInterface::file_block_size - 1)
@@ -124,7 +124,6 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildBlock()
             file_state = State::End;
         }
     }
-    std::cout << "block  " << readed_size << " / " << total_size << std::endl;
     return result;
 }
 
@@ -141,7 +140,17 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildEnd()
     return result;
 }
 
-std::pair<bool, std::unique_ptr<std::vector<uint8_t>>> FileMsgBuilder::getStream()
+uint8_t FileMsgBuilder::calculateProgress()
+{
+    if (total_size == 0) {
+        return 0;
+    }
+
+    uint64_t effective_size = (readed_size > total_size) ? total_size : readed_size;
+
+    return static_cast<uint8_t>((effective_size * 100 + total_size / 2) / total_size);
+}
+FileMsgBuilderInterface::FileMsgBuilderResult FileMsgBuilder::getStream()
 {
     if (!is_initialized)
     {
@@ -150,32 +159,32 @@ std::pair<bool, std::unique_ptr<std::vector<uint8_t>>> FileMsgBuilder::getStream
     if (is_end)//进入End状态
     {
         is_end = false;//重置
-        return { false, nullptr };
+        return { false, 100, nullptr };
     }
     //初次调用，发送文件头或文件夹头
     if (file_state == State::Default)
     {
         is_folder = FileSystemUtils::isDirectory(file_path);
-        return { false, buildHeader() };
+        return { false, 0, buildHeader() };
     }
     switch (file_state)
     {
     case State::Header:
-        return { false, buildHeader() };
+        return { false, 0, buildHeader() };
     case State::Block:
-        return { true,buildBlock() };
+        return { true, calculateProgress(),buildBlock() };
     case State::End:
         if (is_folder && dir_file_index <= dir_items.size() - 1)
         {
             file_state = State::Header;
-            return { false, buildHeader() };
+            return { false, 0, buildHeader() };
         }
         file_state = State::Default;
         is_end = true;
-        return { false, buildEnd() };
+        return { false, 100, buildEnd() };
     default:
         break;
     }
-    return { false, nullptr };
+    return { false, 0 ,nullptr };
 
 }

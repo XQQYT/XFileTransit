@@ -26,6 +26,12 @@ FileListModel::FileListModel(QObject* parent) :
         std::bind(&FileListModel::haveDownLoadRequest,
             this,
             std::placeholders::_1));
+    EventBusManager::instance().subscribe("/file/upload_progress",
+        std::bind(&FileListModel::onUploadFileProgress,
+            this,
+            std::placeholders::_1,
+            std::placeholders::_2,
+            std::placeholders::_3));
 }
 
 FileListModel::~FileListModel()
@@ -61,6 +67,8 @@ QVariant FileListModel::data(const QModelIndex& index, int role) const
         return file.file_status;
     case isRemoteRole:
         return file.is_remote_file;
+    case FileProgressRole:
+        return file.progress;
     default:
         return QVariant();
     }
@@ -76,6 +84,7 @@ QHash<int, QByteArray> FileListModel::roleNames() const
         {FileIconRole, "fileIcon"},
         {FileStatusRole, "fileStatus"},
         {isRemoteRole, "isRemote"},
+        {FileProgressRole, "fileProgress"},
         {Qt::ToolTipRole, "toolTip"}
     };
     return roles;
@@ -107,9 +116,15 @@ void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
 
     //只有存在新文件时才插入
     if (!unique_files.isEmpty()) {
+        uint32_t start_index = file_list.size();
         beginInsertRows(QModelIndex(), file_list.size(), file_list.size() + unique_files.size() - 1);
         file_list.append(unique_files);
         endInsertRows();
+        uint32_t cur_index = start_index;
+        for (auto& i : unique_files)
+        {
+            id_index.insert(i.id, cur_index++);
+        }
     }
 
     if (GlobalStatusManager::getInstance().getConnectStatus() && !files_to_send.empty())
@@ -254,4 +269,30 @@ void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
         file_list[target_id].file_status = FileStatus::StatusPending;
         EventBusManager::instance().publish("/file/have_file_to_send", target_id, file_list[target_id].source_path.toStdString());
     }
+}
+
+void FileListModel::onUploadFileProgress(uint32_t id, uint8_t progress, bool is_end)
+{
+    auto it = id_index.find(id);
+    if (it == id_index.end()) {
+        qWarning() << "onUploadFileProgress: Can't find id:" << id;
+        return;
+    }
+
+    int item_index = *it;
+
+    if (item_index < 0 || item_index >= file_list.size()) {
+        qWarning() << "onUploadFileProgress: out of range, id:" << id
+            << ", index:" << item_index;
+        return;
+    }
+
+    FileInfo& item = file_list[item_index];
+    item.file_status = is_end ? FileStatus::StatusDefault : FileStatus::StatusUploading;
+    item.progress = static_cast<int>(progress);
+
+    QModelIndex model_index = index(item_index, 0);
+    QVector<int> roles = { FileStatusRole, FileProgressRole };
+
+    emit dataChanged(model_index, model_index, roles);
 }

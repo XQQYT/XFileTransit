@@ -1,5 +1,6 @@
 #include "driver/impl/FileSyncEngine/FileSender.h"
 #include "driver/impl/FileSyncEngine/FileMsgBuilder.h"
+#include "control/EventBusManager.h"
 #include <iostream>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -44,7 +45,6 @@ void FileSender::sendMsg(std::vector<uint8_t>&& msg, bool is_binary)
             break;
         }
         sended_length += ret;
-        std::cout << sended_length << " / " << final_msg_length << std::endl;
     }
 }
 void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::string>>()> get_task_cb)
@@ -60,13 +60,15 @@ void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::stri
             {
                 auto& [id, file_path] = pending_file.value();
                 file_msg_builder->setFileInfo(id, file_path);
-                std::pair<bool, std::unique_ptr<std::vector<uint8_t>>> msg;
+                FileMsgBuilderInterface::FileMsgBuilderResult msg;
                 do {
                     msg = file_msg_builder->getStream();
-                    if (msg.second) {
-                        sendMsg(std::move(*msg.second), msg.first);
+                    if (msg.data) {
+                        sendMsg(std::move(*msg.data), msg.is_binary);
                     }
-                } while (msg.second);
+                    EventBusManager::instance().publish("/file/upload_progress", id, msg.progress, false);
+                } while (msg.data);
+                EventBusManager::instance().publish("/file/upload_progress", id, static_cast <uint8_t>(100), true);
                 std::cout << "sendmsg done" << std::endl;
             }
             else

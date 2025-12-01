@@ -8,12 +8,13 @@
 class FileMsgBuilder : public FileMsgBuilderInterface
 {
 public:
-    std::pair<bool, std::unique_ptr<std::vector<uint8_t>>> getStream() override;
+    FileMsgBuilderInterface::FileMsgBuilderResult getStream() override;
     FileMsgBuilder();
 private:
     std::unique_ptr<std::vector<uint8_t>> buildHeader();
     std::unique_ptr<std::vector<uint8_t>> buildEnd();
     std::unique_ptr<std::vector<uint8_t>> buildBlock();
+    uint8_t calculateProgress();
 private:
     enum class State
     {

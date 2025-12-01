@@ -8,8 +8,14 @@
 class FileMsgBuilderInterface
 {
 public:
+    struct FileMsgBuilderResult
+    {
+        bool is_binary;
+        uint8_t progress;
+        std::unique_ptr<std::vector<uint8_t>> data;
+    };
     virtual void setFileInfo(uint32_t id, const std::string& path) { file_id = id; file_path = path; is_initialized = true; }
-    virtual std::pair<bool, std::unique_ptr<std::vector<uint8_t>>> getStream() = 0;
+    virtual FileMsgBuilderResult getStream() = 0;
 protected:
     uint32_t file_id;
     std::string file_path;
