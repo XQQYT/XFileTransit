@@ -98,7 +98,7 @@ void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
             {
                 files_to_send.push_back(std::to_string(cur_file.id));
                 files_to_send.push_back(std::to_string(cur_file.is_folder));
-                files_to_send.push_back(cur_file.file_name.toStdString());
+                files_to_send.push_back(cur_file.file_name.toUtf8().constData());
                 files_to_send.push_back(cur_file.format_file_size.toStdString());
             }
             unique_files.append(std::move(cur_file));
@@ -126,7 +126,7 @@ void FileListModel::addRemoteFiles(std::vector<std::vector<std::string>> files)
         remote_files.append(FileInfo(true,
             std::stoul(file[0]), std::stoi(file[1]) != 0,
             QString::fromStdString(file[2]), QString::fromStdString(file[3])));
-        GlobalStatusManager::getInstance().insertFile(remote_files.back().id, remote_files.back().file_name.toStdString());
+        GlobalStatusManager::getInstance().insertFile(remote_files.back().id, remote_files.back().file_name.toUtf8().constData());
     }
 
     if (!remote_files.empty())
@@ -206,7 +206,7 @@ void FileListModel::syncCurrentFiles()
 
         files_to_send.push_back(std::to_string(cur_file.id));
         files_to_send.push_back(std::to_string(cur_file.is_folder));
-        files_to_send.push_back(cur_file.file_name.toStdString());
+        files_to_send.push_back(cur_file.file_name.toUtf8().constData());
         files_to_send.push_back(cur_file.format_file_size.toStdString());
     }
     if (GlobalStatusManager::getInstance().getConnectStatus() && !files_to_send.empty())

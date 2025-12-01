@@ -50,7 +50,8 @@ void initRegisterEvents()
 }
 int main(int argc, char* argv[])
 {
-    QTextStream(stdout).setEncoding(QStringConverter::Encoding::Utf8);
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
 
     QGuiApplication app(argc, argv);
 

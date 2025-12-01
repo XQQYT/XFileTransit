@@ -34,10 +34,11 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildHeader()
     }
     else if (!is_folder && file_state == State::Default)//不是文件夹且是第一次消息，发送文件元消息
     {
-        file_reader = std::make_unique<std::ifstream>(file_path, std::ios::binary);
-        if (file_reader->is_open())
-        {
-            std::cout << "Failed to open file" << std::endl;
+        file_reader = std::make_unique<std::ifstream>(FileSystemUtils::utf8ToWide(file_path).c_str(), std::ios::binary);
+        if (!file_reader->is_open())
+        {            
+            std::error_code ec(errno, std::generic_category());
+            std::cout << "Failed to open file: " <<ec.message()<< std::endl;
         }
         total_size = FileSystemUtils::getFileSize(file_path);
         uint64_t total_blocks = (total_size + FileSyncEngineInterface::file_block_size - 1)

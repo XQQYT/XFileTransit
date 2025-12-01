@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <windows.h> 
 
 namespace fs = std::filesystem;
 
@@ -145,6 +146,19 @@ public:
         std::error_code ec;
         return std::filesystem::exists(path, ec) &&
             std::filesystem::is_directory(path, ec);
+    }
+    static std::wstring utf8ToWide(const std::string& utf8_str) {
+        if (utf8_str.empty()) return L"";
+        
+        int wide_len = MultiByteToWideChar(CP_UTF8, 0, utf8_str.c_str(), -1, nullptr, 0);
+        if (wide_len == 0) return L"";
+        
+        std::wstring wide_str;
+        wide_str.resize(wide_len - 1); // 减去 null 终止符
+        
+        MultiByteToWideChar(CP_UTF8, 0, utf8_str.c_str(), -1, &wide_str[0], wide_len);
+        
+        return wide_str;
     }
 private:
     static void findLeafFoldersRecursive(const fs::path& basePath,
