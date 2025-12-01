@@ -64,6 +64,7 @@ private:
   void deleteFile(int index);
   void removeFileById(std::vector<std::string> id);
   void onUploadFileProgress(uint32_t id, uint8_t progress, bool is_end);
+  void onDownLoadProgress(uint32_t id, uint8_t progress, bool is_end);
 private:
   QList<FileInfo> file_list;
   QMap<uint32_t, uint32_t> id_index;

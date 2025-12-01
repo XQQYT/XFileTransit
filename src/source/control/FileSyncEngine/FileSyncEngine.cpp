@@ -79,6 +79,11 @@ void FileSyncEngine::start(std::string address, std::string recv_port,
         if (sender->initialize())
         {
             sender->setCondition(this->cv);
+            sender->setCheckQueue([this]()->bool {
+                std::lock_guard<std::mutex> lock(mtx);
+                bool is_empty = pending_send_files.empty();
+                return !is_empty;
+                });
             initialized_senders.push_back(sender);
         }
     }

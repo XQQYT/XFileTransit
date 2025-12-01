@@ -143,6 +143,8 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildEnd()
         std::back_inserter(*result),
         [](char c) { return static_cast<uint8_t>(c); });
     file_state = State::Default;
+    dir_sended_size = 0;
+    file_sended_size = 0;
     return result;
 }
 

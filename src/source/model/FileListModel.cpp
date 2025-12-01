@@ -32,6 +32,12 @@ FileListModel::FileListModel(QObject* parent) :
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3));
+    EventBusManager::instance().subscribe("/file/download_progress",
+        std::bind(&FileListModel::onDownLoadProgress,
+            this,
+            std::placeholders::_1,
+            std::placeholders::_2,
+            std::placeholders::_3));
 }
 
 FileListModel::~FileListModel()
@@ -146,9 +152,15 @@ void FileListModel::addRemoteFiles(std::vector<std::vector<std::string>> files)
 
     if (!remote_files.empty())
     {
+        uint32_t start_index = file_list.size();
         beginInsertRows(QModelIndex(), file_list.size(), file_list.size() + remote_files.size() - 1);
         file_list.append(remote_files);
         endInsertRows();
+        uint32_t cur_index = start_index;
+        for (auto& i : remote_files)
+        {
+            id_index.insert(i.id, cur_index++);
+        }
     }
 }
 
@@ -255,10 +267,34 @@ void FileListModel::removeFileById(std::vector<std::string> id)
     endResetModel();
 }
 
-void FileListModel::downloadFile(int index)
+void FileListModel::downloadFile(int i)
 {
-    auto target_file = file_list[index];
+    auto target_file = file_list[i];
     EventBusManager::instance().publish("/file/send_get_file", uint32_t(target_file.id));
+
+    auto it = id_index.find(target_file.id);
+    if (it == id_index.end()) {
+        qWarning() << "haveDownLoadRequest: Can't find id:" << target_file.id;
+        return;
+    }
+
+    int item_index = *it;
+
+    if (item_index < 0 || item_index >= file_list.size()) {
+        qWarning() << "haveDownLoadRequest: out of range, id:" << target_file.id
+            << ", index:" << item_index;
+        return;
+    }
+
+    FileInfo& item = file_list[item_index];
+    item.file_status = FileStatus::StatusPending;
+
+    QModelIndex model_index = index(item_index, 0);
+    QVector<int> roles = { FileStatusRole };
+
+    QMetaObject::invokeMethod(this, [this, model_index, roles]() {
+        emit dataChanged(model_index, model_index, roles);
+        }, Qt::QueuedConnection);
 }
 
 void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
@@ -266,8 +302,32 @@ void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
     for (auto id : file_ids)
     {
         uint32_t target_id = std::stoul(id);
+        std::cout << "haveDownLoadRequest " << target_id << std::endl;
         file_list[target_id].file_status = FileStatus::StatusPending;
         EventBusManager::instance().publish("/file/have_file_to_send", target_id, file_list[target_id].source_path.toStdString());
+        auto it = id_index.find(target_id);
+        if (it == id_index.end()) {
+            qWarning() << "haveDownLoadRequest: Can't find id:" << id;
+            return;
+        }
+
+        int item_index = *it;
+
+        if (item_index < 0 || item_index >= file_list.size()) {
+            qWarning() << "haveDownLoadRequest: out of range, id:" << id
+                << ", index:" << item_index;
+            return;
+        }
+
+        FileInfo& item = file_list[item_index];
+        item.file_status = FileStatus::StatusPending;
+
+        QModelIndex model_index = index(item_index, 0);
+        QVector<int> roles = { FileStatusRole };
+
+        QMetaObject::invokeMethod(this, [this, model_index, roles]() {
+            emit dataChanged(model_index, model_index, roles);
+            }, Qt::QueuedConnection);
     }
 }
 
@@ -289,10 +349,41 @@ void FileListModel::onUploadFileProgress(uint32_t id, uint8_t progress, bool is_
 
     FileInfo& item = file_list[item_index];
     item.file_status = is_end ? FileStatus::StatusDefault : FileStatus::StatusUploading;
+    if (is_end)
+        std::cout << "is_end " << static_cast<int>(id) << std::endl;
+    item.progress = static_cast<int>(progress);
+
+    QModelIndex model_index = index(item_index, 0);
+    QVector<int> roles = { FileStatusRole, FileProgressRole };
+    QMetaObject::invokeMethod(this, [this, model_index, roles]() {
+        emit dataChanged(model_index, model_index, roles);
+        }, Qt::QueuedConnection);
+}
+
+void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, bool is_end)
+{
+    auto it = id_index.find(id);
+    if (it == id_index.end()) {
+        qWarning() << "onDownLoadProgress: Can't find id:" << id;
+        return;
+    }
+
+    int item_index = *it;
+
+    if (item_index < 0 || item_index >= file_list.size()) {
+        qWarning() << "onDownLoadProgress: out of range, id:" << id
+            << ", index:" << item_index;
+        return;
+    }
+
+    FileInfo& item = file_list[item_index];
+    item.file_status = is_end ? FileStatus::StatusCompleted : FileStatus::StatusDownloading;
     item.progress = static_cast<int>(progress);
 
     QModelIndex model_index = index(item_index, 0);
     QVector<int> roles = { FileStatusRole, FileProgressRole };
 
-    emit dataChanged(model_index, model_index, roles);
+    QMetaObject::invokeMethod(this, [this, model_index, roles]() {
+        emit dataChanged(model_index, model_index, roles);
+        }, Qt::QueuedConnection);
 }

@@ -20,6 +20,5 @@ private:
 
     std::mutex mtx;
     std::thread* send_thread{ nullptr };
-
     std::unique_ptr<FileMsgBuilderInterface> file_msg_builder;
 };

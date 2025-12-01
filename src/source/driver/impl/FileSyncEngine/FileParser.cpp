@@ -3,6 +3,7 @@
 #include "driver/impl/Nlohmann.h"
 #include "control/GlobalStatusManager.h"
 #include "driver/impl/FileUtility.h"
+#include "control/EventBusManager.h"
 #include <string>
 #include <iostream>
 
@@ -19,6 +20,15 @@ FileParser::FileParser() :
     type_parser_map["file_end"] = std::bind(&FileParser::onFileEnd, this, std::placeholders::_1);
 }
 
+uint8_t FileParser::calculateProgress()
+{
+    if (total_size == 0) {
+        return 0;
+    }
+    uint64_t effective_size = (received_size > total_size) ? total_size : received_size;
+    return static_cast<uint8_t>((effective_size * 100 + total_size / 2) / total_size);
+}
+
 void FileParser::parse(std::unique_ptr<NetworkInterface::UserMsg> msg)
 {
     if (msg->header.flag & static_cast<uint8_t>(NetworkInterface::Flag::IS_BINARY))
@@ -26,6 +36,8 @@ void FileParser::parse(std::unique_ptr<NetworkInterface::UserMsg> msg)
         if (file_stream)
         {
             file_stream->write(reinterpret_cast<const char*>(msg->data.data()) + 4, msg->data.size() - 4);
+            received_size += msg->data.size() - 4;
+            EventBusManager::instance().publish("/file/download_progress", current_file_id, calculateProgress(), false);
         }
         else
         {
@@ -62,7 +74,10 @@ void FileParser::onFileHeader(std::unique_ptr<Json::Parser> content_parser)
     std::wstring wide_tmp_dir = FileSystemUtils::utf8ToWide(FileSyncEngineInterface::tmp_dir);
     std::wstring wide_filename = FileSystemUtils::utf8ToWide(GlobalStatusManager::getInstance().getFileName(id));
     std::wstring full_path = wide_tmp_dir + wide_filename;
+
+    current_file_id = std::stol(content_parser->getValue("id"));
     file_stream = std::make_unique<std::ofstream>(full_path.c_str(), std::ios::binary);
+    total_size = std::stol(content_parser->getValue("total_size"));
     if (!file_stream->is_open())
     {
         std::wcout << L"Failed to open: " << full_path << std::endl;
@@ -86,6 +101,7 @@ void FileParser::onDirHeader(std::unique_ptr<Json::Parser> content_parser)
             FileSystemUtils::createDirectoryRecursive(dir_path + FileSystemUtils::utf8ToWide(a));
         }
     }
+    current_file_id = std::stol(content_parser->getValue("id"));
 }
 
 void FileParser::onDirItemHeader(std::unique_ptr<Json::Parser> content_parser)
@@ -103,6 +119,8 @@ void FileParser::onDirItemHeader(std::unique_ptr<Json::Parser> content_parser)
 void FileParser::onFileEnd(std::unique_ptr<Json::Parser> content_parser)
 {
     std::cout << "File end" << std::endl;
+    EventBusManager::instance().publish("/file/download_progress", current_file_id, static_cast<uint8_t>(100), true);
+    received_size = 0;
     file_stream->flush();
     file_stream.reset();
 }

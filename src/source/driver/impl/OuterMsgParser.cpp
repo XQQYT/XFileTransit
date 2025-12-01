@@ -86,7 +86,7 @@ void OuterMsgParser::delegateRecv(SOCKET client_socket,
                     throw std::runtime_error("recv error");
                 }
                 readed_length += read_byte;
-                std::cout << readed_length << " / " << payload_length << std::endl;
+                // std::cout << readed_length << " / " << payload_length << std::endl;
             }
 
             auto parsed = parse(std::move(receive_msg), payload_length, flag);

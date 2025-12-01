@@ -469,7 +469,7 @@ ApplicationWindow  {
                         height: 8
                         radius: 4
                         // visible: model.isRemote || (model.fileStatus === file_list_model.StatusUploading)
-                        visible: model.isRemote || (model.fileStatus === 2)
+                        visible: model.isRemote || (model.fileStatus === 2 && model.fileProgress != 100)
                         anchors.verticalCenter: parent.verticalCenter
                         
                         color: {
@@ -500,8 +500,7 @@ ApplicationWindow  {
                         anchors.verticalCenter: parent.verticalCenter
                         // visible: model.fileStatus === file_list_model.StatusUploading 
                         // ||  model.fileStatus === file_list_model.StatusDownloading
-                        visible: model.fileStatus === 2 
-                        ||  model.fileStatus === 3
+                        visible: (model.fileStatus === 2 ||  model.fileStatus === 3) && model.fileProgress !=100
                         Rectangle {
                             width: Math.max(0, parent.width * (model.fileProgress / 100.0))
                             height: parent.height
@@ -518,8 +517,7 @@ ApplicationWindow  {
                         anchors.verticalCenter: parent.verticalCenter
                         // visible: model.fileStatus === file_list_model.StatusUploading || 
                         //         model.fileStatus === file_list_model.StatusDownloading
-                        visible: model.fileStatus === 2 || 
-                                model.fileStatus === 3
+                        visible: (model.fileStatus === 2 || model.fileStatus === 3) && model.fileProgress !=100
                     }
                 }
             }

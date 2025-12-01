@@ -20,6 +20,7 @@ public:
     virtual void start(std::function<std::optional<std::pair<uint32_t, std::string>>()> get_task_cb) = 0;
     virtual void stop() = 0;
     virtual void setCondition(std::shared_ptr<std::condition_variable> queue_cv) { cv = queue_cv; }
+    virtual void setCheckQueue(std::function<bool()> check_cb) { check_queue_cb = check_cb; }
 protected:
     static OuterMsgBuilderInterface& getOuterMsgBuilder() {
         static OuterMsgBuilder instance;
@@ -29,6 +30,7 @@ protected:
     std::string address;
     std::string port;
     std::shared_ptr<std::condition_variable> cv;
+    std::function<bool()> check_queue_cb;
     bool running{ false };
 };
 

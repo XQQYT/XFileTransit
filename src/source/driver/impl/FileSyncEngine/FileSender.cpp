@@ -54,7 +54,12 @@ void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::stri
         while (running)
         {
             std::unique_lock<std::mutex> lock(mtx);
-            cv->wait(lock);
+
+            cv->wait(lock, [this]() {
+                bool has_task = check_queue_cb();
+                bool should_stop = !running;
+                return has_task || should_stop;
+                });
             auto pending_file = get_task_cb();
             if (pending_file.has_value())
             {
@@ -69,7 +74,7 @@ void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::stri
                     EventBusManager::instance().publish("/file/upload_progress", id, msg.progress, false);
                 } while (msg.data);
                 EventBusManager::instance().publish("/file/upload_progress", id, static_cast <uint8_t>(100), true);
-                std::cout << "sendmsg done" << std::endl;
+                std::cout << "sendmsg done" << static_cast<int>(id) << std::endl;
             }
             else
             {
