@@ -149,16 +149,55 @@ public:
     }
     static std::wstring utf8ToWide(const std::string& utf8_str) {
         if (utf8_str.empty()) return L"";
-        
+
         int wide_len = MultiByteToWideChar(CP_UTF8, 0, utf8_str.c_str(), -1, nullptr, 0);
         if (wide_len == 0) return L"";
-        
+
         std::wstring wide_str;
         wide_str.resize(wide_len - 1); // 减去 null 终止符
-        
+
         MultiByteToWideChar(CP_UTF8, 0, utf8_str.c_str(), -1, &wide_str[0], wide_len);
-        
+
         return wide_str;
+    }
+    static uint64_t calculateFolderSize(const fs::path& path) {
+        try {
+            if (!fs::exists(path)) {
+                std::cerr << "路径不存在: " << path << std::endl;
+                return 0;
+            }
+            if (fs::is_regular_file(path)) {
+                return fs::file_size(path);
+            }
+            uint64_t totalSize = 0;
+            std::error_code ec;
+            for (const auto& entry : fs::recursive_directory_iterator(path, ec)) {
+                if (ec) {
+                    std::cerr << "访问目录项出错: " << ec.message() << std::endl;
+                    continue;
+                }
+                if (fs::is_regular_file(entry.status())) {
+                    uint64_t size = fs::file_size(entry.path(), ec);
+                    if (!ec) {
+                        totalSize += size;
+                    }
+                    else {
+                        std::cerr << "获取文件大小失败: " << entry.path()
+                            << " - " << ec.message() << std::endl;
+                    }
+                }
+            }
+            return totalSize;
+        }
+        catch (const fs::filesystem_error& e) {
+            std::cerr << "文件系统错误: " << e.what()
+                << " - 错误码: " << e.code() << std::endl;
+            return static_cast<uint64_t>(-1);
+        }
+        catch (const std::exception& e) {
+            std::cerr << "未知错误: " << e.what() << std::endl;
+            return static_cast<uint64_t>(-1);
+        }
     }
 private:
     static void findLeafFoldersRecursive(const fs::path& basePath,

@@ -196,7 +196,7 @@ public:
   //一般用于远程文件构建
   FileInfo(const bool irf, const quint32 file_id, const bool is_folder, const QString fn, const QString ffs)
     : is_remote_file(irf), id(file_id), is_folder(this->is_folder), file_name(fn), format_file_size(ffs),
-    file_status(FileListModel::FileStatus::StatusPending)
+    file_status(FileListModel::FileStatus::StatusDefault)
   {
     if (!irf)
     {

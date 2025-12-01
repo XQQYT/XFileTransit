@@ -26,14 +26,16 @@ private:
     State file_state{ State::Default };
     uint64_t block_index{ 0 };
     std::unique_ptr<Json::JsonFactoryInterface> json_builder;
-    uint64_t total_size{ 0 };
+    uint64_t file_total_size{ 0 };
+    uint64_t file_sended_size{ 0 };
+    uint64_t dir_total_size{ 0 };
+    uint64_t dir_sended_size{ 0 };
     uint64_t total_blocks{ 0 };
     bool is_folder{ false };
     bool is_end{ false };
     uint64_t dir_file_index{ 0 };
     std::vector<std::string> dir_items;
     std::unique_ptr<std::ifstream> file_reader;
-    uint64_t readed_size{ 0 };
 };
 
 #endif

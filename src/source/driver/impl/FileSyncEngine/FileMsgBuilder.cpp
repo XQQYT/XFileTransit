@@ -16,12 +16,14 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildHeader()
     if (is_folder && file_state == State::Default)//第一次消息且是文件夹则发送文件夹元信息
     {
         uint32_t total_paths = 0;
+        dir_total_size = FileSystemUtils::calculateFolderSize(file_path);
         auto leaf_paths = FileSystemUtils::vectorToJsonString(FileSystemUtils::findAllLeafFolders(file_path, total_paths));
         auto json = json_builder->getBuilder(Json::BuilderType::File);
         std::string json_str = json->buildFileMsg(Json::MessageType::File::DirectoryHeader, {
             {"id",std::to_string(file_id)},
             {"leaf_paths",std::move(leaf_paths)},
-            {"total_paths",std::to_string(total_paths)}
+            {"total_paths",std::to_string(total_paths)},
+            {"total_size", std::to_string(dir_total_size)}
             });
         auto result = std::make_unique<std::vector<uint8_t>>();
         result->reserve(json_str.size());
@@ -40,13 +42,13 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildHeader()
             std::error_code ec(errno, std::generic_category());
             std::cout << "Failed to open file: " << ec.message() << std::endl;
         }
-        total_size = FileSystemUtils::getFileSize(file_path);
-        uint64_t total_blocks = (total_size + FileSyncEngineInterface::file_block_size - 1)
+        file_total_size = FileSystemUtils::getFileSize(file_path);
+        uint64_t total_blocks = (file_total_size + FileSyncEngineInterface::file_block_size - 1)
             / FileSyncEngineInterface::file_block_size;
         auto json = json_builder->getBuilder(Json::BuilderType::File);
         std::string json_str = json->buildFileMsg(Json::MessageType::File::FileHeader, {
             {"id",std::to_string(file_id)},
-            {"total_size",std::to_string(total_size)},
+            {"total_size",std::to_string(file_total_size)},
             {"total_blocks",std::to_string(total_blocks)},
             });
         auto result = std::make_unique<std::vector<uint8_t>>();
@@ -65,13 +67,13 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildHeader()
         {
             std::cout << "Failed to open file" << std::endl;
         }
-        total_size = FileSystemUtils::getFileSize(current_file);
-        uint64_t total_blocks = (total_size + FileSyncEngineInterface::file_block_size - 1)
+        file_total_size = FileSystemUtils::getFileSize(current_file);
+        uint64_t total_blocks = (file_total_size + FileSyncEngineInterface::file_block_size - 1)
             / FileSyncEngineInterface::file_block_size;
         auto json = json_builder->getBuilder(Json::BuilderType::File);
         std::string json_str = json->buildFileMsg(Json::MessageType::File::DirectoryItemHeader, {
             {"id",std::to_string(file_id)},
-            {"total_size",std::to_string(total_size)},
+            {"total_size",std::to_string(file_total_size)},
             {"path",FileSystemUtils::absoluteToRelativePath(current_file, file_path)},
             {"total_blocks",std::to_string(total_blocks)},
             });
@@ -93,7 +95,7 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildBlock()
     uint32_t offset = 0;
 
     // 计算本次可读取的数据大小
-    uint64_t remaining_data = total_size - readed_size;
+    uint64_t remaining_data = file_total_size - file_sended_size;
     uint64_t max_data_size = FileSyncEngineInterface::file_block_size - HEADER_SIZE;
     uint64_t ready_to_read_size = std::min(remaining_data, max_data_size);
 
@@ -112,7 +114,11 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildBlock()
 
         // 检查实际读取的字节数
         std::streamsize bytes_read = file_reader->gcount();
-        readed_size += bytes_read;
+        if (is_folder)
+        {
+            dir_sended_size += bytes_read;
+        }
+        file_sended_size += bytes_read;
 
         // 如果读取的字节数少于预期，调整向量大小
         if (bytes_read < static_cast<std::streamsize>(ready_to_read_size)) {
@@ -120,7 +126,7 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildBlock()
         }
 
         // 检查是否到达文件末尾
-        if (file_reader->eof() || readed_size == total_size) {
+        if (file_reader->eof() || file_sended_size == file_total_size) {
             file_state = State::End;
         }
     }
@@ -142,13 +148,27 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildEnd()
 
 uint8_t FileMsgBuilder::calculateProgress()
 {
-    if (total_size == 0) {
-        return 0;
+    if (is_folder)
+    {
+        if (dir_total_size == 0) {
+            return 0;
+        }
+
+        uint64_t effective_size = (file_sended_size > dir_total_size) ? dir_total_size : file_sended_size;
+
+        return static_cast<uint8_t>((effective_size * 100 + dir_total_size / 2) / dir_total_size);
+    }
+    else
+    {
+        if (file_total_size == 0) {
+            return 0;
+        }
+
+        uint64_t effective_size = (file_sended_size > file_total_size) ? file_total_size : file_sended_size;
+
+        return static_cast<uint8_t>((effective_size * 100 + file_total_size / 2) / file_total_size);
     }
 
-    uint64_t effective_size = (readed_size > total_size) ? total_size : readed_size;
-
-    return static_cast<uint8_t>((effective_size * 100 + total_size / 2) / total_size);
 }
 FileMsgBuilderInterface::FileMsgBuilderResult FileMsgBuilder::getStream()
 {

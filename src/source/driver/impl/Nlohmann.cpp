@@ -185,6 +185,7 @@ void FileJsonMsgBuilder::buildDirHeader(json& result, Json::MessageType::File::T
         content["id"] = args.at("id");
         content["leaf_paths"] = json::parse(args.at("leaf_paths"));
         content["total_paths"] = args.at("total_paths");
+        content["total_size"] = args.at("total_size");
 
         result["content"] = content;
     }

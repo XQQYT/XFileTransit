@@ -49,6 +49,8 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/file/have_file_to_send");
 
     EventBusManager::instance().registerEvent("/file/upload_progress");
+
+    EventBusManager::instance().registerEvent("/file/download_progress");
 }
 int main(int argc, char* argv[])
 {
