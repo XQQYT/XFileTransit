@@ -468,25 +468,21 @@ ApplicationWindow  {
                         width: 8
                         height: 8
                         radius: 4
-                        // visible: model.isRemote || (model.fileStatus === file_list_model.StatusUploading)
-                        visible: model.isRemote || (model.fileStatus === 2 && model.fileProgress != 100)
+                        visible: model.isRemote || (model.fileStatus === 3 && model.fileProgress != 100) || model.fileStatus === 5
                         anchors.verticalCenter: parent.verticalCenter
                         
                         color: {
-                            // if (model.fileStatus === file_list_model.StatusCompleted) return "#4CAF50"    // 完成 - 绿色 
-                            // else if (model.fileStatus === file_list_model.StatusDefault) return "#9E9E9E" // 默认 - 灰色
-                            // else if (model.fileStatus === file_list_model.StatusUploading) return "#2196F3" // 上传中 - 蓝色
-                            // else if (model.fileStatus === file_list_model.StatusDownloading) return "#FF9800" // 下载中 - 橙色
-                            // else if (model.fileStatus === file_list_model.StatusError) return "#F44336"    // 错误 - 红色 
-                            // else if (model.fileStatus === file_list_model.StatusPending) return "#FFC107"  // 等待中 - 黄色
-                            // else return "#607D8B"  // 其他状态 - 蓝灰色
-                            if (model.fileStatus === 4) return "#4CAF50"    // 完成 - 绿色 
-                            else if (model.fileStatus === 1) return "#9E9E9E" // 默认 - 灰色
-                            else if (model.fileStatus === 2) return "#2196F3" // 上传中 - 蓝色
-                            else if (model.fileStatus === 3) return "#FF9800" // 下载中 - 橙色
-                            else if (model.fileStatus === 5) return "#F44336"    // 错误 - 红色 
-                            else if (model.fileStatus === 0) return "#FFC107"  // 等待中 - 黄色
-                            else return "#607D8B"  // 其他状态 - 蓝灰色
+                            switch(model.fileStatus) {
+                                case 0: return "#FFC107"    // 等待 - 黄色
+                                case 1: return "#9E9E9E"    // 默认 - 灰色
+                                case 2: return "#9E9E9E"
+                                case 3: return "#2196F3"    // 上传中 - 蓝色
+                                case 4: return "#FF9800"    // 下载中 - 橙色
+                                case 5: return "#9C27B0"    // 上传完成 - 紫色
+                                case 6: return "#4CAF50"    // 下载完成 - 绿色
+                                case 7: return "#F44336"    // 错误 - 红色
+                                default: return "#607D8B"
+                            }
                         }
                     }
                     
@@ -498,9 +494,7 @@ ApplicationWindow  {
                         radius: 1.5
                         color: "#e6e6e6"
                         anchors.verticalCenter: parent.verticalCenter
-                        // visible: model.fileStatus === file_list_model.StatusUploading 
-                        // ||  model.fileStatus === file_list_model.StatusDownloading
-                        visible: (model.fileStatus === 2 ||  model.fileStatus === 3) && model.fileProgress !=100
+                        visible: (model.fileStatus === 3 ||  model.fileStatus === 4) && model.fileProgress !=100
                         Rectangle {
                             width: Math.max(0, parent.width * (model.fileProgress / 100.0))
                             height: parent.height
@@ -515,9 +509,7 @@ ApplicationWindow  {
                         font.pixelSize: 9
                         color: "#666"
                         anchors.verticalCenter: parent.verticalCenter
-                        // visible: model.fileStatus === file_list_model.StatusUploading || 
-                        //         model.fileStatus === file_list_model.StatusDownloading
-                        visible: (model.fileStatus === 2 || model.fileStatus === 3) && model.fileProgress !=100
+                        visible: (model.fileStatus === 3 || model.fileStatus === 4) && model.fileProgress !=100
                     }
                 }
             }

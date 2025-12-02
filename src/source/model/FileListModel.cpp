@@ -343,7 +343,7 @@ void FileListModel::onUploadFileProgress(uint32_t id, uint8_t progress, bool is_
         return;
     }
     FileInfo& item = file_list[item_index];
-    item.file_status = is_end ? FileStatus::StatusDefault : FileStatus::StatusUploading;
+    item.file_status = is_end ? FileStatus::StatusUploadCompleted : FileStatus::StatusUploading;
     item.progress = static_cast<int>(progress);
 
     QModelIndex model_index = index(item_index, 0);
@@ -368,7 +368,7 @@ void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, bool is_en
     }
 
     FileInfo& item = file_list[item_index];
-    item.file_status = is_end ? FileStatus::StatusCompleted : FileStatus::StatusDownloading;
+    item.file_status = is_end ? FileStatus::StatusDownloadCompleted : FileStatus::StatusDownloading;
     item.progress = static_cast<int>(progress);
 
     QModelIndex model_index = index(item_index, 0);

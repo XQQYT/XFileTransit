@@ -19,10 +19,12 @@ class FileListModel : public QAbstractListModel
 public:
   enum FileStatus {
     StatusPending = 0,     // 等待
-    StatusDefault,
+    StatusLocalDefault,   //本地文件默认
+    StatusRemoteDefault,  //远程文件默认
     StatusUploading,       // 上传中
     StatusDownloading,     // 下载中  
-    StatusCompleted,       // 完成
+    StatusUploadCompleted, // 上传完成
+    StatusDownloadCompleted, // 下载完成
     StatusError           // 错误
   };
   Q_ENUM(FileStatus)
@@ -168,7 +170,7 @@ public:
   }
   //一般用于本地文件构造
   FileInfo(const bool irf, const QString& url, const quint32 file_id = 0, const quint64 size = 0, const QString& fn = QString())
-    : is_remote_file(irf), file_url(url), file_status(FileListModel::FileStatus::StatusCompleted)
+    : is_remote_file(irf), file_url(url), file_status(FileListModel::FileStatus::StatusLocalDefault)
   {
     if (irf)
     {
@@ -197,7 +199,7 @@ public:
   //一般用于远程文件构建
   FileInfo(const bool irf, const quint32 file_id, const bool is_folder, const QString fn, const QString ffs)
     : is_remote_file(irf), id(file_id), is_folder(this->is_folder), file_name(fn), format_file_size(ffs),
-    file_status(FileListModel::FileStatus::StatusDefault)
+    file_status(FileListModel::FileStatus::StatusRemoteDefault)
   {
     if (!irf)
     {
