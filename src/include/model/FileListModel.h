@@ -205,8 +205,8 @@ public:
     {
       throw std::runtime_error("Don'n use this Constructor to construct remote file");
     }
-    QUrl url = QUrl::fromLocalFile(QString::fromStdString(GlobalStatusManager::tmp_dir) + file_name);
-    source_path = QString::fromStdString(GlobalStatusManager::tmp_dir) + file_name;
+    file_url = QUrl::fromLocalFile(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir) + file_name);
+    source_path = QString::fromStdString(GlobalStatusManager::absolute_tmp_dir) + file_name;
     icon = FileIconManager::getInstance().getFileIconBySuffix(getFileSuffix(file_name), is_folder);
     progress = 0;
   }

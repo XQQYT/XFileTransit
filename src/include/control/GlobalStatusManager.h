@@ -2,11 +2,13 @@
 #define _GLOBALSTATUSMANAGER_H
 
 #include <string>
+#include "driver/impl/FileUtility.h"
 
 class GlobalStatusManager
 {
 public:
-    inline static const std::string tmp_dir = "./XFiletransitTmp/";
+    inline static const std::string relative_tmp_dir = "./XFiletransitTmp/";
+    inline static const std::string absolute_tmp_dir = FileSystemUtils::getCurrentWorkingDirectory() + "/XFiletransitTmp/";
 
     enum class idType {
         Low,

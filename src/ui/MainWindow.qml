@@ -414,14 +414,14 @@ ApplicationWindow  {
             }
             
             // 文件项的拖拽源
-            Drag.active: fileDragArea.drag.active
+            Drag.active: fileDragArea.drag.active && (model.fileStatus === 1 || model.fileStatus === 5 || model.fileStatus === 6)
             Drag.dragType: Drag.Automatic
             Drag.supportedActions: Qt.CopyAction
             Drag.mimeData: {
                 "text/uri-list": [model.fileUrl],
                 "text/plain": model.filePath
             }
-            
+
             ToolTip {
                 id: fileToolTip
                 visible: fileDragArea.containsMouse

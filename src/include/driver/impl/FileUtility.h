@@ -175,6 +175,10 @@ public:
         }
     }
 
+    static std::string getCurrentWorkingDirectory() {
+        fs::path filePath = fs::current_path();  // 创建副本
+        return filePath.make_preferred().string();
+    }
     // 深度优先搜索获取所有叶子文件路径
     static std::vector<std::string> findAllLeafFiles(const std::string& rootPath) {
         std::vector<std::string> leafFiles;
