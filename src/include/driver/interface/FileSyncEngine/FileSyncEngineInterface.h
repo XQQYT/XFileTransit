@@ -51,7 +51,6 @@ class FileSyncEngineInterface
 {
 public:
   inline static const uint32_t file_block_size = 40960;
-  inline static const std::string tmp_dir = "./XFiletransitTmp/";
 public:
   struct FileBlock {
     uint32_t id;           // 与头部id对应

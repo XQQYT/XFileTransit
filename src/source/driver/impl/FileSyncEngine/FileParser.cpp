@@ -10,9 +10,9 @@
 FileParser::FileParser() :
     json_parser(std::make_unique<NlohmannJson>())
 {
-    if (!FileSystemUtils::directoryExists(FileSyncEngineInterface::tmp_dir))
+    if (!FileSystemUtils::directoryExists(GlobalStatusManager::tmp_dir))
     {
-        FileSystemUtils::createDirectoryRecursive(FileSystemUtils::utf8ToWide(FileSyncEngineInterface::tmp_dir));
+        FileSystemUtils::createDirectoryRecursive(FileSystemUtils::utf8ToWide(GlobalStatusManager::tmp_dir));
     }
     type_parser_map["file_header"] = std::bind(&FileParser::onFileHeader, this, std::placeholders::_1);
     type_parser_map["dir_header"] = std::bind(&FileParser::onDirHeader, this, std::placeholders::_1);
@@ -70,19 +70,19 @@ void FileParser::parse(std::unique_ptr<NetworkInterface::UserMsg> msg)
 
 void FileParser::onFileHeader(std::unique_ptr<Json::Parser> content_parser)
 {
-    uint32_t id = std::stol(content_parser->getValue("id"));
+    uint32_t id = std::stoul(content_parser->getValue("id"));
     if (file_stream)
     {
         file_stream.release();
     }
     //接收到的字符是utf8，需要转换成宽字节
-    std::wstring wide_tmp_dir = FileSystemUtils::utf8ToWide(FileSyncEngineInterface::tmp_dir);
+    std::wstring wide_tmp_dir = FileSystemUtils::utf8ToWide(GlobalStatusManager::tmp_dir);
     std::wstring wide_filename = FileSystemUtils::utf8ToWide(GlobalStatusManager::getInstance().getFileName(id));
     std::wstring full_path = wide_tmp_dir + wide_filename;
 
-    current_file_id = std::stol(content_parser->getValue("id"));
+    current_file_id = std::stoul(content_parser->getValue("id"));
     file_stream = std::make_unique<std::ofstream>(full_path.c_str(), std::ios::binary);
-    total_size = std::stol(content_parser->getValue("total_size"));
+    total_size = std::stoul(content_parser->getValue("total_size"));
     if (!file_stream->is_open())
     {
         std::wcout << L"Failed to open: " << full_path << std::endl;
@@ -91,9 +91,9 @@ void FileParser::onFileHeader(std::unique_ptr<Json::Parser> content_parser)
 
 void FileParser::onDirHeader(std::unique_ptr<Json::Parser> content_parser)
 {
-    uint32_t id = std::stol(content_parser->getValue("id"));
-    total_size = std::stol(content_parser->getValue("total_size"));
-    std::wstring wide_tmp_dir = FileSystemUtils::utf8ToWide(FileSyncEngineInterface::tmp_dir);
+    uint32_t id = std::stoul(content_parser->getValue("id"));
+    total_size = std::stoul(content_parser->getValue("total_size"));
+    std::wstring wide_tmp_dir = FileSystemUtils::utf8ToWide(GlobalStatusManager::tmp_dir);
     std::wstring wide_filename = FileSystemUtils::utf8ToWide(GlobalStatusManager::getInstance().getFileName(id));
     std::wstring end = FileSystemUtils::utf8ToWide("/");
     dir_path = wide_tmp_dir + wide_filename + end;
@@ -106,7 +106,7 @@ void FileParser::onDirHeader(std::unique_ptr<Json::Parser> content_parser)
             FileSystemUtils::createDirectoryRecursive(dir_path + FileSystemUtils::utf8ToWide(a));
         }
     }
-    current_file_id = std::stol(content_parser->getValue("id"));
+    current_file_id = std::stoul(content_parser->getValue("id"));
     is_folder = true;
 }
 

@@ -96,6 +96,19 @@ QHash<int, QByteArray> FileListModel::roleNames() const
     return roles;
 }
 
+std::pair<int, FileInfo&> FileListModel::findFileInfoById(uint32_t id)
+{
+    auto it = std::find_if(file_list.begin(), file_list.end(),
+        [id](const FileInfo& info) {
+            return info.id == id;
+        });
+    if (it == file_list.end()) {
+        throw std::runtime_error("FileInfo with id " + std::to_string(id) + " not found");
+    }
+    int index = std::distance(file_list.begin(), it);
+    return std::pair<int, FileInfo&>(index, *it);
+}
+
 //添加本地文件
 void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
 {
@@ -122,15 +135,9 @@ void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
 
     //只有存在新文件时才插入
     if (!unique_files.isEmpty()) {
-        uint32_t start_index = file_list.size();
         beginInsertRows(QModelIndex(), file_list.size(), file_list.size() + unique_files.size() - 1);
         file_list.append(unique_files);
         endInsertRows();
-        uint32_t cur_index = start_index;
-        for (auto& i : unique_files)
-        {
-            id_index.insert(i.id, cur_index++);
-        }
     }
 
     if (GlobalStatusManager::getInstance().getConnectStatus() && !files_to_send.empty())
@@ -152,15 +159,9 @@ void FileListModel::addRemoteFiles(std::vector<std::vector<std::string>> files)
 
     if (!remote_files.empty())
     {
-        uint32_t start_index = file_list.size();
         beginInsertRows(QModelIndex(), file_list.size(), file_list.size() + remote_files.size() - 1);
         file_list.append(remote_files);
         endInsertRows();
-        uint32_t cur_index = start_index;
-        for (auto& i : remote_files)
-        {
-            id_index.insert(i.id, cur_index++);
-        }
     }
 }
 
@@ -269,27 +270,11 @@ void FileListModel::removeFileById(std::vector<std::string> id)
 
 void FileListModel::downloadFile(int i)
 {
-    auto target_file = file_list[i];
-    EventBusManager::instance().publish("/file/send_get_file", uint32_t(target_file.id));
+    EventBusManager::instance().publish("/file/send_get_file", uint32_t(file_list[i].id));
 
-    auto it = id_index.find(target_file.id);
-    if (it == id_index.end()) {
-        qWarning() << "haveDownLoadRequest: Can't find id:" << target_file.id;
-        return;
-    }
+    file_list[i].file_status = FileStatus::StatusPending;
 
-    int item_index = *it;
-
-    if (item_index < 0 || item_index >= file_list.size()) {
-        qWarning() << "haveDownLoadRequest: out of range, id:" << target_file.id
-            << ", index:" << item_index;
-        return;
-    }
-
-    FileInfo& item = file_list[item_index];
-    item.file_status = FileStatus::StatusPending;
-
-    QModelIndex model_index = index(item_index, 0);
+    QModelIndex model_index = index(i, 0);
     QVector<int> roles = { FileStatusRole };
 
     emit dataChanged(model_index, model_index, roles);
@@ -301,26 +286,13 @@ void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
     {
         uint32_t target_id = std::stoul(id);
         std::cout << "haveDownLoadRequest " << target_id << std::endl;
-        file_list[target_id].file_status = FileStatus::StatusPending;
-        EventBusManager::instance().publish("/file/have_file_to_send", target_id, file_list[target_id].source_path.toStdString());
-        auto it = id_index.find(target_id);
-        if (it == id_index.end()) {
-            qWarning() << "haveDownLoadRequest: Can't find id:" << id;
-            return;
-        }
+        auto target_file = findFileInfoById(target_id);
+        target_file.second.file_status = FileStatus::StatusPending;
+        EventBusManager::instance().publish("/file/have_file_to_send", target_id, target_file.second.source_path.toStdString());
 
-        int item_index = *it;
+        target_file.second.file_status = FileStatus::StatusPending;
 
-        if (item_index < 0 || item_index >= file_list.size()) {
-            qWarning() << "haveDownLoadRequest: out of range, id:" << id
-                << ", index:" << item_index;
-            return;
-        }
-
-        FileInfo& item = file_list[item_index];
-        item.file_status = FileStatus::StatusPending;
-
-        QModelIndex model_index = index(item_index, 0);
+        QModelIndex model_index = index(target_file.first, 0);
         QVector<int> roles = { FileStatusRole };
 
         emit dataChanged(model_index, model_index, roles);
@@ -329,49 +301,24 @@ void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
 
 void FileListModel::onUploadFileProgress(uint32_t id, uint8_t progress, bool is_end)
 {
-    auto it = id_index.find(id);
-    if (it == id_index.end()) {
-        qWarning() << "onUploadFileProgress: Can't find id:" << id;
-        return;
-    }
+    auto target_file = findFileInfoById(id);
 
-    int item_index = *it;
+    target_file.second.file_status = is_end ? FileStatus::StatusUploadCompleted : FileStatus::StatusUploading;
+    target_file.second.progress = static_cast<int>(progress);
 
-    if (item_index < 0 || item_index >= file_list.size()) {
-        qWarning() << "onUploadFileProgress: out of range, id:" << id
-            << ", index:" << item_index;
-        return;
-    }
-    FileInfo& item = file_list[item_index];
-    item.file_status = is_end ? FileStatus::StatusUploadCompleted : FileStatus::StatusUploading;
-    item.progress = static_cast<int>(progress);
-
-    QModelIndex model_index = index(item_index, 0);
+    QModelIndex model_index = index(target_file.first, 0);
     QVector<int> roles = { FileStatusRole, FileProgressRole };
     emit dataChanged(model_index, model_index, roles);
 }
 
 void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, bool is_end)
 {
-    auto it = id_index.find(id);
-    if (it == id_index.end()) {
-        qWarning() << "onDownLoadProgress: Can't find id:" << id;
-        return;
-    }
 
-    int item_index = *it;
+    auto target_file = findFileInfoById(id);
+    target_file.second.file_status = is_end ? FileStatus::StatusDownloadCompleted : FileStatus::StatusDownloading;
+    target_file.second.progress = static_cast<int>(progress);
 
-    if (item_index < 0 || item_index >= file_list.size()) {
-        qWarning() << "onDownLoadProgress: out of range, id:" << id
-            << ", index:" << item_index;
-        return;
-    }
-
-    FileInfo& item = file_list[item_index];
-    item.file_status = is_end ? FileStatus::StatusDownloadCompleted : FileStatus::StatusDownloading;
-    item.progress = static_cast<int>(progress);
-
-    QModelIndex model_index = index(item_index, 0);
+    QModelIndex model_index = index(target_file.first, 0);
     QVector<int> roles = { FileStatusRole, FileProgressRole };
 
     emit dataChanged(model_index, model_index, roles);

@@ -67,9 +67,9 @@ private:
   void removeFileById(std::vector<std::string> id);
   void onUploadFileProgress(uint32_t id, uint8_t progress, bool is_end);
   void onDownLoadProgress(uint32_t id, uint8_t progress, bool is_end);
+  std::pair<int, FileInfo&> findFileInfoById(uint32_t id);
 private:
   QList<FileInfo> file_list;
-  QMap<uint32_t, uint32_t> id_index;
 };
 
 struct FileInfo
@@ -80,7 +80,7 @@ public:
   bool is_folder;
   QString file_name;
   QString source_path;  //is_remote_file为false是才有效
-  QString file_url;   //is_remote_file为false是才有效
+  QUrl file_url;   //is_remote_file为false是才有效
   quint64 file_size;
   QString format_file_size;
   QUrl icon;
@@ -205,6 +205,8 @@ public:
     {
       throw std::runtime_error("Don'n use this Constructor to construct remote file");
     }
+    QUrl url = QUrl::fromLocalFile(QString::fromStdString(GlobalStatusManager::tmp_dir) + file_name);
+    source_path = QString::fromStdString(GlobalStatusManager::tmp_dir) + file_name;
     icon = FileIconManager::getInstance().getFileIconBySuffix(getFileSuffix(file_name), is_folder);
     progress = 0;
   }

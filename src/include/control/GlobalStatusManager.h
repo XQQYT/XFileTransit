@@ -6,6 +6,8 @@
 class GlobalStatusManager
 {
 public:
+    inline static const std::string tmp_dir = "./XFiletransitTmp/";
+
     enum class idType {
         Low,
         High,
