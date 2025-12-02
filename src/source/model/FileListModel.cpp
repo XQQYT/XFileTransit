@@ -292,9 +292,7 @@ void FileListModel::downloadFile(int i)
     QModelIndex model_index = index(item_index, 0);
     QVector<int> roles = { FileStatusRole };
 
-    QMetaObject::invokeMethod(this, [this, model_index, roles]() {
-        emit dataChanged(model_index, model_index, roles);
-        }, Qt::QueuedConnection);
+    emit dataChanged(model_index, model_index, roles);
 }
 
 void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
@@ -325,9 +323,7 @@ void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
         QModelIndex model_index = index(item_index, 0);
         QVector<int> roles = { FileStatusRole };
 
-        QMetaObject::invokeMethod(this, [this, model_index, roles]() {
-            emit dataChanged(model_index, model_index, roles);
-            }, Qt::QueuedConnection);
+        emit dataChanged(model_index, model_index, roles);
     }
 }
 
@@ -346,18 +342,13 @@ void FileListModel::onUploadFileProgress(uint32_t id, uint8_t progress, bool is_
             << ", index:" << item_index;
         return;
     }
-
     FileInfo& item = file_list[item_index];
     item.file_status = is_end ? FileStatus::StatusDefault : FileStatus::StatusUploading;
-    if (is_end)
-        std::cout << "is_end " << static_cast<int>(id) << std::endl;
     item.progress = static_cast<int>(progress);
 
     QModelIndex model_index = index(item_index, 0);
     QVector<int> roles = { FileStatusRole, FileProgressRole };
-    QMetaObject::invokeMethod(this, [this, model_index, roles]() {
-        emit dataChanged(model_index, model_index, roles);
-        }, Qt::QueuedConnection);
+    emit dataChanged(model_index, model_index, roles);
 }
 
 void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, bool is_end)
@@ -383,7 +374,5 @@ void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, bool is_en
     QModelIndex model_index = index(item_index, 0);
     QVector<int> roles = { FileStatusRole, FileProgressRole };
 
-    QMetaObject::invokeMethod(this, [this, model_index, roles]() {
-        emit dataChanged(model_index, model_index, roles);
-        }, Qt::QueuedConnection);
+    emit dataChanged(model_index, model_index, roles);
 }

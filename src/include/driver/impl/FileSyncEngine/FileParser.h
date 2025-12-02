@@ -25,6 +25,9 @@ private:
     uint32_t current_file_id;
     uint64_t total_size{ 0 };
     uint64_t received_size{ 0 };
+    bool is_folder{ false };
+    uint8_t progress_count{ 0 };
+    std::string file_name;
 };
 
 #endif

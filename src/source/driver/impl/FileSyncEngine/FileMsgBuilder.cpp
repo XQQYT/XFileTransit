@@ -63,9 +63,10 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildHeader()
     {
         std::string current_file = dir_items[dir_file_index++];
         file_reader = std::make_unique<std::ifstream>(FileSystemUtils::utf8ToWide(current_file).c_str(), std::ios::binary);
-        if (file_reader->is_open())
+        if (!file_reader->is_open())
         {
             std::cout << "Failed to open file" << std::endl;
+            std::wcout << " = " << FileSystemUtils::utf8ToWide(current_file) << " = " << std::endl;
         }
         file_total_size = FileSystemUtils::getFileSize(current_file);
         uint64_t total_blocks = (file_total_size + FileSyncEngineInterface::file_block_size - 1)
@@ -91,6 +92,10 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildHeader()
 
 std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildBlock()
 {
+    if (file_total_size <= 0)
+    {
+        file_state = State::End;
+    }
     constexpr uint32_t HEADER_SIZE = sizeof(file_id);
     uint32_t offset = 0;
 
@@ -118,8 +123,10 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildBlock()
         {
             dir_sended_size += bytes_read;
         }
-        file_sended_size += bytes_read;
-
+        else
+        {
+            file_sended_size += bytes_read;
+        }
         // 如果读取的字节数少于预期，调整向量大小
         if (bytes_read < static_cast<std::streamsize>(ready_to_read_size)) {
             result->resize(HEADER_SIZE + bytes_read);
@@ -155,9 +162,7 @@ uint8_t FileMsgBuilder::calculateProgress()
         if (dir_total_size == 0) {
             return 0;
         }
-
-        uint64_t effective_size = (file_sended_size > dir_total_size) ? dir_total_size : file_sended_size;
-
+        uint64_t effective_size = (dir_sended_size > dir_total_size) ? dir_total_size : dir_sended_size;
         return static_cast<uint8_t>((effective_size * 100 + dir_total_size / 2) / dir_total_size);
     }
     else
@@ -165,12 +170,9 @@ uint8_t FileMsgBuilder::calculateProgress()
         if (file_total_size == 0) {
             return 0;
         }
-
         uint64_t effective_size = (file_sended_size > file_total_size) ? file_total_size : file_sended_size;
-
         return static_cast<uint8_t>((effective_size * 100 + file_total_size / 2) / file_total_size);
     }
-
 }
 FileMsgBuilderInterface::FileMsgBuilderResult FileMsgBuilder::getStream()
 {
@@ -196,14 +198,27 @@ FileMsgBuilderInterface::FileMsgBuilderResult FileMsgBuilder::getStream()
     case State::Block:
         return { true, calculateProgress(),buildBlock() };
     case State::End:
+    {
+        uint8_t final_progress = calculateProgress();
         if (is_folder && dir_file_index <= dir_items.size() - 1)
         {
             file_state = State::Header;
-            return { false, 0, buildHeader() };
+            file_sended_size = 0;
+            file_total_size = 0;
+            return { false, final_progress, buildHeader() };
         }
         file_state = State::Default;
         is_end = true;
-        return { false, 100, buildEnd() };
+        if (is_folder) {
+            dir_sended_size = 0;
+            dir_total_size = 0;
+        }
+        else {
+            file_sended_size = 0;
+            file_total_size = 0;
+        }
+        return { false, final_progress, buildEnd() };
+    }
     default:
         break;
     }

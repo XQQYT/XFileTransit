@@ -44,31 +44,6 @@ public:
         }
     }
 
-    // 深度优先搜索获取所有叶子文件路径
-    static std::vector<std::string> findAllLeafFiles(const std::string& rootPath) {
-        std::vector<std::string> leafFiles;
-
-        if (!fs::exists(rootPath)) {
-            std::cerr << "根路径不存在: " << rootPath << std::endl;
-            return leafFiles;
-        }
-
-        try {
-            for (const auto& entry : fs::recursive_directory_iterator(
-                rootPath, fs::directory_options::skip_permission_denied)) {
-
-                if (entry.is_regular_file()) {
-                    leafFiles.push_back(entry.path().string());
-                }
-            }
-        }
-        catch (const fs::filesystem_error& ex) {
-            std::cerr << "遍历目录错误: " << ex.what() << std::endl;
-        }
-
-        return leafFiles;
-    }
-
     static std::vector<std::string> findAllLeafFolders(const std::string& rootPath, uint32_t& total_paths) {
         std::vector<std::string> leafFolders;
 
@@ -199,6 +174,34 @@ public:
             return static_cast<uint64_t>(-1);
         }
     }
+
+    // 深度优先搜索获取所有叶子文件路径
+    static std::vector<std::string> findAllLeafFiles(const std::string& rootPath) {
+        std::vector<std::string> leafFiles;
+
+        if (!fs::exists(rootPath)) {
+            std::cerr << "根路径不存在: " << rootPath << std::endl;
+            return leafFiles;
+        }
+
+        try {
+            for (const auto& entry : fs::recursive_directory_iterator(
+                rootPath, fs::directory_options::skip_permission_denied)) {
+
+                if (entry.is_regular_file()) {
+                    // 创建副本，然后调用 make_preferred()
+                    fs::path filePath = entry.path();  // 创建副本
+                    filePath = filePath.make_preferred();  // 转换为首选分隔符
+                    leafFiles.push_back(filePath.string());
+                }
+            }
+        }
+        catch (const fs::filesystem_error& ex) {
+            std::cerr << "遍历目录错误: " << ex.what() << std::endl;
+        }
+
+        return leafFiles;
+    }
 private:
     static void findLeafFoldersRecursive(const fs::path& basePath,
         const fs::path& currentPath,
@@ -215,7 +218,8 @@ private:
 
             if (!hasSubdirectories) {
                 fs::path relativePath = fs::relative(currentPath, basePath);
-                leafFolders.push_back(relativePath.string());
+                fs::path preferredPath = relativePath.make_preferred();
+                leafFolders.push_back(preferredPath.string());
             }
         }
         catch (const fs::filesystem_error& ex) {

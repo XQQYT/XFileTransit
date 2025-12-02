@@ -31,13 +31,19 @@ uint8_t FileParser::calculateProgress()
 
 void FileParser::parse(std::unique_ptr<NetworkInterface::UserMsg> msg)
 {
+    static uint8_t progress_count = 0;
     if (msg->header.flag & static_cast<uint8_t>(NetworkInterface::Flag::IS_BINARY))
     {
         if (file_stream)
         {
             file_stream->write(reinterpret_cast<const char*>(msg->data.data()) + 4, msg->data.size() - 4);
             received_size += msg->data.size() - 4;
-            EventBusManager::instance().publish("/file/download_progress", current_file_id, calculateProgress(), false);
+            if (progress_count >= 30)
+            {
+                EventBusManager::instance().publish("/file/download_progress", current_file_id, calculateProgress(), false);
+                progress_count = 0;
+            }
+            ++progress_count;
         }
         else
         {
@@ -64,7 +70,6 @@ void FileParser::parse(std::unique_ptr<NetworkInterface::UserMsg> msg)
 
 void FileParser::onFileHeader(std::unique_ptr<Json::Parser> content_parser)
 {
-    std::cout << "File Header" << std::endl;
     uint32_t id = std::stol(content_parser->getValue("id"));
     if (file_stream)
     {
@@ -86,8 +91,8 @@ void FileParser::onFileHeader(std::unique_ptr<Json::Parser> content_parser)
 
 void FileParser::onDirHeader(std::unique_ptr<Json::Parser> content_parser)
 {
-    std::cout << "Dir Header" << std::endl;
     uint32_t id = std::stol(content_parser->getValue("id"));
+    total_size = std::stol(content_parser->getValue("total_size"));
     std::wstring wide_tmp_dir = FileSystemUtils::utf8ToWide(FileSyncEngineInterface::tmp_dir);
     std::wstring wide_filename = FileSystemUtils::utf8ToWide(GlobalStatusManager::getInstance().getFileName(id));
     std::wstring end = FileSystemUtils::utf8ToWide("/");
@@ -102,11 +107,11 @@ void FileParser::onDirHeader(std::unique_ptr<Json::Parser> content_parser)
         }
     }
     current_file_id = std::stol(content_parser->getValue("id"));
+    is_folder = true;
 }
 
 void FileParser::onDirItemHeader(std::unique_ptr<Json::Parser> content_parser)
 {
-    std::cout << "Dir Item Header" << std::endl;
     std::wstring file_relative_path = FileSystemUtils::utf8ToWide(content_parser->getValue("path"));
     std::wstring full_path = dir_path + file_relative_path;
     file_stream = std::make_unique<std::ofstream>(full_path.c_str(), std::ios::binary);
@@ -114,13 +119,14 @@ void FileParser::onDirItemHeader(std::unique_ptr<Json::Parser> content_parser)
     {
         std::wcout << L"Failed to open: " << full_path << std::endl;
     }
+    file_name = content_parser->getValue("path");
 }
 
 void FileParser::onFileEnd(std::unique_ptr<Json::Parser> content_parser)
 {
-    std::cout << "File end" << std::endl;
     EventBusManager::instance().publish("/file/download_progress", current_file_id, static_cast<uint8_t>(100), true);
     received_size = 0;
+    progress_count = 0;
     file_stream->flush();
     file_stream.reset();
 }

@@ -51,6 +51,7 @@ void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::stri
 {
     running = true;
     send_thread = new std::thread([=]() {
+        static uint8_t progress_count = 0;
         while (running)
         {
             std::unique_lock<std::mutex> lock(mtx);
@@ -71,9 +72,15 @@ void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::stri
                     if (msg.data) {
                         sendMsg(std::move(*msg.data), msg.is_binary);
                     }
-                    EventBusManager::instance().publish("/file/upload_progress", id, msg.progress, false);
+                    if (progress_count >= 30)
+                    {
+                        EventBusManager::instance().publish("/file/upload_progress", id, msg.progress, false);
+                        progress_count = 0;
+                    }
+                    ++progress_count;
                 } while (msg.data);
                 EventBusManager::instance().publish("/file/upload_progress", id, static_cast <uint8_t>(100), true);
+                progress_count = 0;
                 std::cout << "sendmsg done" << static_cast<int>(id) << std::endl;
             }
             else
