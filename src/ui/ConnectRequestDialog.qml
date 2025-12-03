@@ -1,121 +1,196 @@
-// ConnectionRequestDialog.qml
 import QtQuick 2.15
-import QtQuick.Controls 2.15
+import QtQuick.Window 2.15
 import QtQuick.Layouts 1.15
 
-ApplicationWindow {
+Window {
     id: connectionDialog
-    width: 400
-    height: 250
-    title: "连接请求"
+    width: 500
+    height: 350
     modality: Qt.ApplicationModal
-    flags: Qt.Dialog
+    flags: Qt.FramelessWindowHint | Qt.Dialog
+    color: "transparent"
+    visible: false
     
-    // 属性接口，用于外部设置设备信息
     property string device_ip: ""
     property string device_name: ""
     property var connection_model: null
     
     signal accepted(string ip, string name)
     signal rejected(string ip, string name)
-
-    // 居中显示
+    
+    // 居中
     x: (Screen.width - width) / 2
     y: (Screen.height - height) / 2
     
-    ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: 20
-        spacing: 15
+    onVisibleChanged: if (visible) requestActivate()
+    
+    function showDialog(ip, name, model) {
+        device_ip = ip
+        device_name = name
+        connection_model = model
+        show()
+    }
+
+    Rectangle {
+        anchors.centerIn: parent
+        width: 500
+        height: 350
+        radius: 14
+        color: "#ffffff"
+        border.color: "#f0f0f0"
+        border.width: 1
         
-        // 标题
-        Label {
-            text: "连接请求"
-            font.bold: true
-            font.pixelSize: 18
-            Layout.alignment: Qt.AlignHCenter
-            Layout.topMargin: 10
-        }
-        
-        // 设备信息区域
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            color: "transparent"
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 20
+            spacing: 20
             
+            // 标题
+            Text {
+                text: "🔗 连接请求"
+                font.pixelSize: 20
+                font.bold: true
+                font.family: "Microsoft YaHei UI"
+                color: "#1f2937"
+                Layout.alignment: Qt.AlignHCenter
+            }
+            
+            // 设备信息区域
             ColumnLayout {
-                anchors.fill: parent
-                spacing: 10
+                spacing: 16
+                Layout.fillWidth: true
+                Layout.fillHeight: true
                 
                 // IP地址
-                RowLayout {
-                    Layout.fillWidth: true
-                    Label {
-                        text: "设备IP:"
-                        font.bold: true
-                        Layout.preferredWidth: 80
+                ColumnLayout {
+                    spacing: 4
+                    
+                    Text {
+                        text: "IP地址"
+                        font.pixelSize: 13
+                        color: "#6b7280"
+                        font.weight: Font.Medium
                     }
-                    Label {
-                        text: device_ip
+                    
+                    Rectangle {
                         Layout.fillWidth: true
-                        wrapMode: Text.Wrap
+                        height: 40
+                        radius: 8
+                        color: "#f8fafc"
+                        border.color: "#e2e8f0"
+                        border.width: 1
+                        
+                        Text {
+                            anchors.centerIn: parent
+                            text: device_ip
+                            font.pixelSize: 15
+                            color: "#1e293b"
+                            font.bold: true
+                        }
                     }
                 }
                 
                 // 设备名称
-                RowLayout {
-                    Layout.fillWidth: true
-                    Label {
-                        text: "设备名称:"
-                        font.bold: true
-                        Layout.preferredWidth: 80
+                ColumnLayout {
+                    spacing: 4
+                    
+                    Text {
+                        text: "设备名称"
+                        font.pixelSize: 13
+                        color: "#6b7280"
+                        font.weight: Font.Medium
                     }
-                    Label {
-                        text: device_name
+                    
+                    Rectangle {
                         Layout.fillWidth: true
-                        wrapMode: Text.Wrap
+                        height: 40
+                        radius: 8
+                        color: "#f8fafc"
+                        border.color: "#e2e8f0"
+                        border.width: 1
+                        
+                        Text {
+                            anchors.centerIn: parent
+                            text: device_name
+                            font.pixelSize: 15
+                            color: "#1e293b"
+                            font.bold: true
+                        }
                     }
                 }
             }
-        }
-        
-        // 按钮区域
-        RowLayout {
-            Layout.alignment: Qt.AlignHCenter
-            spacing: 20
             
-            Button {
-                id: rejectBtn
-                text: "拒绝"
-                Layout.preferredWidth: 100
-                onClicked: {
-                    connectionDialog.rejected(device_ip, device_name)
-                    connection_model.rejected(device_ip, device_name)
-                    connectionDialog.hide()
-                }
+            // 提示文字
+            Text {
+                text: "是否允许此设备连接到您的计算机？"
+                font.pixelSize: 13
+                color: "#9ca3af"
+                Layout.alignment: Qt.AlignHCenter
             }
             
-            Button {
-                id: acceptBtn
-                text: "接受"
-                Layout.preferredWidth: 100
-                highlighted: true
-                onClicked: {
-                    connectionDialog.accepted(device_ip, device_name)
-                    connection_model.accepted(device_ip,device_name)
-                    connectionDialog.hide()
+            // 按钮区域（正确布局）
+            Row {
+                spacing: 12
+                Layout.alignment: Qt.AlignHCenter
+                
+                // 拒绝按钮
+                Rectangle {
+                    width: 90
+                    height: 38
+                    radius: 8
+                    color: rejectMouse.containsMouse ? "#fef2f2" : "#fafafa"
+                    border.color: rejectMouse.containsMouse ? "#fca5a5" : "#e5e7eb"
+                    border.width: 1.5
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: "拒绝"
+                        font.pixelSize: 14
+                        color: rejectMouse.containsMouse ? "#dc2626" : "#6b7280"
+                        font.weight: Font.Medium
+                    }
+                    
+                    MouseArea {
+                        id: rejectMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            connectionDialog.rejected(device_ip, device_name)
+                            if (connection_model) connection_model.rejected(device_ip, device_name)
+                            connectionDialog.close()
+                        }
+                    }
+                }
+                
+                // 接受按钮
+                Rectangle {
+                    width: 90
+                    height: 38
+                    radius: 8
+                    color: acceptMouse.containsMouse ? "#4f46e5" : "#6366f1"
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: "接受"
+                        font.pixelSize: 14
+                        color: "white"
+                        font.weight: Font.Medium
+                    }
+                    
+                    MouseArea {
+                        id: acceptMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            connectionDialog.accepted(device_ip, device_name)
+                            if (connection_model) connection_model.accepted(device_ip, device_name)
+                            connectionDialog.close()
+                        }
+                    }
                 }
             }
-        }
-    }
-    
-    // 快捷键支持
-    Shortcut {
-        sequence: "Esc"
-        onActivated: {
-            connectionDialog.accepted(device_ip, device_name)
-            connection_model.rejected(device_ip,device_name)
-            connectionDialog.hide()
         }
     }
 }
