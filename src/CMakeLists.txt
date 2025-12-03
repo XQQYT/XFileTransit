@@ -12,6 +12,7 @@ add_subdirectory(source/model)
 add_executable(${PROJECT_NAME}
     ${APP_SOURCES}
     ${APP_RES}
+    ${CMAKE_CURRENT_LIST_DIR}/res/logo/logo.rc
 )
 
 target_link_libraries(${PROJECT_NAME}
