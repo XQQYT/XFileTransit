@@ -1,315 +1,642 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.15
+import QtQuick.Window 2.15
 
 Window {
     id: deviceListWindow
-    width: 400
-    height: 500
-    x: (Screen.width - width) / 2
-    y: (Screen.height - height) / 2
-    title: qsTr("设备列表")
-    modality: Qt.ApplicationModal
-    flags: Qt.Dialog
+    width: 420
+    height: 520
+    color: "transparent"
+    visible: false
+    flags: Qt.FramelessWindowHint
     
     property var deviceModel: null
-        
+    
+    LoadingDialog {
+        id: load_dialog
+        onButtonClicked: {
+            console.log("取消操作")
+            load_dialog.hide()
+        }
+    }
+
     Loader {
         id: generalDialogLoader
         source: "qrc:/qml/ui/GeneralDialog.qml"
     }
     
-    Connections {
-        target: deviceModel
-        function onConnectResult(ret, ip) {
-        if (ret) {
-            // 连接成功：隐藏设备窗口，对话框作为独立窗口显示
-            deviceListWindow.hide()
-            generalDialogLoader.item.iconType = generalDialogLoader.item.success
-            generalDialogLoader.item.text = "连接成功"
-            generalDialogLoader.item.x = (Screen.width - generalDialogLoader.item.width) / 2
-            generalDialogLoader.item.y = (Screen.height - generalDialogLoader.item.height) / 2
-        } else {
-            // 连接被拒绝：不隐藏设备窗口，对话框相对于设备窗口居中
-            generalDialogLoader.item.iconType = generalDialogLoader.item.error
-            generalDialogLoader.item.text = "连接被拒绝"
-            generalDialogLoader.item.x = deviceListWindow.x + (deviceListWindow.width - generalDialogLoader.item.width) / 2
-            generalDialogLoader.item.y = deviceListWindow.y + (deviceListWindow.height - generalDialogLoader.item.height) / 2
-        }
-        load_dialog.hide()
-        generalDialogLoader.item.show()
+    // 居中显示
+    function centerOnScreen() {
+        Qt.callLater(function() {
+            var screenWidth = Screen.width > 0 ? Screen.width : 1920
+            var screenHeight = Screen.height > 0 ? Screen.height : 1080
+            
+            deviceListWindow.x = Math.max(0, (screenWidth - deviceListWindow.width) / 2)
+            deviceListWindow.y = Math.max(0, (screenHeight - deviceListWindow.height) / 2)
+        })
     }
+    
+    onVisibleChanged: {
+        if (visible) {
+            centerOnScreen()
+            requestActivate()
+            if (deviceModel && deviceListView.count === 0) {
+                deviceModel.startScan()
+            }
+        }
+    }
+    
+    function showWindow(model) {
+        deviceModel = model
+        centerOnScreen()
+        show()
+        raise()
+        requestActivate()
+    }
+    
+    // 处理扫描完成逻辑
+    function handleScanComplete() {
+        if (!deviceListWindow.visible) {
+            // 窗口被隐藏了，显示窗口并弹出对话框
+            deviceListWindow.show()
+            deviceListWindow.raise()
+            deviceListWindow.requestActivate()
+            
+            // 延迟一点确保窗口先显示
+            Qt.callLater(function() {
+                if (generalDialogLoader.status === Loader.Ready) {
+                    var deviceCount = deviceModel ? deviceListView.count : 0
+                    var message = deviceCount > 0 ? 
+                        `扫描完成，发现 ${deviceCount} 个设备` : 
+                        "扫描完成，未发现设备"
+                    
+                    var iconType = deviceCount > 0 ? 
+                        generalDialogLoader.item.success : 
+                        generalDialogLoader.item.info
+                    
+                    generalDialogLoader.item.showDialog("扫描完成", message, iconType, generalDialogLoader.item.ok)
+                }
+            })
+        }
     }
 
-    ColumnLayout {
+    // 窗口主体
+    Rectangle {
         anchors.fill: parent
-        anchors.margins: 10
+        radius: 16
+        color: "#ffffff"
         
-        // 标题栏
-        RowLayout {
-            Layout.fillWidth: true
-            
-            Label {
-                text: qsTr("局域网设备")
-                font.bold: true
-                font.pixelSize: 16
-                Layout.fillWidth: true
-            }
-            
-            Button {
-                text: deviceModel.scanning ? qsTr("停止") : qsTr("扫描")
-                width: 50
-                onClicked: {
-                    if(deviceModel){
-                        if (!deviceModel.scanning) {
-                            deviceModel.refresh()
-                        }else{
-                            deviceModel.stopScan()
-                        }
-                    }            
-                }
-            }
+        Rectangle {
+            anchors.fill: parent
+            radius: parent.radius
+            color: "transparent"
+            border.color: "#f0f0f0"
+            border.width: 1
         }
-        LoadingDialog{
-            id: load_dialog
-            onButtonClicked:{
-                console.log("取消操作")
-                load_dialog.hide()
-            }
-        }
-        // 设备列表
-        ScrollView {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
+        
+        // 主布局区域
+        Item {
+            id: mainContainer
+            anchors.fill: parent
+            anchors.margins: 20
             
-            ListView {
-                id: deviceListView
-                model: deviceModel ? deviceModel : null
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                highlight: null
-                currentIndex: -1
-                delegate: Rectangle {
-                    id: deviceItem
-                    width: deviceListView.width
-                    height: 60
-                    color: {
-                        if (deviceItem.pressed) 
-                            return "#bbdefb"  // 按下时的颜色
-                        else if (deviceItem.containsMouse) 
-                            return "#f5f5f5"  // 悬浮时的颜色
-                        else 
-                            return "transparent" // 默认透明
+            // 标题栏
+            Row {
+                id: titleRow
+                width: parent.width
+                height: 44
+                spacing: 12
+                
+                // 标题图标
+                Rectangle {
+                    id: titleIcon
+                    width: 44
+                    height: 44
+                    radius: 12
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: "#6366f1" }
+                        GradientStop { position: 1.0; color: "#8b5cf6" }
                     }
                     
-                    // 添加圆角效果
-                    radius: 4
+                    Text {
+                        anchors.centerIn: parent
+                        text: "📱"
+                        font.pixelSize: 22
+                        font.bold: true
+                    }
                     
-                    // 属性定义
-                    property string deviceName: model.deviceName
-                    property string deviceIp: model.deviceIP
-                    property string deviceType: model.deviceType
-                    property bool containsMouse: false
-                    property bool pressed: false
+                    // 光泽效果
+                    Rectangle {
+                        width: parent.width
+                        height: parent.height * 0.3
+                        radius: 6
+                        color: "#40ffffff"
+                        anchors.top: parent.top
+                    }
+                }
+                
+                Column {
+                    id: titleTextColumn
+                    width: parent.width - titleIcon.width - scanButton.width - minimizeButton.width - closeButton.width - 12 * 5
+                    height: parent.height
+                    spacing: 2
+                    
+                    Text {
+                        text: "设备列表"
+                        font.pixelSize: 20
+                        font.bold: true
+                        font.family: "Microsoft YaHei UI"
+                        color: "#1f2937"
+                    }
+                    
+                    Text {
+                        id: subtitleText
+                        text: "局域网设备发现"
+                        font.pixelSize: 13
+                        font.family: "Microsoft YaHei UI"
+                        color: "#9ca3af"
+                    }
+                }
+                
+                // 扫描/停止按钮
+                Rectangle {
+                    id: scanButton
+                    width: 80
+                    height: 36
+                    radius: 8
+                    color: scanMouse.containsMouse ? (deviceModel && deviceModel.scanning ? "#fef2f2" : "#f0f9ff") : "#f8fafc"
+                    border.color: scanMouse.containsMouse ? (deviceModel && deviceModel.scanning ? "#fca5a5" : "#7dd3fc") : "#e2e8f0"
+                    border.width: 1.5
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: deviceModel && deviceModel.scanning ? "停止" : "扫描"
+                        font.pixelSize: 14
+                        font.family: "Microsoft YaHei UI"
+                        font.weight: Font.Medium
+                        color: deviceModel && deviceModel.scanning ? "#dc2626" : "#0369a1"
+                    }
                     
                     MouseArea {
-                        id: mouseArea
+                        id: scanMouse
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        
-                        onEntered: deviceItem.containsMouse = true
-                        onExited: {
-                            deviceItem.containsMouse = false
-                            deviceItem.pressed = false
-                        }
-                        onPressed: deviceItem.pressed = true
-                        onReleased: deviceItem.pressed = false
-                        onCanceled: deviceItem.pressed = false
-                        
                         onClicked: {
-                            deviceModel.connectToTarget(index)
-                            load_dialog.show("等待对方响应","取消")
-                            deviceModel.stopScan()
-                        }
-                        onDoubleClicked: {
-                            console.log("双击设备:", deviceName, deviceIp)
-                        }
-                    }
-                    
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.margins: 10
-                        spacing: 12
-                        
-                        // 设备图标 - 添加悬浮效果
-                        Rectangle {
-                            width: 40
-                            height: 40
-                            radius: 20
-                            color: deviceItem.containsMouse ? "#1976D2" : "#2196F3"
-                            
-                            Behavior on color {
-                                ColorAnimation { duration: 150 }
+                            if (deviceModel) {
+                                if (!deviceModel.scanning) {
+                                    deviceModel.refresh()
+                                } else {
+                                    deviceModel.stopScan()
+                                    // 停止扫描时，如果窗口被隐藏，也显示窗口
+                                    if (!deviceListWindow.visible) {
+                                        deviceListWindow.show()
+                                        deviceListWindow.raise()
+                                        deviceListWindow.requestActivate()
+                                    }
+                                }
                             }
-                            
-                            Label {
-                                anchors.centerIn: parent
-                                text: deviceItem.deviceName.charAt(0)
-                                color: "white"
-                                font.bold: true
-                            }
-                            
-                            // 在线状态指示器
-                            Rectangle {
-                                width: 12
-                                height: 12
-                                radius: 6
-                                color: "#4CAF50"
-                                border.width: 2
-                                border.color: "white"
-                                anchors.right: parent.right
-                                anchors.bottom: parent.bottom
-                            }
-                        }
-                        
-                        // 设备信息
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 4
-                            
-                            Label {
-                                text: deviceItem.deviceName
-                                font.bold: true
-                                font.pixelSize: 14
-                                elide: Text.ElideRight
-                                Layout.fillWidth: true
-                                color: deviceItem.pressed ? "#1565C0" : (deviceItem.containsMouse ? "#1976D2" : "black")
-                            }
-                            
-                            Label {
-                                text: deviceItem.deviceIp
-                                color: deviceItem.pressed ? "#444" : "#666"
-                                font.pixelSize: 12
-                                Layout.fillWidth: true
-                            }
-                        }
-                        
-                        // 设备类型标签
-                        Label {
-                            text: deviceType
-                            color: deviceItem.containsMouse ? "#666" : "#999"
-                            font.pixelSize: 11
-                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                            Layout.fillWidth: true
-                        }
-                    }
-                    
-                    // 底部边框 - 只在非悬浮状态下显示
-                    Rectangle {
-                        anchors.bottom: parent.bottom
-                        width: parent.width
-                        height: deviceItem.containsMouse ? 0 : 1  // 悬浮时隐藏边框
-                        color: "#eeeeee"
-                        Behavior on height {
-                            NumberAnimation { duration: 150 }
                         }
                     }
                 }
                 
-                // 空状态提示
-                Label {
-                    anchors.centerIn: parent
-                    text: qsTr("未发现设备")
-                    color: "#999"
-                    visible: deviceListView.count === 0
-                }
-            }
-        }
-        
-        // 状态栏
-        RowLayout {
-            spacing: 12
-            Label {
-                id: statusLabel
-                text: {
-                    if (!deviceModel) return qsTr("模型未加载")
-                    if (deviceListView.count === 0) return qsTr("未发现设备")
-                    return qsTr("发现 %1 个设备").arg(deviceListView.count)
-                }
-                color: "#666"
-            }
-            //进度
-            RowLayout {
-                id: progressRow
-                spacing: 8
-                visible: deviceModel && deviceModel.scanning
-
-                property int currentProgress: 0
-                
+                // 最小化按钮
                 Rectangle {
-                    id: customProgressBar
-                    width: 60
-                    height: 8
-                    radius: 4
-                    color: "#e6e6e6"  // 背景色
+                    id: minimizeButton
+                    width: 28
+                    height: 28
+                    radius: 14
+                    color: minimizeMouse.containsMouse ? "#f3f4f6" : "transparent"
                     
-                    Rectangle {
-                        id: progressFill
-                        width: parent.width * (progressRow.currentProgress / 100)
-                        height: parent.height
-                        radius: 3
-                        color: "#2196F3"  // 进度色
-                        
-                        Behavior on width {
-                            NumberAnimation { duration: 200 }
+                    Text {
+                        anchors.centerIn: parent
+                        text: "−"
+                        font.pixelSize: 20
+                        color: minimizeMouse.containsMouse ? "#6b7280" : "#9ca3af"
+                    }
+                    
+                    MouseArea {
+                        id: minimizeMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            deviceListWindow.hide()
                         }
                     }
                 }
                 
-                Label {
-                    text: qsTr("%1%").arg(progressRow.currentProgress)
-                    color: "#2196F3"
-                    font.bold: true
-                    font.pixelSize: 12
+                // 关闭按钮
+                Rectangle {
+                    id: closeButton
+                    width: 28
+                    height: 28
+                    radius: 14
+                    color: closeMouse.containsMouse ? "#f3f4f6" : "transparent"
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: "×"
+                        font.pixelSize: 20
+                        color: closeMouse.containsMouse ? "#6b7280" : "#9ca3af"
+                    }
+                    
+                    MouseArea {
+                        id: closeMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: deviceListWindow.close()
+                    }
                 }
             }
-
-            Connections {
-                target: deviceModel
-                enabled: deviceModel !== null
+            
+            // 设备列表区域
+            Rectangle {
+                id: deviceListArea
+                width: parent.width
+                height: parent.height - titleRow.height - statusRow.height - 20
+                anchors.top: titleRow.bottom
+                anchors.topMargin: 20
+                radius: 12
+                color: "#f8fafc"
+                border.color: "#e2e8f0"
+                border.width: 1
                 
-                function onScanProgress(percent) {
-                    progressRow.currentProgress = Math.min(percent, 100)
+                // 列表标题
+                Row {
+                    id: listHeader
+                    width: parent.width - 32
+                    height: 40
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: parent.top
+                    anchors.topMargin: 12
+                    
+                    Text {
+                        id: titleText
+                        text: "可用设备"
+                        font.pixelSize: 13
+                        font.family: "Microsoft YaHei UI"
+                        font.weight: Font.Medium
+                        color: "#64748b"
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                    
+                    Item { 
+                        width: parent.width - availableDevicesText.width - titleText.width
+                        height: 1
+                    }
+                    
+                    Text {
+                        id: availableDevicesText
+                        text: deviceModel ? `${deviceListView.count} 个设备` : "0 个设备"
+                        font.pixelSize: 12
+                        font.family: "Microsoft YaHei UI"
+                        color: "#94a3b8"
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
+                
+                // 设备列表
+                ListView {
+                    id: deviceListView
+                    width: parent.width
+                    height: parent.height - listHeader.height - listHeader.anchors.topMargin
+                    anchors.top: listHeader.bottom
+                    model: deviceModel
+                    clip: true
+                    spacing: 1
+                    boundsBehavior: Flickable.StopAtBounds
+                    highlight: null
+                    currentIndex: -1
+                    
+                    // 空状态提示
+                    Text {
+                        anchors.centerIn: parent
+                        text: "未发现设备"
+                        color: "#94a3b8"
+                        font.pixelSize: 14
+                        visible: deviceListView.count === 0 && (!deviceModel || !deviceModel.scanning)
+                    }
+                    
+                    delegate: Rectangle {
+                        id: deviceItem
+                        width: deviceListView.width
+                        height: 70
+                        radius: 8
+                        color: {
+                            if (deviceItem.pressed) 
+                                return deviceMouse.containsMouse ? "#dbeafe" : "#f1f5f9"
+                            else if (deviceMouse.containsMouse) 
+                                return "#f8fafc"
+                            else 
+                                return "transparent"
+                        }
+                        
+                        property bool containsMouse: false
+                        property bool pressed: false
+                        
+                        MouseArea {
+                            id: deviceMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            
+                            onEntered: deviceItem.containsMouse = true
+                            onExited: {
+                                deviceItem.containsMouse = false
+                                deviceItem.pressed = false
+                            }
+                            onPressed: deviceItem.pressed = true
+                            onReleased: deviceItem.pressed = false
+                            onClicked: {
+                                if (deviceModel) {
+                                    deviceModel.connectToTarget(index)
+                                    load_dialog.show("等待对方响应", "取消")
+                                    deviceModel.stopScan()
+                                }
+                            }
+                        }
+                        
+                        // 主内容容器
+                        Item {
+                            anchors.fill: parent
+                            anchors.leftMargin: 16
+                            anchors.rightMargin: 16
+                            
+                            // 设备头像
+                            Rectangle {
+                                id: avatarRect
+                                width: 44
+                                height: 44
+                                radius: 10
+                                anchors.verticalCenter: parent.verticalCenter
+                                anchors.left: parent.left
+                                gradient: Gradient {
+                                    GradientStop { position: 0.0; color: deviceItem.containsMouse ? "#3b82f6" : "#6366f1" }
+                                    GradientStop { position: 1.0; color: deviceItem.containsMouse ? "#2563eb" : "#4f46e5" }
+                                }
+                                
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: model.deviceName ? model.deviceName.charAt(0).toUpperCase() : "?"
+                                    color: "white"
+                                    font.pixelSize: 18
+                                    font.bold: true
+                                }
+                                
+                                // 在线状态指示器
+                                Rectangle {
+                                    width: 10
+                                    height: 10
+                                    radius: 5
+                                    color: "#10b981"
+                                    border.width: 2
+                                    border.color: "white"
+                                    anchors.right: parent.right
+                                    anchors.bottom: parent.bottom
+                                }
+                            }
+                            
+                            // 设备信息
+                            Item {
+                                anchors.verticalCenter: parent.verticalCenter
+                                anchors.left: avatarRect.right
+                                anchors.leftMargin: 16
+                                anchors.right: typeTagRect.left
+                                anchors.rightMargin: 16
+                                height: 44
+                                
+                                Column {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    spacing: 4
+                                    
+                                    Text {
+                                        text: model.deviceName || "未知设备"
+                                        font.pixelSize: 15
+                                        font.family: "Microsoft YaHei UI"
+                                        font.weight: Font.Medium
+                                        color: deviceItem.pressed ? "#1d4ed8" : (deviceItem.containsMouse ? "#3b82f6" : "#1e293b")
+                                        elide: Text.ElideRight
+                                        width: parent.width
+                                    }
+                                    
+                                    Text {
+                                        text: model.deviceIP || "IP未知"
+                                        font.pixelSize: 13
+                                        font.family: "Microsoft YaHei UI"
+                                        color: deviceItem.containsMouse ? "#64748b" : "#94a3b8"
+                                        elide: Text.ElideRight
+                                        width: parent.width
+                                    }
+                                }
+                            }
+                            
+                            // 设备类型标签
+                            Rectangle {
+                                id: typeTagRect
+                                width: 60
+                                height: 24
+                                radius: 12
+                                anchors.verticalCenter: parent.verticalCenter
+                                anchors.right: parent.right
+                                color: deviceItem.containsMouse ? "#f0f9ff" : "#f8fafc"
+                                border.color: deviceItem.containsMouse ? "#7dd3fc" : "#cbd5e1"
+                                border.width: 1
+                                
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: model.deviceType || "未知"
+                                    font.pixelSize: 11
+                                    font.family: "Microsoft YaHei UI"
+                                    color: deviceItem.containsMouse ? "#0369a1" : "#64748b"
+                                }
+                            }
+                        }
+                    }
                 }
             }
-            Item{
-                Layout.fillWidth: true
-            }
+            
+            // 底部状态栏
             Item {
-                Layout.preferredWidth: 80  // 给右侧区域固定宽度
-                Layout.alignment: Qt.AlignRight
+                id: statusRow
+                width: parent.width
+                height: 24
+                anchors.bottom: parent.bottom
                 
-                BusyIndicator {
-                    id: refreshIndicator
-                    running: deviceModel ? deviceModel.scanning : false
-                    anchors.centerIn: parent
-                    width: 35
-                    height: 35
+                // 进度条容器 - 固定在左侧
+                Item {
+                    id: progressBarContainer
+                    width: parent.width * 0.2
+                    height: 24
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: deviceModel && deviceModel.scanning
+                    
+                    // 进度条背景
+                    Rectangle {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: parent.width
+                        height: 6
+                        radius: 3
+                        color: "#e2e8f0"
+                        
+                        // 进度填充
+                        Rectangle {
+                            id: progressFill
+                            width: parent.width * (scanProgress.currentProgress / 100)
+                            height: parent.height
+                            radius: 3
+                            gradient: Gradient {
+                                GradientStop { position: 0.0; color: "#6366f1" }
+                                GradientStop { position: 1.0; color: "#8b5cf6" }
+                            }
+                            
+                            Behavior on width {
+                                NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+                            }
+                        }
+                    }
                 }
                 
+                // 进度百分比 - 在进度条右边
                 Text {
-                    text: "搜索完毕"
-                    visible: !refreshIndicator.running && deviceModel && !deviceModel.scanning
-                    anchors.centerIn: parent
+                    id: progressText
+                    anchors.left: progressBarContainer.visible ? progressBarContainer.right : parent.left
+                    anchors.leftMargin: 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: deviceModel && deviceModel.scanning
+                    text: `${scanProgress.currentProgress}%`
+                    font.pixelSize: 12
+                    font.family: "Microsoft YaHei UI"
+                    font.weight: Font.Medium
+                    color: "#6366f1"
+                }
+                
+                // 状态文本 - 占中间空间
+                Text {
+                    id: statusText
+                    anchors.left: progressText.visible ? progressText.right : parent.left
+                    anchors.leftMargin: 12
+                    anchors.right: statusIndicator.left
+                    anchors.rightMargin: 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: {
+                        if (!deviceModel) return "模型未加载"
+                        if (deviceModel.scanning) return "正在扫描..."
+                        if (deviceListView.count === 0) return "未发现设备"
+                        return `发现 ${deviceListView.count} 个设备`
+                    }
+                    font.pixelSize: 13
+                    font.family: "Microsoft YaHei UI"
+                    color: "#64748b"
+                    elide: Text.ElideRight
+                }
+                
+                // 状态指示器容器（加载指示器或完成状态）
+                Item {
+                    id: statusIndicator
+                    width: 24
+                    height: 24
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    
+                    // 加载指示器 - 扫描时显示
+                    Item {
+                        id: spinnerItem
+                        anchors.fill: parent
+                        visible: deviceModel && deviceModel.scanning
+                        
+                        // 旋转动画容器
+                        Rectangle {
+                            id: spinnerContainer
+                            anchors.centerIn: parent
+                            width: 24
+                            height: 24
+                            color: "transparent"
+                            
+                            // 旋转动画
+                            Canvas {
+                                id: spinnerCanvas
+                                anchors.fill: parent
+                                
+                                property real rotationAngle: 0
+                                
+                                onPaint: {
+                                    var ctx = getContext("2d")
+                                    ctx.clearRect(0, 0, width, height)
+                                    
+                                    var centerX = width / 2
+                                    var centerY = height / 2
+                                    var radius = Math.min(width, height) / 2 - 3
+                                    
+                                    // 绘制旋转弧线
+                                    ctx.beginPath()
+                                    ctx.arc(centerX, centerY, radius, 
+                                            rotationAngle * Math.PI / 180, 
+                                            rotationAngle * Math.PI / 180 + Math.PI * 0.75)
+                                    ctx.lineWidth = 2
+                                    ctx.strokeStyle = "#6366f1"
+                                    ctx.stroke()
+                                }
+                                
+                                // 旋转动画
+                                RotationAnimation on rotationAngle {
+                                    from: 0
+                                    to: 360
+                                    duration: 1000
+                                    loops: Animation.Infinite
+                                    running: deviceModel && deviceModel.scanning
+                                }
+                                
+                                // 当旋转角度改变时重绘
+                                onRotationAngleChanged: requestPaint()
+                            }
+                        }
+                    }
+                    
+                    // 完成状态 - 扫描完成时显示
+                    Rectangle {
+                        id: completeStatus
+                        anchors.fill: parent
+                        radius: 12
+                        color: "#d1fae5"
+                        visible: deviceModel && !deviceModel.scanning
+                        
+                        Text {
+                            anchors.centerIn: parent
+                            text: "✓"
+                            font.pixelSize: 14
+                            color: "#065f46"
+                            font.bold: true
+                        }
+                    }
                 }
             }
         }
     }
-    onVisibleChanged: {
-        if (visible && deviceModel) {
-            if (deviceListView.count === 0) {
-                deviceModel.startScan()
+    
+    // 进度管理
+    Item {
+        id: scanProgress
+        property int currentProgress: 0
+    }
+    
+    Connections {
+        target: deviceModel
+        enabled: deviceModel !== null
+        
+        function onScanProgress(percent) {
+            scanProgress.currentProgress = Math.min(percent, 100)
+        }
+        
+        function onScanFinished() {
+            deviceListWindow.handleScanComplete()
+        }
+        
+        function onScanningChanged() {
+            if (deviceModel && !deviceModel.scanning) {
+                // 扫描停止时检查是否完成
+                deviceListWindow.handleScanComplete()
             }
         }
     }
