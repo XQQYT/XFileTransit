@@ -689,6 +689,7 @@ ApplicationWindow  {
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked: {
+                        generalDialogLoader.item.show()
                         //尚未建立连接，则是打开设备查找
                         if(!isConnected){
                             if (deviceWindowLoader.status === Loader.Ready) {

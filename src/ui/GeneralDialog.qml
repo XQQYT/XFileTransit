@@ -1,18 +1,20 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
+import QtQuick.Window 2.15
 import QtQuick.Layouts 1.15
 
-ApplicationWindow  {
+Window {
     id: root
-    width: 350
-    height: 150
+    width: 400
+    height: 180
     modality: Qt.ApplicationModal
-    flags: Qt.Dialog
+    flags: Qt.FramelessWindowHint | Qt.Dialog
+    color: "transparent"
+    visible: false
     
     property string title: "提示"
     property string text: ""
     property int buttons: root.ok
-    property int iconType: root.none  // 默认信息图标
+    property int iconType: root.info
     
     // 按钮类型枚举
     readonly property int ok: 0x0001
@@ -21,152 +23,222 @@ ApplicationWindow  {
     readonly property int no: 0x0008
     
     // 图标类型枚举
-    readonly property int none: 0      // 无图标
-    readonly property int info: 1      // 信息图标
-    readonly property int success: 2   // 成功图标
-    readonly property int error: 3     // 错误图标
-    readonly property int warning: 4   // 警告图标
+    readonly property int none: 0
+    readonly property int info: 1
+    readonly property int success: 2
+    readonly property int error: 3
+    readonly property int warning: 4
     
     // 信号
     signal accepted()
     signal rejected()
     signal clicked(int button)
     
-    onVisibleChanged: {
-        if (visible) {
-            requestActivate() // 请求激活窗口
-            forceActiveFocus() // 强制获得焦点
-        }
-    }
-
-    Rectangle {
-        id: bgRect
-        anchors.fill: parent
-        radius: 8
-        color: "#ffffff"
+    // 组件加载完成后设置初始位置
+    Component.onCompleted: {
+        centerOnScreen()
     }
     
-    RowLayout {
-        anchors.fill: parent
-        anchors.margins: 20
-        spacing: 15
-        
-        // 图标区域
-        Rectangle {
-            id: iconContainer
-            Layout.preferredWidth: 40
-            Layout.preferredHeight: 40
-            Layout.alignment: Qt.AlignTop
-            radius: 20
-            color: getIconColor()
-            visible: root.iconType !== root.none
-            
-            Text {
-                anchors.centerIn: parent
-                text: getIconText()
-                font.pixelSize: 18
-                font.family: "Segoe UI Symbol"
-                color: "white"
-                font.bold: true
-            }
+    // 窗口显示时重新居中
+    onVisibleChanged: {
+        if (visible) {
+            centerOnScreen()
         }
-        
-        // 内容和按钮区域
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            spacing: 15
+    }
+    
+    function centerOnScreen() {
+        Qt.callLater(function() {
+            var screen = getCurrentScreen()
+            if (!screen) {
+                console.error("无法获取屏幕对象")
+                return
+            }
             
-            // 标题
-            Text {
-                text: root.title
-                font.bold: true
-                font.pixelSize: 16
-                color: "#333333"
-                Layout.fillWidth: true
+            var screenWidth = screen.width || screen.desktopAvailableWidth
+            var screenHeight = screen.height || screen.desktopAvailableHeight
+            
+            if (screenWidth <= 0 || screenHeight <= 0) {
+                console.warn("屏幕尺寸无效，使用默认值")
+                screenWidth = 1920
+                screenHeight = 1080
+            }
+            
+            // 计算居中位置
+            var centerX = screen.virtualX + (screenWidth - root.width) / 2
+            var centerY = screen.virtualY + (screenHeight - root.height) / 2
+            
+            // 设置窗口位置
+            root.x = centerX
+            root.y = centerY
+        })
+    }
+    
+    // 获取当前屏幕
+    function getCurrentScreen() {
+        if (Window.window && Window.window.screen) {
+            return Window.window.screen
+        } else if (Qt.application.screens.length > 0) {
+            return Qt.application.screens[0]
+        } else if (Screen) {
+            return Screen
+        }
+        return null
+    }
+    
+    // 外部调用接口
+    function showDialog(title, text, iconType, buttons) {
+        root.title = title || "提示"
+        root.text = text || ""
+        root.iconType = iconType || root.info
+        root.buttons = buttons || root.ok
+        
+        // 居中并显示
+        centerOnScreen()
+        root.show()
+        root.requestActivate()
+        root.raise()
+    }
+    
+    function closeDialog() {
+        root.close()
+    }
+
+    // 对话框主体
+    Rectangle {
+        anchors.centerIn: parent
+        width: 360
+        height: 160
+        radius: 8
+        color: "#ffffff"
+        border.color: "#e5e7eb"
+        border.width: 1
+        
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 20
+            spacing: 16
+            
+            // 标题行
+            RowLayout {
+                spacing: 12
+                
+                // 图标
+                Rectangle {
+                    width: 32
+                    height: 32
+                    radius: 6
+                    color: getIconColor()
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: getIconText()
+                        font.pixelSize: 16
+                        color: "white"
+                        font.bold: true
+                    }
+                }
+                
+                // 标题
+                Text {
+                    text: root.title
+                    font.pixelSize: 16
+                    font.bold: true
+                    color: "#111827"
+                    Layout.fillWidth: true
+                }
             }
             
             // 消息内容
             Text {
                 text: root.text
-                font.pixelSize: 14
-                color: "#666666"
+                font.pixelSize: 18
+                color: "#6b7280"
                 wrapMode: Text.Wrap
+                lineHeight: 1.4
                 Layout.fillWidth: true
                 Layout.fillHeight: true
             }
             
             // 按钮区域
-            Row  {
+            Row {
+                spacing: 8
                 Layout.alignment: Qt.AlignRight
-                spacing: 10
                 
-                Button {
-                    width: 60
-                    text: "是"
-                    visible: (root.buttons & root.yes) && !(root.buttons & root.ok)
-                    onClicked: {
-                        root.clicked(root.yes)
-                        root.accepted()
-                        root.hide()
+                // 取消按钮
+                Rectangle {
+                    width: 72
+                    height: 32
+                    radius: 4
+                    color: cancelArea.containsMouse ? "#f3f4f6" : "#f9fafb"
+                    border.color: "#d1d5db"
+                    border.width: 1
+                    visible: (root.buttons & root.cancel) || (root.buttons & root.no)
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: (root.buttons & root.cancel) ? "取消" : "否"
+                        font.pixelSize: 13
+                        color: "#374151"
+                    }
+                    
+                    MouseArea {
+                        id: cancelArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: {
+                            root.clicked((root.buttons & root.cancel) ? root.cancel : root.no)
+                            root.rejected()
+                            root.close()
+                        }
                     }
                 }
                 
-                Button {
-                    width: 60
-                    text: "否"
-                    visible: (root.buttons & root.no)
-                    onClicked: {
-                        root.clicked(root.no)
-                        root.rejected()
-                        root.hide()
+                // 确定按钮
+                Rectangle {
+                    width: 72
+                    height: 32
+                    radius: 4
+                    color: okArea.containsMouse ? Qt.darker(getIconColor(), 1.1) : getIconColor()
+                    visible: (root.buttons & root.yes) || (root.buttons & root.ok)
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: (root.buttons & root.yes) ? "是" : "确定"
+                        font.pixelSize: 13
+                        color: "white"
                     }
-                }
-                
-                Button {
-                    width: 60
-                    text: "确定"
-                    visible: (root.buttons & root.ok) && !(root.buttons & root.yes)
-                    onClicked: {
-                        root.clicked(root.ok)
-                        root.accepted()
-                        root.hide()
-                    }
-                }
-                
-                Button {
-                    width: 60
-                    text: "取消"
-                    visible: (root.buttons & root.cancel)
-                    flat: true
-                    onClicked: {
-                        root.clicked(root.cancel)
-                        root.rejected()
-                        root.hide()
+                    
+                    MouseArea {
+                        id: okArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: {
+                            root.clicked((root.buttons & root.yes) ? root.yes : root.ok)
+                            root.accepted()
+                            root.close()
+                        }
                     }
                 }
             }
         }
     }
     
-    // 获取图标颜色
     function getIconColor() {
         switch(root.iconType) {
-            case root.success: return "#4CAF50"  // 绿色
-            case root.error: return "#F44336"    // 红色
-            case root.warning: return "#FF9800"  // 橙色
-            case root.info: return "#2196F3"     // 蓝色
-            default: return "transparent"
+            case root.success: return "#10b981"
+            case root.error: return "#ef4444"
+            case root.warning: return "#f59e0b"
+            case root.info: return "#3b82f6"
+            default: return "#6b7280"
         }
     }
     
-    // 获取图标字符（使用 Unicode 字符）
     function getIconText() {
         switch(root.iconType) {
-            case root.success: return "✓"  // 对勾
-            case root.error: return "✕"    // 叉号
-            case root.warning: return "!"  // 感叹号
-            case root.info: return "i"     // 字母 i
+            case root.success: return "✓"
+            case root.error: return "✕"
+            case root.warning: return "!"
+            case root.info: return "i"
             default: return ""
         }
     }
