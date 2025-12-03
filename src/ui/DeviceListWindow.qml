@@ -1,5 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
+import QtQuick.Layouts 1.15    // 必须加这个！
+import QtQuick.Controls
 
 Window {
     id: deviceListWindow
@@ -295,14 +297,14 @@ Window {
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
-                
+
                 // 设备列表
                 ListView {
                     id: deviceListView
                     width: parent.width
                     height: parent.height - listHeader.height - listHeader.anchors.topMargin
                     anchors.top: listHeader.bottom
-                    model: deviceModel
+                    model: deviceModel ? deviceModel : null
                     clip: true
                     spacing: 1
                     boundsBehavior: Flickable.StopAtBounds
@@ -318,141 +320,141 @@ Window {
                         visible: deviceListView.count === 0 && (!deviceModel || !deviceModel.scanning)
                     }
                     
-                    delegate: Rectangle {
-                        id: deviceItem
-                        width: deviceListView.width
-                        height: 70
-                        radius: 8
-                        color: {
-                            if (deviceItem.pressed) 
-                                return deviceMouse.containsMouse ? "#dbeafe" : "#f1f5f9"
-                            else if (deviceMouse.containsMouse) 
-                                return "#f8fafc"
-                            else 
-                                return "transparent"
-                        }
-                        
-                        property bool containsMouse: false
-                        property bool pressed: false
-                        
-                        MouseArea {
-                            id: deviceMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            
-                            onEntered: deviceItem.containsMouse = true
-                            onExited: {
-                                deviceItem.containsMouse = false
-                                deviceItem.pressed = false
-                            }
-                            onPressed: deviceItem.pressed = true
-                            onReleased: deviceItem.pressed = false
-                            onClicked: {
-                                if (deviceModel) {
-                                    deviceModel.connectToTarget(index)
-                                    load_dialog.show("等待对方响应", "取消")
-                                    deviceModel.stopScan()
-                                }
-                            }
-                        }
-                        
-                        // 主内容容器
-                        Item {
-                            anchors.fill: parent
-                            anchors.leftMargin: 16
-                            anchors.rightMargin: 16
-                            
-                            // 设备头像
-                            Rectangle {
-                                id: avatarRect
-                                width: 44
-                                height: 44
-                                radius: 10
-                                anchors.verticalCenter: parent.verticalCenter
-                                anchors.left: parent.left
-                                gradient: Gradient {
-                                    GradientStop { position: 0.0; color: deviceItem.containsMouse ? "#3b82f6" : "#6366f1" }
-                                    GradientStop { position: 1.0; color: deviceItem.containsMouse ? "#2563eb" : "#4f46e5" }
-                                }
-                                
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: model.deviceName ? model.deviceName.charAt(0).toUpperCase() : "?"
-                                    color: "white"
-                                    font.pixelSize: 18
-                                    font.bold: true
-                                }
-                                
-                                // 在线状态指示器
-                                Rectangle {
-                                    width: 10
-                                    height: 10
-                                    radius: 5
-                                    color: "#10b981"
-                                    border.width: 2
-                                    border.color: "white"
-                                    anchors.right: parent.right
-                                    anchors.bottom: parent.bottom
-                                }
-                            }
-                            
-                            // 设备信息
-                            Item {
-                                anchors.verticalCenter: parent.verticalCenter
-                                anchors.left: avatarRect.right
-                                anchors.leftMargin: 16
-                                anchors.right: typeTagRect.left
-                                anchors.rightMargin: 16
-                                height: 44
-                                
-                                Column {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 4
-                                    
-                                    Text {
-                                        text: model.deviceName || "未知设备"
-                                        font.pixelSize: 15
-                                        font.family: "Microsoft YaHei UI"
-                                        font.weight: Font.Medium
-                                        color: deviceItem.pressed ? "#1d4ed8" : (deviceItem.containsMouse ? "#3b82f6" : "#1e293b")
-                                        elide: Text.ElideRight
-                                        width: parent.width
-                                    }
-                                    
-                                    Text {
-                                        text: model.deviceIP || "IP未知"
-                                        font.pixelSize: 13
-                                        font.family: "Microsoft YaHei UI"
-                                        color: deviceItem.containsMouse ? "#64748b" : "#94a3b8"
-                                        elide: Text.ElideRight
-                                        width: parent.width
-                                    }
-                                }
-                            }
-                            
-                            // 设备类型标签
-                            Rectangle {
-                                id: typeTagRect
-                                width: 60
-                                height: 24
-                                radius: 12
-                                anchors.verticalCenter: parent.verticalCenter
-                                anchors.right: parent.right
-                                color: deviceItem.containsMouse ? "#f0f9ff" : "#f8fafc"
-                                border.color: deviceItem.containsMouse ? "#7dd3fc" : "#cbd5e1"
-                                border.width: 1
-                                
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: model.deviceType || "未知"
-                                    font.pixelSize: 11
-                                    font.family: "Microsoft YaHei UI"
-                                    color: deviceItem.containsMouse ? "#0369a1" : "#64748b"
-                                }
-                            }
-                        }
-                    }
+
+delegate: Rectangle {
+    id: deviceItem
+    width: deviceListView.width
+    height: 72
+    color: index % 2 === 0 ? "#FFFFFF" : "#F8FAFC"
+    radius: 8
+
+    // 定义属性并添加默认值
+    property string deviceName: model.deviceName || "未知设备"
+    property string deviceIp: model.deviceIP || "IP未知"  // 注意：这里是 deviceIP 不是 deviceIp
+    property string deviceType: model.deviceType || "未知"
+
+    RowLayout {
+        id: rowLayout
+        anchors.fill: parent
+        anchors.margins: 12
+        spacing: 16
+
+        // 设备图标
+        Rectangle {
+            id: avatarRect
+            width: 48
+            height: 48
+            radius: 8
+            color: "#E0EAFF"
+            Layout.preferredWidth: 48
+            Layout.preferredHeight: 48
+
+            // 图标内部
+            Rectangle {
+                width: 40
+                height: 40
+                radius: 20
+                anchors.centerIn: parent
+                color: deviceItem.containsMouse ? "#1976D2" : "#2196F3"
+                
+                Behavior on color {
+                    ColorAnimation { duration: 150 }
+                }
+                
+                Text {
+                    anchors.centerIn: parent
+                    text: deviceItem.deviceName ? deviceItem.deviceName.charAt(0) : "?"
+                    color: "white"
+                    font.bold: true
+                    font.pixelSize: 16
+                }
+                
+                // 在线状态指示器
+                Rectangle {
+                    width: 12
+                    height: 12
+                    radius: 6
+                    color: "#4CAF50"
+                    border.width: 2
+                    border.color: "white"
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                }
+            }
+        }
+
+        // 文字区域
+        Column {
+            id: textArea
+            spacing: 4
+            Layout.fillWidth: true
+
+            Text {
+                text: deviceItem.deviceName  // 使用属性而不是直接model访问
+                font.pixelSize: 16
+                font.bold: true
+                color: "#1E293B"
+                elide: Text.ElideRight
+            }
+
+            Text {
+                text: deviceItem.deviceIp  // 使用属性而不是直接model访问
+                font.pixelSize: 13
+                color: "#64748B"
+                elide: Text.ElideRight
+            }
+        }
+
+        // 类型标签
+        Rectangle {
+            id: typeTagRect
+            height: 26
+            radius: 6
+            Layout.preferredWidth: typeTagText.implicitWidth + 16
+            Layout.alignment: Qt.AlignVCenter
+            color: deviceItem.containsMouse ? "#F0F9FF" : "#F1F5F9"  // 修改颜色使其可见
+            border.color: deviceItem.containsMouse ? "#7DD3FC" : "#CBD5E1"
+            border.width: 1
+
+            Text {
+                id: typeTagText
+                text: deviceItem.deviceType  // 使用属性而不是直接model访问
+                font.pixelSize: 12
+                font.family: "Microsoft YaHei UI"
+                anchors.centerIn: parent
+                color: deviceItem.containsMouse ? "#0369A1" : "#475569"
+            }
+        }
+    }
+
+    // 添加鼠标交互
+    MouseArea {
+        id: deviceMouse
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        
+        property bool containsMouse: false
+        property bool pressed: false
+        
+        onEntered: containsMouse = true
+        onExited: {
+            containsMouse = false
+            pressed = false
+        }
+        onPressed: pressed = true
+        onReleased: pressed = false
+        
+        onClicked: {
+            if (deviceModel) {
+                deviceModel.connectToTarget(index)
+                load_dialog.show("等待对方响应", "取消")
+                deviceModel.stopScan()
+            }
+        }
+    }
+}
+
                 }
             }
             
