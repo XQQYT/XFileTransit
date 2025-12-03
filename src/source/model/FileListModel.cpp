@@ -257,17 +257,28 @@ void FileListModel::deleteFile(int index)
 
 void FileListModel::removeFileById(std::vector<std::string> id)
 {
-    beginResetModel();
-    for (auto file : id)
-    {
-        uint32_t target_id = std::stoul(file);
-        file_list.erase(std::remove_if(file_list.begin(), file_list.end(),
-            [&target_id](const FileInfo& info) { return info.id == target_id; }),
-            file_list.end());
+    if (id.empty()) return;
+    std::vector<int> indicesToRemove;
+    for (const auto& fileIdStr : id) {
+        uint32_t target_id = std::stoul(fileIdStr);
+        for (int i = 0; i < file_list.size(); ++i) {
+            if (file_list[i].id == target_id) {
+                indicesToRemove.push_back(i);
+                break;
+            }
+        }
     }
-    endResetModel();
+    if (indicesToRemove.empty()) return;
+    std::sort(indicesToRemove.begin(), indicesToRemove.end(), std::greater<int>());
+    for (int index : indicesToRemove) {
+        if (index >= 0 && index < file_list.size()) {
+            deleteFile(index);
+            beginRemoveRows(QModelIndex(), index, index);
+            file_list.removeAt(index);
+            endRemoveRows();
+        }
+    }
 }
-
 void FileListModel::downloadFile(int i)
 {
     EventBusManager::instance().publish("/file/send_get_file", uint32_t(file_list[i].id));
