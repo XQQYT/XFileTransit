@@ -24,6 +24,7 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::Gui
     Qt6::Widgets
     Qt6::Network
+    Qt6::QuickControls2
     ws2_32
     iphlpapi
 )

@@ -1,6 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
-import QtQuick.Layouts 1.15    // 必须加这个！
+import QtQuick.Layouts 1.15
 import QtQuick.Controls
 
 Window {
@@ -252,13 +252,260 @@ Window {
                 }
             }
             
+
+            // 快速连接卡片
+            Rectangle {
+                id: quickConnectCard
+                width: parent.width
+                height: 80
+                radius: 12
+                color: "#f8fafc"
+                border.color: "#e2e8f0"
+                border.width: 1
+                anchors.top: titleRow.bottom
+                anchors.topMargin: 16
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                // 标题
+                Text {
+                    id: quickConnectTitle
+                    text: "快速连接"
+                    font.pixelSize: 13
+                    font.family: "Microsoft YaHei UI"
+                    font.weight: Font.Medium
+                    color: "#64748b"
+                    anchors.left: parent.left
+                    anchors.leftMargin: 16
+                    anchors.top: parent.top
+                    anchors.topMargin: 12
+                }
+
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 16
+                    anchors.right: parent.right
+                    anchors.rightMargin: 16
+                    anchors.top: quickConnectTitle.bottom
+                    anchors.topMargin: 8
+                    spacing: 8
+
+                    // IP地址输入部分（四个文本框和三个点）
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 0 
+                        
+                        Repeater {
+                            id: ipInputFieldsRepeater
+                            model: 4
+                            
+                            RowLayout {
+                                spacing: 4
+                                Layout.alignment: Qt.AlignVCenter
+                                
+                                TextField {
+                                    id: ipField
+                                    property int index: model.index
+                                    property bool isLastField: index === 3
+                                    
+                                    Layout.preferredWidth: 56
+                                    Layout.preferredHeight: 42
+                                    font.pixelSize: 16
+                                    horizontalAlignment: TextInput.AlignHCenter
+                                    verticalAlignment: TextInput.AlignVCenter
+                                    maximumLength: 3
+                                    inputMethodHints: Qt.ImhDigitsOnly
+                                    selectByMouse: true
+
+                                    property bool isValidSegment: {
+                                        if (text === "") return true
+                                        var num = parseInt(text, 10)
+                                        return !isNaN(num) && num >= 0 && num <= 255
+                                    }
+                                                
+                                    background: Rectangle {
+                                        color: "transparent"
+                                        border.color: "#cbd5e1"
+                                        border.width: 0
+                                        Rectangle {
+                                            anchors.left: parent.left
+                                            anchors.right: parent.right
+                                            anchors.bottom: parent.bottom
+                                            height: 2
+                                            color: {
+                                                if (!ipField.isValidSegment) {
+                                                    return "#ef4444" // 红色，表示无效
+                                                } else if (ipField.activeFocus) {
+                                                    return "#3b82f6" // 蓝色，表示聚焦
+                                                } else {
+                                                    return "#cbd5e1" // 灰色，默认
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    validator: IntValidator { 
+                                        bottom: 0; 
+                                        top: 255 
+                                    }
+                                    
+                                    // 自动跳转
+                                    onTextChanged: {
+                                        if (text.length >= 3 && !isLastField) {
+                                            delayJumpTimer.index = index
+                                            delayJumpTimer.start()
+                                        }
+                                    }
+                                    
+                                    Timer {
+                                        id: delayJumpTimer
+                                        interval: 10
+                                        property int index: 0
+                                        onTriggered: {
+                                            if (ipInputFieldsRepeater.itemAt(index + 1)) {
+                                                let nextContainer = ipInputFieldsRepeater.itemAt(index + 1)
+                                                if (nextContainer && nextContainer.children[0]) {
+                                                    nextContainer.children[0].forceActiveFocus()
+                                                    nextContainer.children[0].selectAll()
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    // 处理键盘事件
+                                    Keys.onPressed: function(event) {
+                                        // Backspace 且内容为空时，跳到上一段
+                                        if (event.key === Qt.Key_Backspace && text === "") {
+                                            if (index > 0) {
+                                                let prevContainer = ipInputFieldsRepeater.itemAt(index - 1)
+                                                if (prevContainer && prevContainer.children[0]) {
+                                                    prevContainer.children[0].forceActiveFocus()
+                                                    prevContainer.children[0].selectAll()
+                                                    event.accepted = true
+                                                }
+                                            }
+                                        }
+                                        // 点号或右方向键跳到下一个
+                                        else if ((event.key === Qt.Key_Period || event.key === Qt.Key_Right) && !isLastField) {
+                                            let nextContainer = ipInputFieldsRepeater.itemAt(index + 1)
+                                            if (nextContainer && nextContainer.children[0]) {
+                                                nextContainer.children[0].forceActiveFocus()
+                                                nextContainer.children[0].selectAll()
+                                                event.accepted = true
+                                            }
+                                        }
+                                        // 左方向键跳到上一个
+                                        else if (event.key === Qt.Key_Left && index > 0) {
+                                            let prevContainer = ipInputFieldsRepeater.itemAt(index - 1)
+                                            if (prevContainer && prevContainer.children[0]) {
+                                                prevContainer.children[0].forceActiveFocus()
+                                                prevContainer.children[0].selectAll()
+                                                event.accepted = true
+                                            }
+                                        }
+                                        // 输入点号时自动跳到下一个
+                                        else if (event.text === "." && !isLastField) {
+                                            let nextContainer = ipInputFieldsRepeater.itemAt(index + 1)
+                                            if (nextContainer && nextContainer.children[0]) {
+                                                nextContainer.children[0].forceActiveFocus()
+                                                nextContainer.children[0].selectAll()
+                                                event.accepted = true
+                                            }
+                                        }
+                                    }
+                                    
+                                    onFocusChanged: {
+                                        if (focus) {
+                                            selectAll()
+                                        }
+                                    }
+                                }
+                                
+                                // 点号分隔符（前三个后有）
+                                Label {
+                                    visible: index < 3
+                                    text: "."
+                                    font.pixelSize: 16
+                                    color: "#64748b"
+                                    Layout.alignment: Qt.AlignVCenter
+                                    Layout.leftMargin: 4
+                                }
+                            }
+                        }
+                    }
+                    
+                    // 连接按钮
+                    Rectangle {
+                        id: connectButton
+                        Layout.preferredWidth: 80
+                        Layout.preferredHeight: 42
+                        radius: 6
+                        color: connectMouseArea.containsMouse ? "#dbeafe" : "#f1f5f9"
+                        border.color: "#3b82f6"
+                        border.width: 1.5
+                        
+                        Text {
+                            anchors.centerIn: parent
+                            text: "连接"
+                            font.pixelSize: 14
+                            font.family: "Microsoft YaHei UI"
+                            font.weight: Font.Medium
+                            color: "#1d4ed8"
+                        }
+                        
+                        MouseArea {
+                            id: connectMouseArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                // 获取完整的IP地址
+                                let ipParts = []
+                                for (let i = 0; i < 4; i++) {
+                                    let container = ipInputFieldsRepeater.itemAt(i)
+                                    if (container && container.children[0]) {
+                                        ipParts.push(container.children[0].text)
+                                    }
+                                }
+                                let ip = ipParts.join(".")
+                                
+                                function isValidIPv4(ip) {
+                                    const regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+                                    const match = ip.match(regex)
+                                    if (!match) return false
+                                    
+                                    for (let i = 1; i <= 4; i++) {
+                                        const num = parseInt(match[i], 10)
+                                        if (num < 0 || num > 255) return false
+                                    }
+                                    return true
+                                }
+                                
+                                if (isValidIPv4(ip)) {
+                                    deviceModel.connectToTarget(ip)
+                                    load_dialog.show("正在连接...", "取消")
+                                    deviceModel.stopScan()
+                                } else {
+                                    // 显示错误对话框
+                                    if (generalDialogLoader.status === Loader.Ready) {
+                                        generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                                        generalDialogLoader.item.text = "请输入有效的 IPv4 地址（如 192.168.1.100）"
+                                        generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                                        generalDialogLoader.item.show()
+                                        generalDialogLoader.item.requestActivate()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             // 设备列表区域
             Rectangle {
                 id: deviceListArea
                 width: parent.width
-                height: parent.height - titleRow.height - statusRow.height - 20
-                anchors.top: titleRow.bottom
-                anchors.topMargin: 20
+                height: parent.height - titleRow.height - quickConnectCard.height - statusRow.height - 40
+                anchors.top: quickConnectCard.bottom
+                anchors.topMargin: 16
                 radius: 12
                 color: "#f8fafc"
                 border.color: "#e2e8f0"

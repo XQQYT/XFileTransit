@@ -1,6 +1,7 @@
 #include <QtWidgets/QApplication>
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QQmlContext>
+#include <QtQuickControls2/QQuickStyle>
 // model
 #include "model/ModelManager.h"
 // control
@@ -61,6 +62,8 @@ int main(int argc, char* argv[])
     app.setApplicationName("Xqqyt");
     app.setOrganizationName("XQQYT");
     app.setWindowIcon(QIcon(":/logo/logo/logo_small.ico"));
+
+    QQuickStyle::setStyle("Basic");
 
     QFont defaultFont("Segoe UI");
     app.setFont(defaultFont);

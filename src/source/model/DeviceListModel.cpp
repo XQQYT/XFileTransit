@@ -118,3 +118,11 @@ void DeviceListModel::connectToTarget(const int index)
         icmp_scanner.findMatchingLocalIp(device.device_ip).toStdString(),
         std::string("192.168.1.65"));
 }
+
+void DeviceListModel::connectToTarget(const QString ip)
+{
+    EventBusManager::instance().publish("/network/send_connect_request",
+        icmp_scanner.getLocalComputerName().toStdString(),
+        icmp_scanner.findMatchingLocalIp(ip).toStdString(),
+        ip.toStdString());
+}
