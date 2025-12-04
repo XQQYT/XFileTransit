@@ -19,6 +19,8 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/network/have_connect_request");
     //发送请求结果，接受/拒绝
     EventBusManager::instance().registerEvent("/network/send_connect_request_result");
+    //重置底层连接
+    EventBusManager::instance().registerEvent("/network/reset_connection");
     //收到请求结果，接受/拒绝
     EventBusManager::instance().registerEvent("/network/have_connect_request_result");
     //断开所有连接

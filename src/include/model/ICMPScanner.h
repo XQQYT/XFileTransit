@@ -53,6 +53,12 @@ public:
     //获取本机设备名
     QString getLocalComputerName();
 
+    //判断是否为本机地址
+    inline bool isLocalAddress(const QString ip)
+    {
+        return local_ip.contains(ip);
+    }
+
 signals:
     // 扫描进度信号 (0-100)
     void scanProgress(int percent);

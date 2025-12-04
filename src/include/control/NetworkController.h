@@ -14,6 +14,7 @@ public:
 private:
     void onSendConnectRequest(std::string sender_device_name, std::string sender_device_ip, std::string target_device_ip);
     void onSendConnectRequestResult(bool res);
+    void onResetConnection();
     void onHaveConnectRequestResult(bool res, std::string);
     void onDisconnect();
     void onConnectError(const NetworkInterface::ConnectError error);

@@ -57,10 +57,6 @@ QHash<int, QByteArray> DeviceListModel::roleNames() const
 }
 void DeviceListModel::startScan()
 {
-    EventBusManager::instance().publish("/network/send_connect_request",
-        icmp_scanner.getLocalComputerName().toStdString(),
-        std::string("192.168.66.140"),
-        std::string("192.168.66.141"));
     clearAll();
     icmp_scanner.startScan();
     scanning = true;
@@ -109,14 +105,10 @@ void DeviceListModel::connectToTarget(const int index)
     if (index < 0 || index >= device_list.size())
         return;
     auto device = device_list.at(index);
-    // EventBusManager::instance().publish("/network/send_connect_request",
-    //     icmp_scanner.getLocalComputerName().toStdString(),
-    //     icmp_scanner.findMatchingLocalIp(device.device_ip).toStdString(),
-    //     device.device_ip.toStdString());
     EventBusManager::instance().publish("/network/send_connect_request",
         icmp_scanner.getLocalComputerName().toStdString(),
         icmp_scanner.findMatchingLocalIp(device.device_ip).toStdString(),
-        std::string("192.168.1.65"));
+        device.device_ip.toStdString());
 }
 
 void DeviceListModel::connectToTarget(const QString ip)
@@ -125,4 +117,14 @@ void DeviceListModel::connectToTarget(const QString ip)
         icmp_scanner.getLocalComputerName().toStdString(),
         icmp_scanner.findMatchingLocalIp(ip).toStdString(),
         ip.toStdString());
+}
+
+void DeviceListModel::resetConnection()
+{
+    EventBusManager::instance().publish("/network/reset_connection");
+}
+
+bool DeviceListModel::isLocalIp(const QString ip)
+{
+    return icmp_scanner.isLocalAddress(ip);
 }

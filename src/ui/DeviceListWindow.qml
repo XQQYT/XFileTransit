@@ -16,7 +16,7 @@ Window {
     LoadingDialog {
         id: load_dialog
         onButtonClicked: {
-            console.log("取消操作")
+            deviceModel.resetConnection()
             load_dialog.hide()
         }
     }
@@ -81,6 +81,15 @@ Window {
         }
     }
 
+    Connections {
+        target: device_list_model
+        enabled: deviceWindowLoader.status === Loader.Ready
+                
+        function onConnectResult(ret, ip) {
+            deviceListWindow.hide()
+            load_dialog.close()
+        }
+    }
     // 窗口主体
     Rectangle {
         anchors.fill: parent
@@ -468,6 +477,17 @@ Window {
                                 }
                                 let ip = ipParts.join(".")
                                 
+                                if(device_list_model.isLocalIp(ip))
+                                {
+                                    if (generalDialogLoader.status === Loader.Ready) {
+                                        generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                                        generalDialogLoader.item.text = "该IP为本地地址"
+                                        generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                                        generalDialogLoader.item.show()
+                                        generalDialogLoader.item.requestActivate()
+                                    }
+                                    return
+                                }
                                 function isValidIPv4(ip) {
                                     const regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
                                     const match = ip.match(regex)

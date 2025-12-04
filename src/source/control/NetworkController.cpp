@@ -19,6 +19,9 @@ void NetworkController::initSubscribe()
         std::bind(&NetworkController::onSendConnectRequestResult,
             this,
             std::placeholders::_1));
+    EventBusManager::instance().subscribe("/network/reset_connection",
+        std::bind(&NetworkController::onResetConnection,
+            this));
     EventBusManager::instance().subscribe("/network/have_connect_request_result",
         std::bind(&NetworkController::onHaveConnectRequestResult,
             this,
@@ -101,6 +104,11 @@ void NetworkController::onSendConnectRequest(std::string sender_device_name, std
                 std::cout << "failed to connect" << std::endl;
             }
         });
+}
+
+void NetworkController::onResetConnection()
+{
+    control_msg_network_driver->resetConnection();
 }
 
 void NetworkController::onSendConnectRequestResult(bool res)
