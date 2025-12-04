@@ -8,7 +8,7 @@ ApplicationWindow  {
     width: Screen.width * 0.5
     height: Math.max(60, Screen.height * 0.08)
     visible: true
-    flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+    flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool
     color: "transparent"
 
     x: (Screen.width - width) / 2
@@ -123,7 +123,45 @@ ApplicationWindow  {
         }
     }
 
-    // 现代化背景
+
+    // 系统托盘图标
+    SystemTrayIcon {
+        id: trayIcon
+        visible: true
+        icon.source: "qrc:/logo/logo/logo_small.ico"
+        tooltip: qsTr("Xqqyt - 点击显示主窗口")
+
+        menu: Menu {
+            MenuItem {
+                text: qsTr("显示/隐藏主窗口")
+                onTriggered: {
+                    root.visible = !root.visible
+                    if (root.visible) {
+                        root.raise()
+                        root.requestActivate()
+                    }
+                }
+            }
+            MenuItem {
+                text: qsTr("退出")
+                onTriggered: Qt.quit()
+            }
+        }
+
+        onActivated: function(reason) {
+            if (reason === SystemTrayIcon.Trigger) { // 左键单击
+                root.show()
+                root.raise()
+                root.requestActivate()
+            }
+        }
+    }
+
+    onClosing: function(closeEvent) {
+        closeEvent.accepted = false
+        root.hide()
+    }
+
     Rectangle {
         id: mainBackground
         anchors.fill: parent
@@ -747,17 +785,17 @@ ApplicationWindow  {
         color: "transparent"
         
         // 装饰线
-        Rectangle {
-            width: 4
-            height: 18
-            radius: 2
-            color: primaryColor
-            anchors {
-                left: parent.left
-                leftMargin: 18
-                verticalCenter: parent.verticalCenter
-            }
-        }
+        // Rectangle {
+        //     width: 4
+        //     height: 18
+        //     radius: 2
+        //     color: primaryColor
+        //     anchors {
+        //         left: parent.left
+        //         leftMargin: 18
+        //         verticalCenter: parent.verticalCenter
+        //     }
+        // }
         
         // 标题
         Row {
@@ -770,9 +808,9 @@ ApplicationWindow  {
             }
             
             Image {
-                source: "qrc:/logo/logo.png"
-                width: 16
-                height: 16
+                source: "qrc:/logo/logo/logo_small.png"
+                width: 18
+                height: 18
                 anchors.verticalCenter: parent.verticalCenter
                 fillMode: Image.PreserveAspectFit
             }

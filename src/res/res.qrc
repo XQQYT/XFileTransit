@@ -12,6 +12,7 @@
     <file>FileIcons/folder.svg</file>
   </qresource>
   <qresource prefix="/logo">
-    <file>logo/logo.png</file>
+    <file>logo/logo_small.png</file>
+    <file>logo/logo_small.ico</file>
   </qresource>
 </RCC>

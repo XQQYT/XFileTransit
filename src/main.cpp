@@ -1,4 +1,4 @@
-#include <QtGui/QGuiApplication>
+#include <QtWidgets/QApplication>
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QQmlContext>
 // model
@@ -57,7 +57,10 @@ int main(int argc, char* argv[])
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
 
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
+    app.setApplicationName("Xqqyt");
+    app.setOrganizationName("XQQYT");
+    app.setWindowIcon(QIcon(":/logo/logo/logo_small.ico"));
 
     QFont defaultFont("Segoe UI");
     app.setFont(defaultFont);
