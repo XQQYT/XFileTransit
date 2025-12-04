@@ -1,13 +1,17 @@
+<!DOCTYPE RCC>
 <RCC>
-    <qresource prefix="/qml">
-        <file>../ui/MainWindow.qml</file>
-        <file>../ui/DeviceListWindow.qml</file>
-        <file>../ui/LoadingDialog.qml</file>
-        <file>../ui/ConnectRequestDialog.qml</file>
-        <file>../ui/GeneralDialog.qml</file>
-    </qresource>
-    <qresource prefix="/file_icon">
-        <file>FileIcons/unknow_file.svg</file>
-        <file>FileIcons/folder.svg</file>
-    </qresource>
+  <qresource prefix="/qml">
+    <file>../ui/MainWindow.qml</file>
+    <file>../ui/DeviceListWindow.qml</file>
+    <file>../ui/LoadingDialog.qml</file>
+    <file>../ui/ConnectRequestDialog.qml</file>
+    <file>../ui/GeneralDialog.qml</file>
+  </qresource>
+  <qresource prefix="/file_icon">
+    <file>FileIcons/unknow_file.svg</file>
+    <file>FileIcons/folder.svg</file>
+  </qresource>
+  <qresource prefix="/logo">
+    <file>logo/logo.png</file>
+  </qresource>
 </RCC>

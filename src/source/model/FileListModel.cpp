@@ -178,7 +178,10 @@ void FileListModel::removeFile(int index)
     if (index < 0 || index >= file_list.size())
         return;
 
-    deleteFile(index);
+    if(GlobalStatusManager::getInstance().getConnectStatus())
+    {
+        deleteFile(index);
+    }
     GlobalStatusManager::getInstance().removeFile(file_list[index].id);
     beginRemoveRows(QModelIndex(), index, index);
     file_list.removeAt(index);
@@ -208,9 +211,15 @@ void FileListModel::onConnectionClosed()
 void FileListModel::removeAllRemoteFiles()
 {
     beginResetModel();
-    file_list.erase(std::remove_if(file_list.begin(), file_list.end(),
-        [](const FileInfo& info) { return info.is_remote_file; }),
-        file_list.end());
+    for(auto it = file_list.begin(); it < file_list.end(); it++)
+    {
+        if(it->is_remote_file)
+        {
+            file_list.erase(it);
+            continue;
+        }
+        it->file_status = FileStatus::StatusLocalDefault;
+    }
     endResetModel();
 }
 

@@ -18,9 +18,9 @@ ApplicationWindow  {
     property int animationDuration: 300
     property bool dragActive: false
     property bool mouseIsInWindow: false
-    property int itemWidth: 100  // 每个文件项的宽度
-    property int itemHeight: 80  // 每个文件项的高度
-    property int itemsPerRow: Math.max(1, Math.floor((width - 40) / itemWidth)) // 每行显示的文件数量
+    property int itemWidth: 100
+    property int itemHeight: 80
+    property int itemsPerRow: Math.max(1, Math.floor((width - 40) / itemWidth))
 
     // 连接状态属性
     property string current_device: ""
@@ -29,6 +29,21 @@ ApplicationWindow  {
 
     property var currentAcceptHandler: null
     property var currentRejectHandler: null
+
+    property color primaryColor: "#6366F1"    // 主色调
+    property color secondaryColor: "#8B5CF6"  // 次要色调
+    property color accentColor: "#EC4899"     // 强调色
+    property color successColor: "#10B981"    // 成功色
+    property color warningColor: "#F59E0B"    // 警告色
+    property color dangerColor: "#EF4444"     // 危险色
+    property color infoColor: "#3B82F6"       // 信息色
+    
+    property color bgColor: "#FFFFFF"
+    property color cardColor: "#F8FAFC"
+    property color borderColor: "#E2E8F0"
+    property color textPrimary: "#1E293B"
+    property color textSecondary: "#64748B"
+    property color textLight: "#94A3B8"
 
     Loader {
         id: deviceWindowLoader
@@ -74,7 +89,7 @@ ApplicationWindow  {
         }
         
         function onPeerClosed() {
-            if (generalDialogLoader.status === Loader.Ready) {
+            if (generalDialogLoader.status === Loader.Ready && isConnected) {
                 generalDialogLoader.item.iconType = generalDialogLoader.item.error
                 generalDialogLoader.item.text = "对方断开连接"
                 generalDialogLoader.item.buttons = generalDialogLoader.item.ok
@@ -108,6 +123,34 @@ ApplicationWindow  {
         }
     }
 
+    // 现代化背景
+    Rectangle {
+        id: mainBackground
+        anchors.fill: parent
+        radius: 20
+        color: dragActive ? "#E0E7FF" : bgColor
+        border.color: dragActive ? primaryColor : borderColor
+        border.width: 1
+        
+        // 现代感渐变
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: dragActive ? "#E0E7FF" : "#F8FAFC" }
+            GradientStop { position: 1.0; color: dragActive ? "#C7D2FE" : bgColor }
+        }
+    }
+
+    // 顶部装饰线
+    Rectangle {
+        width: 40
+        height: 3
+        radius: 1.5
+        color: primaryColor
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: 8
+        visible: root.expanded
+    }
+
     // 主窗口的拖拽区域
     DropArea {
         anchors.fill: parent
@@ -134,13 +177,11 @@ ApplicationWindow  {
                 file_list_model.addFiles(newFiles, false);
                 drop.accept()
                 
-                // 添加文件后延长收缩时间
                 extendCollapseTime()
             } else {
                 console.log("没有检测到文件URL")
             }
         }
-        
     }
 
     // 鼠标区域
@@ -175,14 +216,12 @@ ApplicationWindow  {
         }
     }
 
-    // 添加文件后的延长收缩时间
     function extendCollapseTime() {
         collapseTimer.stop()
-        collapseTimer.interval = 3000  // 延长到3秒
+        collapseTimer.interval = 3000
         collapseTimer.start()
     }
 
-    // 重置收缩时间到默认值
     function resetCollapseTime() {
         collapseTimer.interval = 500
     }
@@ -213,7 +252,6 @@ ApplicationWindow  {
             }
         }
 
-        // 拖拽进入时展开
         DropArea {
             anchors.fill: parent
             onEntered: function(drag){
@@ -233,18 +271,12 @@ ApplicationWindow  {
                         newFiles.push(fileUrl)
                     }
                     file_list_model.addFiles(newFiles,false);
-
-                    // 使用主窗口的添加函数处理重复文件
-                    // addFilesToList(newFiles)
                     drop.accept()
-                    
-                    // 添加文件后延长收缩时间
                     extendCollapseTime()
                 } else {
                     console.log("触发窗口: 没有检测到文件URL")
                 }
             }
-            
         }
     }
 
@@ -260,19 +292,17 @@ ApplicationWindow  {
         if (expanded) {
             root.y = 0
             updateWindowHeight()
-            // 展开时滚动到底部
             scrollToBottom()
         } else {
             root.y = -root.height + 4
         }
     }
 
-    // 更新窗口高度
     function updateWindowHeight() {
         if (root.expanded) {
             if (file_list_model.getFileCount() > 0) {
                 var rowsNeeded = Math.ceil(file_list_model.getFileCount() / itemsPerRow)
-                var visibleRows = Math.min(rowsNeeded, 1.5) // 显示一行半
+                var visibleRows = Math.min(rowsNeeded, 1.5)
                 root.height = 40 + (visibleRows * itemHeight) + 20
             } else {
                 root.height = Math.max(60, Screen.height * 0.08)
@@ -280,11 +310,9 @@ ApplicationWindow  {
         }
     }
 
-    // 滚动到底部
     function scrollToBottom() {
         if (fileGridView.count > 0) {
             fileGridView.positionViewAtEnd()
-            // 使用Timer确保在布局完成后滚动
             scrollTimer.restart()
         }
     }
@@ -300,15 +328,6 @@ ApplicationWindow  {
     onWidthChanged: {
         itemsPerRow = Math.max(1, Math.floor((width - 40) / itemWidth))
         updateWindowHeight()
-    }
-
-    // 背景
-    Rectangle {
-        anchors.fill: parent
-        radius: 20
-        color: dragActive ? "#88A8DFF7" : "#CCF0F0F0"
-        border.color: "#40000000"
-        border.width: 1
     }
 
     // 文件网格视图
@@ -334,13 +353,28 @@ ApplicationWindow  {
             scrollToBottom()
         }
 
-        delegate: Rectangle {
+        delegate: Item {
             width: itemWidth - 5
             height: itemHeight - 5
-            color: index % 2 === 0 ? "#E8F4FD" : "#FFFFFF"
-            radius: 8
-            border.color: "#40000000"
-            border.width: 1
+            
+            Rectangle {
+                id: fileCard
+                anchors.fill: parent
+                radius: 12
+                color: index % 2 === 0 ? Qt.lighter(primaryColor, 3.5) : cardColor
+                border.color: index % 2 === 0 ? Qt.darker(primaryColor, 1.2) : borderColor
+                border.width: 1
+                
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.margins: -1
+                    radius: 13
+                    color: "transparent"
+                    border.color: "#10000000"
+                    border.width: 1
+                    z: -1
+                }
+            }
 
             // 右键菜单
             Menu {
@@ -383,7 +417,6 @@ ApplicationWindow  {
                     text: "下载文件"
                     enabled: model.isRemote && model.fileStatus !== file_list_model.StatusDownloading && model.fileStatus !==file_list_model.StatusCompleted
                     onTriggered: {
-                        // 触发文件下载
                         file_list_model.downloadFile(index)
                     }
                 }
@@ -392,7 +425,6 @@ ApplicationWindow  {
                     text: "刷新"
                     onTriggered: {
                         // 重新上传文件
-                        // file_list_model.retryUpload(index)
                     }
                 }
                 
@@ -427,27 +459,72 @@ ApplicationWindow  {
                 visible: fileDragArea.containsMouse
                 text: model.toolTip
                 delay: 1500
-                timeout: 5000
+                timeout: -1
+                
+                background: Rectangle {
+                    radius: 8
+                    color: "transparent"
+                    
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: "#1E293B" }
+                        GradientStop { position: 1.0; color: "#0F172A" }
+                    }
+                    
+                    border.width: 1
+                    border.color: primaryColor
+                }
+                
+                // 文字样式
+                contentItem: Text {
+                    text: fileToolTip.text
+                    font.pixelSize: 11
+                    font.family: "Microsoft YaHei UI"
+                    color: "#E2E8F0"
+                    wrapMode: Text.WordWrap
+                    maximumLineCount: 3
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    lineHeight: 1.3
+                }
+                
+                // 位置调整
+                y: -height - 8
+                x: (parent.width - width) / 2
             }
 
             Column {
                 anchors.centerIn: parent
-                width: parent.width - 12
+                width: parent.width - 20
                 spacing: 1
                 
-                Image {
-                    width: 44
-                    height: 44
-                    source: model.fileIcon
-                    fillMode: Image.PreserveAspectFit
+                // 图标背景
+                Rectangle {
+                    id: iconBg
+                    width: 42
+                    height: 42
+                    radius: 8
+                    color: index % 2 === 0 ? Qt.rgba(255, 255, 255, 0.9) : Qt.rgba(99, 102, 241, 0.1)
+                    border.color: index % 2 === 0 ? Qt.rgba(99, 102, 241, 0.3) : Qt.rgba(99, 102, 241, 0.2)
+                    border.width: 1
                     anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.topMargin: 4
+
+                    Image {
+                        width: 28
+                        height: 28
+                        source: model.fileIcon
+                        fillMode: Image.PreserveAspectFit
+                        anchors.centerIn: parent
+                    }
                 }
                 
+                // 文件名
                 Text {
                     text: model.fileName
                     font.pixelSize: 11
-                    color: "#2c3e50"
-                    width: parent.width
+                    font.bold: true
+                    color: textPrimary
+                    width: parent.width - 4
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.NoWrap
                     maximumLineCount: 1
@@ -457,10 +534,10 @@ ApplicationWindow  {
                 
                 // 状态行
                 Row {
-                    width: parent.width
-                    spacing: 2
+                    width: parent.width - 10
+                    spacing: 4
                     anchors.horizontalCenter: parent.horizontalCenter
-                    height: 12
+                    height: 14
                     
                     // 状态指示器
                     Rectangle {
@@ -473,43 +550,46 @@ ApplicationWindow  {
                         
                         color: {
                             switch(model.fileStatus) {
-                                case 0: return "#FFC107"    // 等待 - 黄色
-                                case 1: return "#9E9E9E"    // 默认 - 灰色
-                                case 2: return "#9E9E9E"
-                                case 3: return "#2196F3"    // 上传中 - 蓝色
-                                case 4: return "#FF9800"    // 下载中 - 橙色
-                                case 5: return "#9C27B0"    // 上传完成 - 紫色
-                                case 6: return "#4CAF50"    // 下载完成 - 绿色
-                                case 7: return "#F44336"    // 错误 - 红色
-                                default: return "#607D8B"
+                                case 0: return warningColor
+                                case 1: return textLight
+                                case 2: return textLight
+                                case 3: return infoColor
+                                case 4: return accentColor
+                                case 5: return secondaryColor
+                                case 6: return successColor
+                                case 7: return dangerColor
+                                default: return textLight
                             }
                         }
                     }
                     
-                    // 进度条 - 只在传输状态显示
+                    // 进度条背景
                     Rectangle {
-                        id: progressBar
+                        id: progressBarBg
                         width: parent.width - statusIndicator.width - parent.spacing - 18
-                        height: 3
-                        radius: 1.5
-                        color: "#e6e6e6"
+                        height: 4
+                        radius: 2
+                        color: "#E2E8F0"
                         anchors.verticalCenter: parent.verticalCenter
-                        visible: (model.fileStatus === 3 ||  model.fileStatus === 4) && model.fileProgress !=100
+                        visible: (model.fileStatus === 3 || model.fileStatus === 4) && model.fileProgress != 100
+                        
+                        // 进度条
                         Rectangle {
                             width: Math.max(0, parent.width * (model.fileProgress / 100.0))
                             height: parent.height
-                            radius: 1.5
+                            radius: 2
                             color: statusIndicator.color
                         }
                     }
                     
-                    // 进度百分比 - 只在传输状态显示
+                    // 进度百分比
                     Text {
                         text: qsTr("%1%").arg(model.fileProgress)
                         font.pixelSize: 9
-                        color: "#666"
+                        font.bold: true
+                        color: textSecondary
                         anchors.verticalCenter: parent.verticalCenter
-                        visible: (model.fileStatus === 3 || model.fileStatus === 4) && model.fileProgress !=100
+                        visible: (model.fileStatus === 3 || model.fileStatus === 4) && model.fileProgress != 100
                     }
                 }
             }
@@ -528,6 +608,7 @@ ApplicationWindow  {
                 }
                 Drag.imageSource: model.fileIcon
             }
+            
             // 文件拖拽区域
             MouseArea {
                 id: fileDragArea
@@ -563,7 +644,6 @@ ApplicationWindow  {
                     dragProxy.Drag.active = false
                 }
                 
-                // 双击打开文件
                 onDoubleClicked: {
                     if (model.fileUrl) {
                         Qt.openUrlExternally(model.fileUrl)
@@ -572,46 +652,79 @@ ApplicationWindow  {
                         Qt.openUrlExternally(fileUrl)
                     }
                 }
-                onEntered:{
+                
+                onEntered: {
                     mouseIsInWindow = true
+                    fileCard.border.width = 2
+                    fileCard.border.color = primaryColor
                 }
-                onExited:{
+                onExited: {
                     mouseIsInWindow = false
+                    fileCard.border.width = 1
+                    fileCard.border.color = index % 2 === 0 ? Qt.darker(primaryColor, 1.2) : borderColor
                 }
             }
             
             // 删除按钮
             Rectangle {
                 id: deleteButton
-                width: 20
-                height: 20
-                radius: 10
-                color: deleteMouseArea.containsMouse ? "#ff6b6b" : "transparent"
-                border.color: "#40000000"
+                width: 16
+                height: 16
+                radius: 8
+                color: deleteMouseArea.containsMouse ? dangerColor : "transparent"
+                border.color: deleteMouseArea.containsMouse ? dangerColor : "#CBD5E1"
                 border.width: 1
                 anchors {
                     top: parent.top
-                    topMargin: 5
+                    topMargin: 3
                     right: parent.right
-                    rightMargin: 5
+                    rightMargin: 3
                 }
                 
-                Text {
-                    text: "×"
-                    font.pixelSize: 12
-                    font.bold: true
-                    color: deleteMouseArea.containsMouse ? "white" : "#666666"
-                    anchors.centerIn: parent
+                Canvas {
+                    anchors.fill: parent
+                    onPaint: {
+                        var ctx = getContext("2d")
+                        ctx.reset()
+                        ctx.strokeStyle = deleteMouseArea.containsMouse ? "white" : "#64748B"
+                        ctx.lineWidth = 1.5
+                        ctx.lineCap = "round"
+                        
+                        var centerX = width / 2
+                        var centerY = height / 2
+                        var halfSize = 3
+                        
+                        // 绘制第一条斜线（从左上到右下）
+                        ctx.beginPath()
+                        ctx.moveTo(centerX - halfSize, centerY - halfSize)
+                        ctx.lineTo(centerX + halfSize, centerY + halfSize)
+                        ctx.stroke()
+                        
+                        // 绘制第二条斜线（从右上到左下）
+                        ctx.beginPath()
+                        ctx.moveTo(centerX + halfSize, centerY - halfSize)
+                        ctx.lineTo(centerX - halfSize, centerY + halfSize)
+                        ctx.stroke()
+                    }
+                    
                 }
                 
                 MouseArea {
                     id: deleteMouseArea
                     anchors.fill: parent
                     hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
                     
                     onClicked: {
-                        // 从列表中移除文件
                         file_list_model.removeFile(index)
+                    }
+                    
+                    onEntered: {
+                        deleteButton.children[0].requestPaint()
+                    }
+                    
+                    onExited: {
+                        deleteButton.children[0].requestPaint()
                     }
                 }
             }
@@ -627,60 +740,101 @@ ApplicationWindow  {
         }
     }
 
-    // 标题栏
     Rectangle {
         id: titleBar
         width: parent.width
         height: 40
         color: "transparent"
         
-        Text {
-            id: titleText
-            text: dragActive ? "🔄 释放文件以处理" : "🔄 文件中转站"
-            font.pixelSize: 14
-            font.bold: true
-            color: "#2c3e50"
+        // 装饰线
+        Rectangle {
+            width: 4
+            height: 18
+            radius: 2
+            color: primaryColor
             anchors {
                 left: parent.left
-                leftMargin: 20
+                leftMargin: 18
                 verticalCenter: parent.verticalCenter
             }
         }
-       // 连接状态和切换按钮容器
+        
+        // 标题
+        Row {
+            id: titleRow
+            spacing: 8
+            anchors {
+                left: parent.left
+                leftMargin: 30
+                verticalCenter: parent.verticalCenter
+            }
+            
+            Image {
+                source: "qrc:/logo/logo.png"
+                width: 16
+                height: 16
+                anchors.verticalCenter: parent.verticalCenter
+                fillMode: Image.PreserveAspectFit
+            }
+            
+            Text {
+                id: titleText
+                text: dragActive ? "释放以添加文件" : "XFileTransit"
+                font.pixelSize: 14
+                font.bold: true
+                color: textPrimary
+                anchors.verticalCenter: parent.verticalCenter
+            }
+        }
+        
+        // 连接状态容器 - 在标题的右侧
         Row {
             id: connectionContainer
             spacing: 8
             anchors {
-                left: titleText.right
-                leftMargin: 15
+                left: titleRow.right
+                leftMargin: 20
                 verticalCenter: parent.verticalCenter
             }
             
-            // 连接状态文本
+            // 状态点
+            Rectangle {
+                width: 8
+                height: 8
+                radius: 4
+                color: root.isConnected ? successColor : dangerColor
+                anchors.verticalCenter: parent.verticalCenter
+            }
+            
+            // 状态文本
             Text {
                 id: connectionStatusText
                 text: root.connectionStatus
                 font.pixelSize: 12
-                color: root.isConnected ? "#27ae60" : "#e74c3c"
+                color: root.isConnected ? successColor : dangerColor
                 anchors.verticalCenter: parent.verticalCenter
             }
             
-            // 切换按钮
+            // 现代化连接按钮
             Rectangle {
                 id: switchButton
-                width: 50
+                width: 55
                 height: 24
                 radius: 12
-                color: switchMouseArea.containsMouse ? (root.isConnected ? "#e74c3c" : "#27ae60") : "#CCCCCC"
-                border.color: "#40000000"
+                color: switchMouseArea.containsMouse ? 
+                       (root.isConnected ? dangerColor : successColor) : 
+                       "#F1F5F9"
+                border.color: switchMouseArea.containsMouse ? 
+                             Qt.darker(root.isConnected ? dangerColor : successColor, 1.2) : 
+                             borderColor
                 border.width: 1
                 anchors.verticalCenter: parent.verticalCenter
                 
                 Text {
-                    text: isConnected ? "断开连接" : "连接"
-                    font.pixelSize: 10
-                    color: "white"
+                    text: isConnected ? "断开" : "连接"
+                    font.pixelSize: 11
                     font.bold: true
+                    color: switchMouseArea.containsMouse ? "white" : textSecondary
                     anchors.centerIn: parent
                 }
                 
@@ -689,21 +843,19 @@ ApplicationWindow  {
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked: {
-                        //尚未建立连接，则是打开设备查找
                         if(!isConnected){
                             if (deviceWindowLoader.status === Loader.Ready) {
-                                    deviceWindowLoader.item.show()
-                                    deviceWindowLoader.item.requestActivate()
-                                } else {
-                                    console.error("设备窗口未正确加载:", deviceWindowLoader.status)
-                                }
-                        }else{//已建立连接，则是断开连接
+                                deviceWindowLoader.item.show()
+                                deviceWindowLoader.item.requestActivate()
+                            } else {
+                                console.error("设备窗口未正确加载:", deviceWindowLoader.status)
+                            }
+                        } else {
                             if (generalDialogLoader.status === Loader.Ready) {
                                 generalDialogLoader.item.iconType = generalDialogLoader.item.info
                                 generalDialogLoader.item.text = "确定断开连接？"
                                 generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
                                 
-                                // 动态设置当前的处理函数
                                 root.currentAcceptHandler = function() {
                                     resetStatus()
                                     connection_manager.disconnect()
@@ -721,19 +873,21 @@ ApplicationWindow  {
                     }
                 }
             }
+            
             Connections {
                 target: connection_manager
                 function onHaveConRequest(device_ip, device_name) {
-                if (connectRequestLoader.status === Loader.Ready) {
-                    connectRequestLoader.item.device_ip = device_ip
-                    connectRequestLoader.item.device_name = device_name
-                    connectRequestLoader.item.show()
-                    connectRequestLoader.item.requestActivate()
-                } else {
-                    console.error("连接请求对话框未正确加载:", connectRequestLoader.status)
-                }
+                    if (connectRequestLoader.status === Loader.Ready) {
+                        connectRequestLoader.item.device_ip = device_ip
+                        connectRequestLoader.item.device_name = device_name
+                        connectRequestLoader.item.show()
+                        connectRequestLoader.item.requestActivate()
+                    } else {
+                        console.error("连接请求对话框未正确加载:", connectRequestLoader.status)
                     }
+                }
             }
+            
             Connections {
                 target: connectRequestLoader.item
                 enabled: connectRequestLoader.status === Loader.Ready
@@ -747,7 +901,6 @@ ApplicationWindow  {
                             generalDialogLoader.item.text = "是否同步当前文件"
                             generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
                                 
-                            // 动态设置当前的处理函数
                             root.currentAcceptHandler = function() {
                                 file_list_model.syncCurrentFiles()
                             }
@@ -760,6 +913,7 @@ ApplicationWindow  {
                 function onRejected(ip, name) {
                 }
             }
+            
             Connections {
                 target: device_list_model
                 enabled: deviceWindowLoader.status === Loader.Ready
@@ -768,44 +922,71 @@ ApplicationWindow  {
                     if(ret){
                         current_device = ip;
                         isConnected = true;
-                        if(fileGridView.count){
+                        if(fileGridView.count > 0){
+                            // 有文件时询问是否同步
                             if (generalDialogLoader.status === Loader.Ready) {
                                 generalDialogLoader.item.iconType = generalDialogLoader.item.info
                                 generalDialogLoader.item.text = "是否同步当前文件"
                                 generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
                                 
-                                // 动态设置当前的处理函数
                                 root.currentAcceptHandler = function() {
                                     file_list_model.syncCurrentFiles()
                                 }
                                 generalDialogLoader.item.show()
                                 generalDialogLoader.item.requestActivate()
                             }
+                        } else {
+                            // 没有文件时显示连接成功提示
+                            if (generalDialogLoader.status === Loader.Ready) {
+                                generalDialogLoader.item.iconType = generalDialogLoader.item.success
+                                generalDialogLoader.item.text = "连接成功"
+                                generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                                
+                                root.currentAcceptHandler = null
+                                root.currentRejectHandler = null
+                                
+                                generalDialogLoader.item.show()
+                                generalDialogLoader.item.requestActivate()
+                            }
+                        }
+                    }else{
+                        if (generalDialogLoader.status === Loader.Ready) {
+                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                            generalDialogLoader.item.text = "连接被拒绝"
+                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                                
+                            root.currentAcceptHandler = null
+                            root.currentRejectHandler = null
+                                
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
                         }
                     }
                 }
             }
         }        
+        
         // 清空按钮
         Rectangle {
             id: clearButton
-            width: 60
+            width: 55
             height: 24
             radius: 12
-            color: clearMouseArea.containsMouse ? "#e74c3c" : "transparent"
-            border.color: "#40000000"
+            color: clearMouseArea.containsMouse ? dangerColor : "#F1F5F9"
+            border.color: clearMouseArea.containsMouse ? Qt.darker(dangerColor, 1.2) : borderColor
             border.width: 1
             visible: root.expanded && fileGridView.count > 0
             anchors {
                 right: closeButton.left
-                rightMargin: 10
+                rightMargin: 30
                 verticalCenter: parent.verticalCenter
             }
             
             Text {
                 text: "清空"
-                font.pixelSize: 12
-                color: clearMouseArea.containsMouse ? "white" : "#666666"
+                font.pixelSize: 11
+                font.bold: true
+                color: clearMouseArea.containsMouse ? "white" : textSecondary
                 anchors.centerIn: parent
             }
             
@@ -816,10 +997,10 @@ ApplicationWindow  {
                 onClicked: {
                     file_list_model.clearAll()
                 }
-                onEntered:{
+                onEntered: {
                     mouseIsInWindow = true
                 }
-                onExited:{
+                onExited: {
                     mouseIsInWindow = false
                 }
             }
@@ -831,23 +1012,21 @@ ApplicationWindow  {
             width: 24
             height: 24
             radius: 12
-            color: closeMouseArea.containsMouse ? "#E81123" : "transparent"
-            border.color: "#40000000"
+            color: closeMouseArea.containsMouse ? dangerColor : "#F1F5F9"
+            border.color: closeMouseArea.containsMouse ? Qt.darker(dangerColor, 1.2) : borderColor
             border.width: 1
             visible: root.expanded
             anchors {
-                top: parent.top
-                topMargin: 8
                 right: parent.right
-                rightMargin: 8
+                rightMargin: 12
                 verticalCenter: parent.verticalCenter
             }
 
             Text {
                 text: "×"
-                font.pixelSize: 16
+                font.pixelSize: 14
                 font.bold: true
-                color: closeMouseArea.containsMouse ? "white" : "#666666"
+                color: closeMouseArea.containsMouse ? "white" : textSecondary
                 anchors.centerIn: parent
             }
 
@@ -856,28 +1035,29 @@ ApplicationWindow  {
                 anchors.fill: parent
                 hoverEnabled: true
                 onClicked: Qt.quit()
-                onEntered:{
+                onEntered: {
                     mouseIsInWindow = true
                 }
-                onExited:{
+                onExited: {
                     mouseIsInWindow = false
                 }
             }
         }
     }
 
-    // 收缩时顶部条
+    // 收缩时显示的小条
     Rectangle {
         width: parent.width
         height: 4
-        color: "#CCF0F0F0"
-        border.color: "#40000000"
+        color: primaryColor
+        border.color: Qt.darker(primaryColor, 1.2)
         border.width: 1
         y: parent.height - 4
+        radius: 2
         visible: !root.expanded
     }
+    
     Component.onDestruction: {
-
     }
 
     function resetStatus() {
