@@ -22,6 +22,9 @@ void NetworkController::initSubscribe()
     EventBusManager::instance().subscribe("/network/reset_connection",
         std::bind(&NetworkController::onResetConnection,
             this));
+    EventBusManager::instance().subscribe("/network/cancel_conn_request", [this]() {
+        control_msg_network_driver->resetConnection();
+        });
     EventBusManager::instance().subscribe("/network/have_connect_request_result",
         std::bind(&NetworkController::onHaveConnectRequestResult,
             this,
@@ -90,12 +93,12 @@ void NetworkController::onSendConnectRequest(std::string sender_device_name, std
                         std::cout << "recv msg -> " << std::string(msg->data.data(), msg->data.data() + msg->data.size()) << std::endl;
                         json_parser->parse(std::move(msg));
                     });
-                GlobalStatusManager::getInstance().setCurrentDeviceIP(target_device_ip);
+                GlobalStatusManager::getInstance().setCurrentTargetDeviceIP(target_device_ip);
                 std::string msg = json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(
                     Json::MessageType::User::ConnectRequest,
                     {
-                         {"sender_device_name",std::move(sender_device_name)},
-                         {"sender_device_ip",std::move(sender_device_ip)}
+                         {"sender_device_name",sender_device_name},
+                         {"sender_device_ip",sender_device_ip}
                     });
                 control_msg_network_driver->sendMsg(msg);
             }
@@ -104,10 +107,21 @@ void NetworkController::onSendConnectRequest(std::string sender_device_name, std
                 std::cout << "failed to connect" << std::endl;
             }
         });
+    GlobalStatusManager::getInstance().setCurrentLocalDeviceIP(std::move(sender_device_ip));
+    GlobalStatusManager::getInstance().setCurrentLocalDeviceName(std::move(sender_device_name));
 }
 
+//发送ip和name，预留扩展
 void NetworkController::onResetConnection()
 {
+    std::string msg = json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(
+        Json::MessageType::User::CancelConnRequest,
+        {
+            {"sender_device_name",GlobalStatusManager::getInstance().getCurrentLocalDeviceName()},
+            {"sender_device_ip",GlobalStatusManager::getInstance().getCurrentLocalDeviceIP()}
+        }
+    );
+    control_msg_network_driver->sendMsg(msg);
     control_msg_network_driver->resetConnection();
 }
 
@@ -125,7 +139,7 @@ void NetworkController::onSendConnectRequestResult(bool res)
     {
         GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::High);
         EventBusManager::instance().publish("/file/initialize_FileSyncCore",
-            GlobalStatusManager::getInstance().getCurrentDeviceIP(), std::string("7779"), security_driver);
+            GlobalStatusManager::getInstance().getCurrentTargetDeviceIP(), std::string("7779"), security_driver);
     }
     else//拒绝连接
     {
@@ -140,7 +154,7 @@ void NetworkController::onHaveConnectRequestResult(bool res, std::string)
     {
         GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
         EventBusManager::instance().publish("/file/initialize_FileSyncCore",
-            GlobalStatusManager::getInstance().getCurrentDeviceIP(), std::string("7779"), security_driver);
+            GlobalStatusManager::getInstance().getCurrentTargetDeviceIP(), std::string("7779"), security_driver);
     }
     else
     {

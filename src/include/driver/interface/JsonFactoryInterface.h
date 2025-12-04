@@ -24,7 +24,8 @@ namespace Json
             enum Type
             {
                 ConnectRequest,
-                ConnectRequestResponse
+                ConnectRequestResponse,
+                CancelConnRequest
             };
 
             constexpr const char* toString(Type type)
@@ -33,6 +34,7 @@ namespace Json
                 {
                 case ConnectRequest: return "ConnectRequest";
                 case ConnectRequestResponse: return "ConnectRequestResponse";
+                case CancelConnRequest: return "CancelConnRequest";
                 default: return "unknown";
                 }
             }
@@ -104,6 +106,8 @@ namespace Json
                 { "sender_device_name", "sender_device_ip" });
             registerSchema(MessageType::User::ConnectRequestResponse, "response",
                 { "subtype", "arg0" });
+            registerSchema(MessageType::User::CancelConnRequest, "cancel_conn_request",
+                { "sender_device_name", "sender_device_ip" });
         }
 
         void registerSchema(uint64_t type, const std::string& type_name,

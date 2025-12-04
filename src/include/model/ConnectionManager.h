@@ -12,11 +12,13 @@ public:
     void onHaveConnectError(std::string message);
     void onHaveRecvError(std::string message);
     void onPeerClosed();
+    void onCancelConnRequest(std::string ip, std::string name);
     Q_INVOKABLE void accepted(const QString device_ip, const QString device_name);
     Q_INVOKABLE void rejected(const QString device_ip, const QString device_name);
     Q_INVOKABLE void disconnect();
 signals:
     void haveConRequest(const QString device_ip, const QString device_name);
+    void conRequestCancel(const QString device_ip, const QString device_name);
     void haveConnectError(QString message);
     void haveRecvError(QString message);
     //提供给ui，明确对方关闭连接

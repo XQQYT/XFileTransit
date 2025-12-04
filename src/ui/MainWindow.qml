@@ -925,6 +925,21 @@ ApplicationWindow  {
                     }
                 }
             }
+
+            Connections {
+                target: connection_manager
+                function onConRequestCancel(device_ip, device_name) {
+                    connectRequestLoader.item.close()
+                    if (generalDialogLoader.status === Loader.Ready) {
+                        generalDialogLoader.item.iconType = generalDialogLoader.item.info
+                        generalDialogLoader.item.text = device_ip + "(" + device_name + ")"+"取消了连接"
+                        generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                                
+                        generalDialogLoader.item.show()
+                        generalDialogLoader.item.requestActivate()
+                    }
+                }
+            }
             
             Connections {
                 target: connectRequestLoader.item

@@ -20,31 +20,47 @@ public:
         static GlobalStatusManager instance;
         return instance;
     }
-    std::string getCurrentDeviceName()
+    inline std::string getCurrentTargetDeviceName()
     {
-        return current_device_name;
+        return current_target_device_name;
     }
-    std::string getCurrentDeviceIP()
+    inline std::string getCurrentTargetDeviceIP()
     {
-        return current_device_ip;
+        return current_target_device_ip;
     }
-    void setCurrentDeviceName(std::string&& dn)
+    inline void setCurrentTargetDeviceName(std::string&& dn)
     {
-        current_device_name = dn;
+        current_target_device_name = dn;
     }
-    void setCurrentDeviceIP(std::string di)
+    inline void setCurrentTargetDeviceIP(const std::string& di)
     {
-        current_device_ip = di;
+        current_target_device_ip = di;
     }
-    void setConnectStatus(bool status)
+    inline std::string getCurrentLocalDeviceName()
+    {
+        return current_local_device_name;
+    }
+    inline std::string getCurrentLocalDeviceIP()
+    {
+        return current_local_device_ip;
+    }
+    inline void setCurrentLocalDeviceName(std::string&& dn)
+    {
+        current_local_device_name = dn;
+    }
+    inline void setCurrentLocalDeviceIP(std::string&& di)
+    {
+        current_local_device_ip = di;
+    }
+    inline void setConnectStatus(bool status)
     {
         is_connected = status;
     }
-    bool getConnectStatus()
+    inline bool getConnectStatus()
     {
         return is_connected;
     }
-    uint32_t getFileId()
+    inline uint32_t getFileId()
     {
         if (current_type == idType::Undefined)
         {
@@ -59,7 +75,7 @@ public:
             return file_id_counter--;
         }
     }
-    void setIdBegin(idType type)
+    inline void setIdBegin(idType type)
     {
         current_type = type;
         switch (type)
@@ -74,26 +90,29 @@ public:
             break;
         }
     }
-    void insertFile(uint32_t id, const std::string& filename)
+    inline void insertFile(uint32_t id, const std::string& filename)
     {
         id_filename.insert({ id,filename });
     }
-    void removeFile(uint32_t id)
+    inline void removeFile(uint32_t id)
     {
         id_filename.erase(id);
     }
-    std::string getFileName(uint32_t id)
+    inline std::string getFileName(uint32_t id)
     {
         return id_filename.at(id);
     }
-    void reset()
+    inline void reset()
     {
         current_type = idType::Undefined;
     }
 
 private:
-    std::string current_device_name;
-    std::string current_device_ip;
+    std::string current_target_device_name;
+    std::string current_target_device_ip;
+
+    std::string current_local_device_name;
+    std::string current_local_device_ip;
     bool is_connected{ false };
     uint32_t file_id_counter;
     idType current_type;

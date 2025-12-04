@@ -9,6 +9,7 @@ JsonParser::JsonParser() :
 {
     type_funcfion_map["connect_request"] = std::bind(JsonParser::connectRequest, this, std::placeholders::_1);
     type_funcfion_map["response"] = std::bind(JsonParser::resonpeResult, this, std::placeholders::_1);
+    type_funcfion_map["cancel_conn_request"] = std::bind(JsonParser::cancelConnRequest, this, std::placeholders::_1);
 
     type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::AddFiles)] = std::bind(JsonParser::syncAddFiles, this, std::placeholders::_1);
     type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::RemoveFile)] = std::bind(JsonParser::syncDeleteFiles, this, std::placeholders::_1);
@@ -39,8 +40,8 @@ void JsonParser::connectRequest(std::unique_ptr<Json::Parser> parser)
     std::string ip = parser->getValue("sender_device_ip");
     std::string name = parser->getValue("sender_device_name");
     EventBusManager::instance().publish("/network/have_connect_request", parser->getValue("sender_device_ip"), parser->getValue("sender_device_name"));
-    GlobalStatusManager::getInstance().setCurrentDeviceIP(std::move(ip));
-    GlobalStatusManager::getInstance().setCurrentDeviceName(std::move(name));
+    GlobalStatusManager::getInstance().setCurrentTargetDeviceIP(std::move(ip));
+    GlobalStatusManager::getInstance().setCurrentTargetDeviceName(std::move(name));
 }
 
 void JsonParser::resonpeResult(std::unique_ptr<Json::Parser> parser)
@@ -51,7 +52,7 @@ void JsonParser::resonpeResult(std::unique_ptr<Json::Parser> parser)
     {
     case JsonMessageType::ResponseType::CONNECT_REQUEST_RESPONSE:
         publishResponse("/network/have_connect_request_result", arg0,
-            GlobalStatusManager::getInstance().getCurrentDeviceIP());
+            GlobalStatusManager::getInstance().getCurrentTargetDeviceIP());
         break;
     default:
         break;
@@ -90,6 +91,13 @@ void JsonParser::publishResponse(std::string&& event_name, JsonMessageType::Resu
     default:
         break;
     }
+}
+
+void JsonParser::cancelConnRequest(std::unique_ptr<Json::Parser> parser)
+{
+    std::string ip = parser->getValue("sender_device_ip");
+    std::string name = parser->getValue("sender_device_name");
+    EventBusManager::instance().publish("/network/cancel_conn_request", parser->getValue("sender_device_ip"), parser->getValue("sender_device_name"));
 }
 
 void JsonParser::syncAddFiles(std::unique_ptr<Json::Parser> parser)
