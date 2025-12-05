@@ -137,7 +137,7 @@ void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
                 files_to_send.push_back(std::to_string(cur_file.id));
                 files_to_send.push_back(std::to_string(cur_file.is_folder));
                 files_to_send.push_back(cur_file.file_name.toUtf8().constData());
-                files_to_send.push_back(cur_file.format_file_size.toStdString());
+                files_to_send.push_back(std::to_string(cur_file.file_size));
             }
             unique_files.append(std::move(cur_file));
         }
@@ -163,7 +163,7 @@ void FileListModel::addRemoteFiles(std::vector<std::vector<std::string>> files)
     {
         remote_files.append(FileInfo(true,
             std::stoul(file[0]), std::stoi(file[1]) != 0,
-            QString::fromStdString(file[2]), QString::fromStdString(file[3])));
+            QString::fromStdString(file[2]), std::stoul(file[3])));
         GlobalStatusManager::getInstance().insertFile(remote_files.back().id, remote_files.back().file_name.toUtf8().constData());
     }
 
@@ -172,6 +172,13 @@ void FileListModel::addRemoteFiles(std::vector<std::vector<std::string>> files)
         beginInsertRows(QModelIndex(), file_list.size(), file_list.size() + remote_files.size() - 1);
         file_list.append(remote_files);
         endInsertRows();
+    }
+    for (int i = 0;i < file_list.size();++i)
+    {
+        if (file_list[i].file_size <= auto_download_file_size && file_list[i].file_status == StatusRemoteDefault)
+        {
+            downloadFile(i);
+        }
     }
 }
 

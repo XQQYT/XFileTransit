@@ -17,6 +17,7 @@ class FileListModel : public QAbstractListModel
   Q_OBJECT
 
 public:
+  static inline const uint32_t auto_download_file_size = 50 * 1024 * 1024;//50MB
   enum FileStatus {
     StatusPending = 0,     // 等待
     StatusLocalDefault,   //本地文件默认
@@ -202,8 +203,8 @@ public:
   }
 
   //一般用于远程文件构建
-  FileInfo(const bool irf, const quint32 file_id, const bool is_folder, const QString fn, const QString ffs)
-    : is_remote_file(irf), id(file_id), is_folder(this->is_folder), file_name(fn), format_file_size(ffs),
+  FileInfo(const bool irf, const quint32 file_id, const bool is_folder, const QString fn, quint64 fs)
+    : is_remote_file(irf), id(file_id), is_folder(this->is_folder), file_name(fn), file_size(fs),
     file_status(FileListModel::FileStatus::StatusRemoteDefault)
   {
     if (!irf)
@@ -213,6 +214,7 @@ public:
     file_url = QUrl::fromLocalFile(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir) + file_name);
     source_path = QString::fromStdString(GlobalStatusManager::absolute_tmp_dir) + file_name;
     icon = FileIconManager::getInstance().getFileIconBySuffix(getFileSuffix(file_name), is_folder);
+    format_file_size = formatFileSize(file_size);
     progress = 0;
   }
 };
