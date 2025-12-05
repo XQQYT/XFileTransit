@@ -175,9 +175,16 @@ public:
         }
     }
 
-    static std::string getCurrentWorkingDirectory() {
-        fs::path filePath = fs::current_path();  // 创建副本
-        return filePath.make_preferred().string();
+    static std::string getExecutableDirectory() {
+        char buffer[MAX_PATH];
+        DWORD length = GetModuleFileNameA(nullptr, buffer, MAX_PATH);
+        fs::path exePath(buffer);
+                fs::path exeDir = exePath.parent_path();
+                std::string dir = exeDir.generic_string();
+                if (!dir.empty() && dir.back() != '/') {
+            dir += '/';
+        }
+        return dir;
     }
     // 深度优先搜索获取所有叶子文件路径
     static std::vector<std::string> findAllLeafFiles(const std::string& rootPath) {

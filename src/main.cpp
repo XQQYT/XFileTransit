@@ -61,6 +61,8 @@ int main(int argc, char* argv[])
 {
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
+    
+    std::cout<<"tmp dir "<<GlobalStatusManager::absolute_tmp_dir<<std::endl;
 
     QApplication app(argc, argv);
     app.setApplicationName("Xqqyt");

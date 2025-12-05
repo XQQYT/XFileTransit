@@ -10,9 +10,9 @@
 FileParser::FileParser() :
     json_parser(std::make_unique<NlohmannJson>())
 {
-    if (!FileSystemUtils::directoryExists(GlobalStatusManager::relative_tmp_dir))
+    if (!FileSystemUtils::directoryExists(GlobalStatusManager::absolute_tmp_dir))
     {
-        FileSystemUtils::createDirectoryRecursive(FileSystemUtils::utf8ToWide(GlobalStatusManager::relative_tmp_dir));
+        FileSystemUtils::createDirectoryRecursive(FileSystemUtils::utf8ToWide(GlobalStatusManager::absolute_tmp_dir));
     }
     type_parser_map["file_header"] = std::bind(&FileParser::onFileHeader, this, std::placeholders::_1);
     type_parser_map["dir_header"] = std::bind(&FileParser::onDirHeader, this, std::placeholders::_1);
@@ -76,7 +76,7 @@ void FileParser::onFileHeader(std::unique_ptr<Json::Parser> content_parser)
         file_stream.release();
     }
     //接收到的字符是utf8，需要转换成宽字节
-    std::wstring wide_tmp_dir = FileSystemUtils::utf8ToWide(GlobalStatusManager::relative_tmp_dir);
+    std::wstring wide_tmp_dir = FileSystemUtils::utf8ToWide(GlobalStatusManager::absolute_tmp_dir);
     std::wstring wide_filename = FileSystemUtils::utf8ToWide(GlobalStatusManager::getInstance().getFileName(id));
     std::wstring full_path = wide_tmp_dir + wide_filename;
 
@@ -93,7 +93,7 @@ void FileParser::onDirHeader(std::unique_ptr<Json::Parser> content_parser)
 {
     uint32_t id = std::stoul(content_parser->getValue("id"));
     total_size = std::stoul(content_parser->getValue("total_size"));
-    std::wstring wide_tmp_dir = FileSystemUtils::utf8ToWide(GlobalStatusManager::relative_tmp_dir);
+    std::wstring wide_tmp_dir = FileSystemUtils::utf8ToWide(GlobalStatusManager::absolute_tmp_dir);
     std::wstring wide_filename = FileSystemUtils::utf8ToWide(GlobalStatusManager::getInstance().getFileName(id));
     std::wstring end = FileSystemUtils::utf8ToWide("/");
     dir_path = wide_tmp_dir + wide_filename + end;

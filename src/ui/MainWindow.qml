@@ -441,7 +441,7 @@ ApplicationWindow  {
                 
                 MenuItem {
                     text: "复制文件路径"
-                    enabled: model.filePath
+                    enabled: !model.isRemote || model.fileStatus === 6
                     onTriggered: {
                         if (model.filePath) {
                             file_list_model.copyText(model.filePath)
@@ -1111,6 +1111,7 @@ ApplicationWindow  {
     }
     
     Component.onDestruction: {
+        file_list_model.cleanTmpFiles()
     }
 
     function resetStatus() {

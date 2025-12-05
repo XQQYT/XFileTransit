@@ -343,3 +343,14 @@ void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, bool is_en
 
     emit dataChanged(model_index, model_index, roles);
 }
+
+void FileListModel::cleanTmpFiles()
+{
+    QDir dir(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir));
+    
+    if (!dir.exists()) {
+        return;
+    }
+    
+    dir.removeRecursively();
+}
