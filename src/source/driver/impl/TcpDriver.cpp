@@ -24,6 +24,7 @@ TcpDriver::~TcpDriver()
 {
     if (client_socket)
         closeSocket();
+
 }
 
 void TcpDriver::initTlsSocket(const std::string& address, const std::string& tls_port)
@@ -43,9 +44,9 @@ void TcpDriver::initTcpSocket(const std::string& address, const std::string& tcp
 
 void TcpDriver::dealConnectError()
 {
-    if(ignore_one_error)
+    if (ignore_one_error)
     {
-        ignore_one_error =! ignore_one_error;
+        ignore_one_error = !ignore_one_error;
         return;
     }
     if (this->dce_cb)
@@ -130,7 +131,7 @@ void printHex(const std::vector<uint8_t>& data) {
 
 void TcpDriver::sendMsg(const std::string& msg)
 {
-    if(!connect_status)
+    if (!connect_status)
         return;
     NetworkInterface::Flag flag = NetworkInterface::Flag::IS_ENCRYPT;
     std::unique_ptr<NetworkInterface::UserMsg> ready_to_send_msg = std::move(msg_builder->buildMsg(msg, flag));
@@ -344,6 +345,7 @@ void TcpDriver::closeSocket()
             receive_thread->join();
         delete receive_thread;
     }
+    WSACleanup();
 }
 
 void TcpDriver::setSecurityInstance(std::shared_ptr<SecurityInterface> instance)
