@@ -33,6 +33,10 @@ void NetworkController::initSubscribe()
     EventBusManager::instance().subscribe("/network/disconnect",
         std::bind(&NetworkController::onDisconnect,
             this));
+    EventBusManager::instance().subscribe("/sync/send_expired_file",
+        std::bind(&NetworkController::onSendExpiredFile,
+            this,
+            std::placeholders::_1));
     EventBusManager::instance().subscribe("/sync/send_addfiles",
         std::bind(&NetworkController::onSendSyncAddFiles,
             this,
@@ -232,6 +236,13 @@ void NetworkController::onConnClosed()
     GlobalStatusManager::getInstance().setConnectStatus(false);
     GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
     EventBusManager::instance().publish("/file/close_FileSyncCore");
+}
+
+void NetworkController::onSendExpiredFile(uint32_t id)
+{
+    auto sync_builder = json_builder->getBuilder(Json::BuilderType::Sync);
+    control_msg_network_driver->sendMsg(
+        sync_builder->buildSyncMsg(Json::MessageType::Sync::FileExpired, { std::to_string(id) }, 1));
 }
 
 void NetworkController::onSendSyncAddFiles(std::vector<std::string> files, uint8_t stride)

@@ -32,7 +32,10 @@ public:
             return 0;
         }
     }
-
+    static bool fileIsExist(std::string file_path)
+    {
+        return fs::exists(file_path);
+    }
     // 判断是否为文件夹
     static bool isDirectory(const std::string& path) {
         try {

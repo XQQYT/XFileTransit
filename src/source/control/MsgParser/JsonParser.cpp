@@ -11,6 +11,7 @@ JsonParser::JsonParser() :
     type_funcfion_map["response"] = std::bind(JsonParser::resonpeResult, this, std::placeholders::_1);
     type_funcfion_map["cancel_conn_request"] = std::bind(JsonParser::cancelConnRequest, this, std::placeholders::_1);
 
+    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::FileExpired)] = std::bind(JsonParser::syncExpiredFile, this, std::placeholders::_1);
     type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::AddFiles)] = std::bind(JsonParser::syncAddFiles, this, std::placeholders::_1);
     type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::RemoveFile)] = std::bind(JsonParser::syncDeleteFiles, this, std::placeholders::_1);
     type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::DownloadFile)] = std::bind(JsonParser::downloadFile, this, std::placeholders::_1);
@@ -100,6 +101,16 @@ void JsonParser::cancelConnRequest(std::unique_ptr<Json::Parser> parser)
     EventBusManager::instance().publish("/network/cancel_conn_request", parser->getValue("sender_device_ip"), parser->getValue("sender_device_name"));
 }
 
+void JsonParser::syncExpiredFile(std::unique_ptr<Json::Parser> parser)
+{
+    std::vector<std::string> files;
+    auto file_ids = parser->getArray("files");
+    for (const auto& id : file_ids) {
+        auto tmp = id->getArrayItems();
+        files.insert(files.end(), tmp.begin(), tmp.end());
+    }
+    EventBusManager::instance().publish("/sync/have_expired_file", files);
+}
 void JsonParser::syncAddFiles(std::unique_ptr<Json::Parser> parser)
 {
     auto array = parser->getArray("files");

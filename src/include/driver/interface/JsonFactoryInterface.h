@@ -69,7 +69,8 @@ namespace Json
             {
                 AddFiles,
                 RemoveFile,
-                DownloadFile
+                DownloadFile,
+                FileExpired
             };
 
             constexpr const char* toString(Type type)
@@ -79,6 +80,7 @@ namespace Json
                 case AddFiles: return "add_files";
                 case RemoveFile: return "remove_files";
                 case DownloadFile: return "download_file";
+                case FileExpired: return "file_expired";
                 default: return "unknown";
                 }
             }

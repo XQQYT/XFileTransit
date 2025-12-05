@@ -64,6 +64,7 @@ public slots:
 private:
   bool isFileExists(const QString& filePath);
   void removeAllRemoteFiles();
+  void onHaveExpiredFile(std::vector<std::string> id);
   void deleteFile(int index);
   void removeFileById(std::vector<std::string> id);
   void onUploadFileProgress(uint32_t id, uint8_t progress, bool is_end);

@@ -456,7 +456,7 @@ ApplicationWindow  {
                 
                 MenuItem {
                     text: "下载文件"
-                    enabled: model.isRemote && model.fileStatus !== file_list_model.StatusDownloading && model.fileStatus !==file_list_model.StatusCompleted
+                    enabled: model.isRemote && model.fileStatus !== 4 &&  model.fileStatus !== 7
                     onTriggered: {
                         file_list_model.downloadFile(index)
                     }
@@ -586,9 +586,9 @@ ApplicationWindow  {
                         width: 8
                         height: 8
                         radius: 4
-                        visible: model.isRemote || (model.fileStatus === 3 && model.fileProgress != 100) || model.fileStatus === 5
                         anchors.verticalCenter: parent.verticalCenter
-                        
+                        visible: model.fileStatus !== 1
+
                         color: {
                             switch(model.fileStatus) {
                                 case 0: return warningColor
@@ -598,39 +598,87 @@ ApplicationWindow  {
                                 case 4: return accentColor
                                 case 5: return secondaryColor
                                 case 6: return successColor
-                                case 7: return dangerColor
+                                case 7: return dangerColor  // 失效时为红色
                                 default: return textLight
                             }
                         }
                     }
                     
-                    // 进度条背景
-                    Rectangle {
-                        id: progressBarBg
-                        width: parent.width - statusIndicator.width - parent.spacing - 18
-                        height: 4
-                        radius: 2
-                        color: "#E2E8F0"
+                    // 进度/状态文本区域
+                    Item {
+                        id: statusTextArea
+                        width: parent.width - statusIndicator.width - parent.spacing
+                        height: parent.height
                         anchors.verticalCenter: parent.verticalCenter
-                        visible: (model.fileStatus === 3 || model.fileStatus === 4) && model.fileProgress != 100
                         
-                        // 进度条
-                        Rectangle {
-                            width: Math.max(0, parent.width * (model.fileProgress / 100.0))
-                            height: parent.height
-                            radius: 2
-                            color: statusIndicator.color
+                        // 正常状态：进度条和进度百分比
+                        Item {
+                            id: normalProgress
+                            anchors.fill: parent
+                            visible: model.fileStatus !== 7  // 非失效状态时显示
+                            
+                            // 进度条
+                            Rectangle {
+                                id: progressBarBg
+                                width: parent.width - 18
+                                height: 4
+                                radius: 2
+                                color: "#E2E8F0"
+                                anchors.verticalCenter: parent.verticalCenter
+                                visible: (model.fileStatus === 3 || model.fileStatus === 4) && model.fileProgress != 100
+                                
+                                // 进度条
+                                Rectangle {
+                                    width: Math.max(0, parent.width * (model.fileProgress / 100.0))
+                                    height: parent.height
+                                    radius: 2
+                                    color: statusIndicator.color
+                                }
+                            }
+                            
+                            // 进度百分比
+                            Text {
+                                id: progressText
+                                text: qsTr("%1%").arg(model.fileProgress)
+                                font.pixelSize: 9
+                                font.bold: true
+                                color: textSecondary
+                                anchors {
+                                    right: parent.right
+                                    verticalCenter: parent.verticalCenter
+                                }
+                                visible: (model.fileStatus === 3 || model.fileStatus === 4) && model.fileProgress != 100
+                            }
+                            
+                            Text {
+                                id: normalStatusText
+                                text: {
+                                    switch(model.fileStatus) {
+                                        case 0: return "等待中"
+                                        case 5: return "上传完毕"
+                                        case 6: return "下载完成"
+                                        case 7: return "已失效"
+                                        default: return ""
+                                    }
+                                }
+                                font.pixelSize: 9
+                                font.bold: true
+                                color: statusIndicator.color
+                                anchors.verticalCenter: parent.verticalCenter
+                                visible: text !== ""
+                            }
                         }
-                    }
-                    
-                    // 进度百分比
-                    Text {
-                        text: qsTr("%1%").arg(model.fileProgress)
-                        font.pixelSize: 9
-                        font.bold: true
-                        color: textSecondary
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: (model.fileStatus === 3 || model.fileStatus === 4) && model.fileProgress != 100
+                        
+                        // 失效状态文本
+                        Text {
+                            id: expiredText
+                            text: "已失效"
+                            font.pixelSize: 9
+                            font.bold: true
+                            color: dangerColor
+                            anchors.verticalCenter: parent.verticalCenter
+                            visible: model.fileStatus === 7  // 只在失效状态显示
+                        }
                     }
                 }
             }

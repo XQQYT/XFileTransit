@@ -48,6 +48,7 @@ private:
     void connectRequest(std::unique_ptr<Json::Parser> parser);
     void cancelConnRequest(std::unique_ptr<Json::Parser> parser);
     void resonpeResult(std::unique_ptr<Json::Parser> parser);
+    void syncExpiredFile(std::unique_ptr<Json::Parser> parser);
     void syncAddFiles(std::unique_ptr<Json::Parser> parser);
     void syncDeleteFiles(std::unique_ptr<Json::Parser> parser);
     void downloadFile(std::unique_ptr<Json::Parser> parser);

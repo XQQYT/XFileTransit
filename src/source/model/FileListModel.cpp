@@ -2,6 +2,7 @@
 #include "model/ModelManager.h"
 #include "control/EventBusManager.h"
 #include "control/GlobalStatusManager.h"
+#include "driver/impl/FileUtility.h"
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
 #include <QtCore/QUrl>
@@ -14,6 +15,10 @@ FileListModel::FileListModel(QObject* parent) :
     //FileInfo默认为LOW
     GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
 
+    EventBusManager::instance().subscribe("/sync/have_expired_file",
+        std::bind(&FileListModel::onHaveExpiredFile,
+            this,
+            std::placeholders::_1));
     EventBusManager::instance().subscribe("/sync/have_addfiles",
         std::bind(&FileListModel::addRemoteFiles,
             this,
@@ -264,6 +269,20 @@ void FileListModel::deleteFile(int index)
     EventBusManager::instance().publish("/sync/send_deletefiles", static_cast<uint32_t>(file_id));
 }
 
+void FileListModel::onHaveExpiredFile(std::vector<std::string> id)
+{
+    for(auto& file_id : id)
+    {
+        uint32_t target_id = std::stoul(file_id);
+        auto file = findFileInfoById(target_id);
+        file.second.file_status = FileStatus::StatusError;
+        QModelIndex model_index = index(file.first, 0);
+        QVector<int> roles = { FileStatusRole };
+
+        emit dataChanged(model_index, model_index, roles);
+    }
+}
+
 void FileListModel::removeFileById(std::vector<std::string> id)
 {
     if (id.empty()) return;
@@ -307,10 +326,19 @@ void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
         uint32_t target_id = std::stoul(id);
         std::cout << "haveDownLoadRequest " << target_id << std::endl;
         auto target_file = findFileInfoById(target_id);
-        target_file.second.file_status = FileStatus::StatusPending;
-        EventBusManager::instance().publish("/file/have_file_to_send", target_id, target_file.second.source_path.toStdString());
+        //文件失效
+        if(!FileSystemUtils::fileIsExist(target_file.second.source_path.toStdString()))
+        {
+            target_file.second.file_status = FileStatus::StatusError;
+            EventBusManager::instance().publish("/sync/send_expired_file", target_id);
+        }
+        else
+        {
+            target_file.second.file_status = FileStatus::StatusPending;
+            EventBusManager::instance().publish("/file/have_file_to_send", target_id, target_file.second.source_path.toStdString());
 
-        target_file.second.file_status = FileStatus::StatusPending;
+            target_file.second.file_status = FileStatus::StatusPending;
+        }
 
         QModelIndex model_index = index(target_file.first, 0);
         QVector<int> roles = { FileStatusRole };

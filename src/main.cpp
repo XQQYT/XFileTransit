@@ -43,6 +43,10 @@ void initRegisterEvents()
     //收到删除文件消息
     EventBusManager::instance().registerEvent("/sync/have_deletefiles");
 
+    EventBusManager::instance().registerEvent("/sync/send_expired_file");
+
+    EventBusManager::instance().registerEvent("/sync/have_expired_file");
+
     EventBusManager::instance().registerEvent("/file/initialize_FileSyncCore");
 
     EventBusManager::instance().registerEvent("/file/close_FileSyncCore");
