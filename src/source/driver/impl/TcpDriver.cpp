@@ -43,6 +43,11 @@ void TcpDriver::initTcpSocket(const std::string& address, const std::string& tcp
 
 void TcpDriver::dealConnectError()
 {
+    if(ignore_one_error)
+    {
+        ignore_one_error =! ignore_one_error;
+        return;
+    }
     if (this->dce_cb)
     {
         int error_code = WSAGetLastError();
@@ -87,6 +92,7 @@ void TcpDriver::dealConnectError()
 
 void TcpDriver::connectTo(std::function<void(bool)> callback)
 {
+    ignore_one_error = false;
     int ret = connect(client_socket, (sockaddr*)&client_tls_addr, sizeof(client_tls_addr));
     if (ret == SOCKET_ERROR) {
         dealConnectError();
@@ -124,6 +130,8 @@ void printHex(const std::vector<uint8_t>& data) {
 
 void TcpDriver::sendMsg(const std::string& msg)
 {
+    if(!connect_status)
+        return;
     NetworkInterface::Flag flag = NetworkInterface::Flag::IS_ENCRYPT;
     std::unique_ptr<NetworkInterface::UserMsg> ready_to_send_msg = std::move(msg_builder->buildMsg(msg, flag));
 
@@ -357,6 +365,6 @@ void TcpDriver::resetConnection()
     client_tcp_addr = {};
     accept_addr = {};
     connect_status = false;
-
+    ignore_one_error = true;
     connection_status = ConnectionStatus::WAITING_TLS;
 }

@@ -56,6 +56,8 @@ private:
     std::thread* tls_listen_thread;
     std::thread* tcp_listen_thread;
 
+    bool ignore_one_error {false};
+
     std::atomic<bool> listen_running{ false };
     std::atomic<bool> recv_running{ false };
     std::atomic<bool> connect_status{ false };
