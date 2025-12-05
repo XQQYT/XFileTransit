@@ -419,7 +419,7 @@ ApplicationWindow  {
                 id: contextMenu
                 MenuItem {
                     text: "打开文件"
-                    enabled: model.fileStatus === file_list_model.StatusCompleted | !model.isRemote
+                    enabled: model.fileStatus === 6 | !model.isRemote
                     onTriggered: {
                         if (model.fileUrl) {
                             Qt.openUrlExternally(model.fileUrl)
@@ -459,12 +459,12 @@ ApplicationWindow  {
                     }
                 }
                 
-                MenuItem {
-                    text: "刷新"
-                    onTriggered: {
-                        // 重新上传文件
-                    }
-                }
+                // MenuItem {
+                //     text: "刷新"
+                //     onTriggered: {
+                //         // 重新上传文件
+                //     }
+                // }
                 
                 MenuSeparator {}
                 
@@ -475,12 +475,12 @@ ApplicationWindow  {
                     }
                 }
                 
-                MenuItem {
-                    text: "属性"
-                    onTriggered: {
-                        // showFileProperties(index)
-                    }
-                }
+                // MenuItem {
+                //     text: "属性"
+                //     onTriggered: {
+                //         // showFileProperties(index)
+                //     }
+                // }
             }
             
             // 文件项的拖拽源
