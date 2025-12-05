@@ -446,3 +446,15 @@ void FileListModel::cleanTmpFiles()
 
     dir.removeRecursively();
 }
+
+bool FileListModel::isTransferring()
+{
+    for (auto& file : file_list)
+    {
+        if (file.file_status == FileStatus::StatusDownloading || file.file_status == FileStatus::StatusUploading)
+        {
+            return true;
+        }
+    }
+    return false;
+}

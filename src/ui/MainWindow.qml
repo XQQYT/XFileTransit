@@ -160,10 +160,6 @@ ApplicationWindow  {
         }
     }
 
-    onClosing: function(closeEvent) {
-        closeEvent.accepted = false
-        root.hide()
-    }
 
     Rectangle {
         id: mainBackground
@@ -1158,7 +1154,21 @@ ApplicationWindow  {
                 id: closeMouseArea
                 anchors.fill: parent
                 hoverEnabled: true
-                onClicked: Qt.quit()
+                onClicked: function() {
+                // 检查是否有正在传输的文件
+                if (file_list_model.isTransferring()) {
+                    if (generalDialogLoader.status === Loader.Ready) {
+                        generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                        generalDialogLoader.item.text = "有文件正在传输中"
+                        generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                        
+                        generalDialogLoader.item.show()
+                        generalDialogLoader.item.requestActivate()
+                    }
+                } else {
+                    Qt.quit()
+                }
+            }
                 onEntered: {
                     mouseIsInWindow = true
                 }
@@ -1180,7 +1190,7 @@ ApplicationWindow  {
         radius: 2
         visible: !root.expanded
     }
-    
+
     Component.onDestruction: {
         file_list_model.cleanTmpFiles()
     }
