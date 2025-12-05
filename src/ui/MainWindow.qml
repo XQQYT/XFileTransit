@@ -68,6 +68,9 @@ ApplicationWindow  {
         enabled: connectRequestLoader.status === Loader.Ready
         
         function onHaveConnectError(message) {
+            if (deviceWindowLoader.status === Loader.Ready) {
+                deviceWindowLoader.item.closeLoadingDialog()
+            }
             if (generalDialogLoader.status === Loader.Ready) {
                 generalDialogLoader.item.iconType = generalDialogLoader.item.error
                 generalDialogLoader.item.text = message

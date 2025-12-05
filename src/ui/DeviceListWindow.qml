@@ -54,6 +54,10 @@ Window {
         raise()
         requestActivate()
     }
+
+    function closeLoadingDialog(){
+        load_dialog.close()
+    }
     
     // 处理扫描完成逻辑
     function handleScanComplete() {
@@ -102,6 +106,33 @@ Window {
             color: "transparent"
             border.color: "#f0f0f0"
             border.width: 1
+            // 鼠标区域用于拖动
+             MouseArea {
+                id: windowDragArea
+                anchors.fill: parent
+                property point clickPos: "0,0"
+                    
+                onPressed: function(mouse) {
+                    clickPos = Qt.point(mouse.x, mouse.y)
+                }
+                    
+                onPositionChanged: function(mouse) {
+                    if (pressed) {
+                        var delta = Qt.point(mouse.x - clickPos.x, mouse.y - clickPos.y)
+                        deviceListWindow.x += delta.x
+                        deviceListWindow.y += delta.y
+                    }
+                }
+                    
+                // 双击最大化/还原
+                onDoubleClicked:{
+                    if (deviceListWindow.visibility === Window.Windowed) {
+                        deviceListWindow.showMaximized()
+                    } else {
+                        deviceListWindow.showNormal()
+                    }
+                }
+            }
         }
         
         // 主布局区域
@@ -109,14 +140,14 @@ Window {
             id: mainContainer
             anchors.fill: parent
             anchors.margins: 20
-            
+
             // 标题栏
             Row {
                 id: titleRow
                 width: parent.width
                 height: 44
                 spacing: 12
-                
+
                 // 标题图标
                 Rectangle {
                     id: titleIcon
