@@ -10,7 +10,8 @@ public:
         std::function<void(std::unique_ptr<NetworkInterface::UserMsg> parsed_msg)> callback,
         std::function<void()> dcc_cb,
         std::function<void(const NetworkInterface::RecvError error)> dre_cb,
-        std::shared_ptr<SecurityInterface> security_instance) override;
+        std::shared_ptr<SecurityInterface> security_instance,
+        bool& running) override;
 private:
     void dealRecvError(std::function<void()> dcc_cb,
         std::function<void(const NetworkInterface::RecvError error)> dre_cb);

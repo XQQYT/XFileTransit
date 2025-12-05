@@ -261,7 +261,7 @@ void FileListModel::syncCurrentFiles()
         files_to_send.push_back(std::to_string(cur_file.id));
         files_to_send.push_back(std::to_string(cur_file.is_folder));
         files_to_send.push_back(cur_file.file_name.toUtf8().constData());
-        files_to_send.push_back(cur_file.format_file_size.toStdString());
+        files_to_send.push_back(std::to_string(cur_file.file_size));
     }
     if (GlobalStatusManager::getInstance().getConnectStatus() && !files_to_send.empty())
     {

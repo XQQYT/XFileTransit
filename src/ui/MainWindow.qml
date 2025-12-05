@@ -470,7 +470,19 @@ ApplicationWindow  {
                 MenuItem {
                     text: "删除"
                     onTriggered: {
-                        file_list_model.removeFile(index)
+                        // 检查是否正在传输
+                        if (model.fileStatus === 3 || model.fileStatus === 4) {
+                            if (generalDialogLoader.status === Loader.Ready) {
+                                generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                                generalDialogLoader.item.text = "文件正在传输中"
+                                generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                                
+                                generalDialogLoader.item.show()
+                                generalDialogLoader.item.requestActivate()
+                            }
+                        } else {
+                            file_list_model.removeFile(index)
+                        }
                     }
                 }
                 
@@ -821,7 +833,19 @@ ApplicationWindow  {
                     cursorShape: Qt.PointingHandCursor
                     
                     onClicked: {
-                        file_list_model.removeFile(index)
+                        // 检查是否正在传输
+                        if (model.fileStatus === 3 || model.fileStatus === 4) {
+                            if (generalDialogLoader.status === Loader.Ready) {
+                                generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                                generalDialogLoader.item.text = "文件正在传输中"
+                                generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                                
+                                generalDialogLoader.item.show()
+                                generalDialogLoader.item.requestActivate()
+                            }
+                        } else {
+                            file_list_model.removeFile(index)
+                        }
                     }
                     
                     onEntered: {

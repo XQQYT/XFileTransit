@@ -179,6 +179,8 @@ SOCKET TcpDriver::createListenSocket(const std::string& address, const std::stri
 void TcpDriver::startTlsListen(const std::string& address, const std::string& tls_port, std::function<bool(bool)> tls_callback)
 {
     //初始化tls监听
+    tls_wakeup_event = CreateEvent(NULL, FALSE, FALSE, NULL);
+
     tls_listen_socket = createListenSocket(address, tls_port);
 
     tls_listen_thread = new std::thread([this, cb = std::move(tls_callback)]()
@@ -192,8 +194,12 @@ void TcpDriver::startTlsListen(const std::string& address, const std::string& tl
                 //只有在等待TLS请求时才接收
                 if (this->connection_status == ConnectionStatus::WAITING_TLS)
                 {
-                    int result = WSAPoll(fds, 1, 100);
+                    int result = WSAPoll(fds, 1, 50);
 
+                    // 检查事件信号
+                    if (tcp_wakeup_event && WaitForSingleObject(tcp_wakeup_event, 0) == WAIT_OBJECT_0) {
+                        break;
+                    }
                     if (result > 0 && (fds[0].revents & POLLRDNORM))
                     {
                         int accept_addr_len = sizeof(accept_addr);
@@ -232,12 +238,16 @@ void TcpDriver::startTlsListen(const std::string& address, const std::string& tl
                 }
             }
 
-            closesocket(tls_listen_socket); });
+            closesocket(tls_listen_socket);
+            std::cout << "tls thread exited" << std::endl;
+        });
 }
 
 void TcpDriver::startTcpListen(const std::string& address, const std::string& tcp_port, std::function<bool(bool)> tcp_callback)
 {
     //初始化tcp监听
+    tcp_wakeup_event = CreateEvent(NULL, FALSE, FALSE, NULL);
+
     tcp_listen_socket = createListenSocket(address, tcp_port);
 
     tcp_listen_thread = new std::thread([this, cb = std::move(tcp_callback)]()
@@ -252,6 +262,11 @@ void TcpDriver::startTcpListen(const std::string& address, const std::string& tc
                 if (this->connection_status == ConnectionStatus::TLS_CONNECTED)
                 {
                     int result = WSAPoll(fds, 1, 100);
+
+                    // 检查事件信号
+                    if (tcp_wakeup_event && WaitForSingleObject(tcp_wakeup_event, 0) == WAIT_OBJECT_0) {
+                        break;
+                    }
 
                     if (result > 0 && (fds[0].revents & POLLRDNORM)) {
                         int accept_addr_len = sizeof(accept_addr);
@@ -287,7 +302,9 @@ void TcpDriver::startTcpListen(const std::string& address, const std::string& tc
                 }
             }
 
-            closesocket(tcp_listen_socket); });
+            closesocket(tcp_listen_socket);
+            std::cout << "tcp thread exited" << std::endl;
+        });
 }
 
 void TcpDriver::startListen(const std::string& address, const std::string& tls_port,
@@ -307,26 +324,35 @@ void TcpDriver::recvMsg(std::function<void(std::unique_ptr<UserMsg> parsed_msg)>
     {
         throw std::runtime_error("connect status is false");
     }
+
+    recv_wakeup_event = CreateEvent(NULL, TRUE, FALSE, NULL);
+
     recv_running = true;
     receive_thread = new std::thread([this, callback = std::move(callback)]()
         {
-            while (recv_running)
+            while (this->recv_running)
             {
-                msg_parser->delegateRecv(client_socket, callback, this->dcc_cb, this->dre_cb, security_instance);
+                if (recv_wakeup_event && WaitForSingleObject(recv_wakeup_event, 0) == WAIT_OBJECT_0) {
+                    break;
+                }
+                msg_parser->delegateRecv(client_socket, callback, this->dcc_cb, this->dre_cb, security_instance, recv_running);
             }
+            std::cout << "Receive thread exiting" << std::endl;
         });
 }
 void TcpDriver::closeSocket()
 {
     listen_running = false;
     recv_running = false;
-    if (connect_status)
-    {
-        closesocket(client_socket);
+
+    // 触发事件唤醒线程
+    if (tls_wakeup_event) {
+        SetEvent(tls_wakeup_event);
     }
-    closesocket(tls_listen_socket);
-    closesocket(tcp_listen_socket);
-    WSACleanup();
+    if (tcp_wakeup_event) {
+        SetEvent(tcp_wakeup_event);
+    }
+
     if (tls_listen_thread)
     {
         if (tls_listen_thread->joinable())
@@ -345,6 +371,12 @@ void TcpDriver::closeSocket()
             receive_thread->join();
         delete receive_thread;
     }
+    if (connect_status)
+    {
+        closesocket(client_socket);
+    }
+    closesocket(tls_listen_socket);
+    closesocket(tcp_listen_socket);
     WSACleanup();
 }
 

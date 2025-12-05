@@ -44,6 +44,10 @@ private:
     SOCKET tls_listen_socket = INVALID_SOCKET;
     SOCKET tcp_listen_socket = INVALID_SOCKET;
 
+    HANDLE tls_wakeup_event;
+    HANDLE tcp_wakeup_event;
+    HANDLE recv_wakeup_event;
+
     std::string candidate_ip;
     std::unique_ptr<OuterMsgBuilderInterface> msg_builder;
     std::unique_ptr<OuterMsgParserInterface> msg_parser;
@@ -56,10 +60,10 @@ private:
     std::thread* tls_listen_thread;
     std::thread* tcp_listen_thread;
 
-    bool ignore_one_error {false};
+    bool ignore_one_error{ false };
 
     std::atomic<bool> listen_running{ false };
-    std::atomic<bool> recv_running{ false };
+    bool recv_running{ false };
     std::atomic<bool> connect_status{ false };
 };
 

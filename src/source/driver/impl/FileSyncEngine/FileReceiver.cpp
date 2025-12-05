@@ -62,7 +62,7 @@ void FileReceiver::start(std::function<void(SOCKET)> accept_cb,
                                 outer_parser->delegateRecv(accepted_socket,
                                     [accepted_socket, msg_cb](std::unique_ptr<NetworkInterface::UserMsg> parsed_msg) {
                                         msg_cb(accepted_socket, std::move(parsed_msg));
-                                    }, nullptr, nullptr, security_instance);
+                                    }, nullptr, nullptr, security_instance, running);
                             }
                             });
                     }
