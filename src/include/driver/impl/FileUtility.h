@@ -179,14 +179,25 @@ public:
     }
 
     static std::string getExecutableDirectory() {
-        char buffer[MAX_PATH];
-        DWORD length = GetModuleFileNameA(nullptr, buffer, MAX_PATH);
-        fs::path exePath(buffer);
-                fs::path exeDir = exePath.parent_path();
-                std::string dir = exeDir.generic_string();
-                if (!dir.empty() && dir.back() != '/') {
+        wchar_t buffer[MAX_PATH];
+        DWORD length = GetModuleFileNameW(nullptr, buffer, MAX_PATH);
+        if (length == 0 || length >= MAX_PATH) {
+            return "";
+        }
+
+        std::filesystem::path exePath(buffer);
+        std::filesystem::path exeDir = exePath.parent_path();
+
+        std::string dir = exeDir.u8string();
+
+        // 将反斜杠转换为正斜杠
+        std::replace(dir.begin(), dir.end(), '\\', '/');
+
+        // 确保以斜杠结尾
+        if (!dir.empty() && dir.back() != '/') {
             dir += '/';
         }
+
         return dir;
     }
     // 深度优先搜索获取所有叶子文件路径
