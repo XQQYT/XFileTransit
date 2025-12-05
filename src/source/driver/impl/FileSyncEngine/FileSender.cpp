@@ -67,21 +67,31 @@ void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::stri
                 auto& [id, file_path] = pending_file.value();
                 file_msg_builder->setFileInfo(id, file_path);
                 FileMsgBuilderInterface::FileMsgBuilderResult msg;
+                start_time_point = std::chrono::steady_clock::now();
                 do {
                     msg = file_msg_builder->getStream();
                     if (msg.data) {
+                        bytes_sent += msg.data->size();
                         sendMsg(std::move(*msg.data), msg.is_binary);
                     }
-                    if (progress_count >= 30)
+                    if (progress_count >= 40)
                     {
-                        EventBusManager::instance().publish("/file/upload_progress", id, msg.progress, false);
+                        end_time_point = std::chrono::steady_clock::now();
+                        auto elapsed_us = std::chrono::duration_cast<std::chrono::microseconds>(end_time_point - start_time_point);
+                        uint32_t speed_bps = 0;
+                        if (elapsed_us.count() > 0) {
+                            uint64_t bps = (static_cast<uint64_t>(bytes_sent) * 1000000ULL) / elapsed_us.count();
+                            speed_bps = static_cast<uint32_t>(bps);
+                            bytes_sent = 0;
+                        }
+                        start_time_point = std::chrono::steady_clock::now();
+                        EventBusManager::instance().publish("/file/upload_progress", id, msg.progress, speed_bps, false);
                         progress_count = 0;
                     }
                     ++progress_count;
                 } while (msg.data);
-                EventBusManager::instance().publish("/file/upload_progress", id, static_cast <uint8_t>(100), true);
+                EventBusManager::instance().publish("/file/upload_progress", id, static_cast <uint8_t>(100), static_cast<uint32_t>(0), true);
                 progress_count = 0;
-                std::cout << "sendmsg done" << static_cast<int>(id) << std::endl;
             }
             else
             {

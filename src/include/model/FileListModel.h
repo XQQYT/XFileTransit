@@ -37,7 +37,8 @@ public:
     FileIconRole,
     FileStatusRole,
     isRemoteRole,
-    FileProgressRole
+    FileProgressRole,
+    FileSpeedRole
   };
 
   explicit FileListModel(QObject* parent = nullptr);
@@ -67,11 +68,12 @@ private:
   void onHaveExpiredFile(std::vector<std::string> id);
   void deleteFile(int index);
   void removeFileById(std::vector<std::string> id);
-  void onUploadFileProgress(uint32_t id, uint8_t progress, bool is_end);
-  void onDownLoadProgress(uint32_t id, uint8_t progress, bool is_end);
+  void onUploadFileProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end);
+  void onDownLoadProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end);
   std::pair<int, FileInfo&> findFileInfoById(uint32_t id);
 private:
   QList<FileInfo> file_list;
+  QHash<uint32_t, QVector<uint32_t>> speed_history;
 };
 
 struct FileInfo
@@ -88,6 +90,7 @@ public:
   QUrl icon;
   uint8_t file_status;
   quint8 progress;
+  quint32 speed;
 
 public:
   FileInfo() = default;

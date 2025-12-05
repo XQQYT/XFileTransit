@@ -36,13 +36,15 @@ FileListModel::FileListModel(QObject* parent) :
             this,
             std::placeholders::_1,
             std::placeholders::_2,
-            std::placeholders::_3));
+            std::placeholders::_3,
+            std::placeholders::_4));
     EventBusManager::instance().subscribe("/file/download_progress",
         std::bind(&FileListModel::onDownLoadProgress,
             this,
             std::placeholders::_1,
             std::placeholders::_2,
-            std::placeholders::_3));
+            std::placeholders::_3,
+            std::placeholders::_4));
 }
 
 FileListModel::~FileListModel()
@@ -80,6 +82,8 @@ QVariant FileListModel::data(const QModelIndex& index, int role) const
         return file.is_remote_file;
     case FileProgressRole:
         return file.progress;
+    case FileSpeedRole:
+        return file.speed;
     default:
         return QVariant();
     }
@@ -96,6 +100,7 @@ QHash<int, QByteArray> FileListModel::roleNames() const
         {FileStatusRole, "fileStatus"},
         {isRemoteRole, "isRemote"},
         {FileProgressRole, "fileProgress"},
+        {FileSpeedRole, "fileSpeed"},
         {Qt::ToolTipRole, "toolTip"}
     };
     return roles;
@@ -183,7 +188,7 @@ void FileListModel::removeFile(int index)
     if (index < 0 || index >= file_list.size())
         return;
 
-    if(GlobalStatusManager::getInstance().getConnectStatus())
+    if (GlobalStatusManager::getInstance().getConnectStatus())
     {
         deleteFile(index);
     }
@@ -216,9 +221,9 @@ void FileListModel::onConnectionClosed()
 void FileListModel::removeAllRemoteFiles()
 {
     beginResetModel();
-    for(auto it = file_list.begin(); it < file_list.end(); it++)
+    for (auto it = file_list.begin(); it < file_list.end(); it++)
     {
-        if(it->is_remote_file)
+        if (it->is_remote_file)
         {
             file_list.erase(it);
             continue;
@@ -271,7 +276,7 @@ void FileListModel::deleteFile(int index)
 
 void FileListModel::onHaveExpiredFile(std::vector<std::string> id)
 {
-    for(auto& file_id : id)
+    for (auto& file_id : id)
     {
         uint32_t target_id = std::stoul(file_id);
         auto file = findFileInfoById(target_id);
@@ -327,7 +332,7 @@ void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
         std::cout << "haveDownLoadRequest " << target_id << std::endl;
         auto target_file = findFileInfoById(target_id);
         //文件失效
-        if(!FileSystemUtils::fileIsExist(target_file.second.source_path.toStdString()))
+        if (!FileSystemUtils::fileIsExist(target_file.second.source_path.toStdString()))
         {
             target_file.second.file_status = FileStatus::StatusError;
             EventBusManager::instance().publish("/sync/send_expired_file", target_id);
@@ -347,24 +352,76 @@ void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
     }
 }
 
-void FileListModel::onUploadFileProgress(uint32_t id, uint8_t progress, bool is_end)
+void FileListModel::onUploadFileProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end)
 {
     auto target_file = findFileInfoById(id);
+    if (target_file.first == -1) return;
 
+    // 更新状态和进度
     target_file.second.file_status = is_end ? FileStatus::StatusUploadCompleted : FileStatus::StatusUploading;
-    target_file.second.progress = static_cast<int>(progress);
+    target_file.second.progress = static_cast<quint8>(progress);
+
+    // 使用移动平均计算速度
+    if (!is_end) {
+        if (!speed_history.contains(id)) {
+            speed_history[id] = QVector<uint32_t>();
+        }
+        auto& history = speed_history[id];
+        history.append(speed);
+        // 保持30个记录
+        const int MAX_HISTORY_SIZE = 30;
+        if (history.size() > MAX_HISTORY_SIZE) {
+            history.removeFirst();
+        }
+
+        // 计算平均值
+        uint64_t sum = 0;
+        for (auto s : history) {
+            sum += s;
+        }
+        target_file.second.speed = static_cast<quint32>(sum / history.size());
+    }
+    else {
+        target_file.second.speed = 0;
+        speed_history.remove(id);
+    }
 
     QModelIndex model_index = index(target_file.first, 0);
-    QVector<int> roles = { FileStatusRole, FileProgressRole };
+    QVector<int> roles = { FileStatusRole, FileProgressRole, FileSpeedRole };
     emit dataChanged(model_index, model_index, roles);
 }
 
-void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, bool is_end)
+void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end)
 {
 
     auto target_file = findFileInfoById(id);
     target_file.second.file_status = is_end ? FileStatus::StatusDownloadCompleted : FileStatus::StatusDownloading;
     target_file.second.progress = static_cast<int>(progress);
+
+    // 使用移动平均计算速度
+    if (!is_end) {
+        if (!speed_history.contains(id)) {
+            speed_history[id] = QVector<uint32_t>();
+        }
+        auto& history = speed_history[id];
+        history.append(speed);
+        // 保持30个记录
+        const int MAX_HISTORY_SIZE = 30;
+        if (history.size() > MAX_HISTORY_SIZE) {
+            history.removeFirst();
+        }
+
+        // 计算平均值
+        uint64_t sum = 0;
+        for (auto s : history) {
+            sum += s;
+        }
+        target_file.second.speed = static_cast<quint32>(sum / history.size());
+    }
+    else {
+        target_file.second.speed = 0;
+        speed_history.remove(id);
+    }
 
     QModelIndex model_index = index(target_file.first, 0);
     QVector<int> roles = { FileStatusRole, FileProgressRole };
@@ -375,10 +432,10 @@ void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, bool is_en
 void FileListModel::cleanTmpFiles()
 {
     QDir dir(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir));
-    
+
     if (!dir.exists()) {
         return;
     }
-    
+
     dir.removeRecursively();
 }

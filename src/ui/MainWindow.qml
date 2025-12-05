@@ -535,7 +535,7 @@ ApplicationWindow  {
 
             Column {
                 anchors.centerIn: parent
-                width: parent.width - 20
+                width: parent.width - 5
                 spacing: 1
                 
                 // 图标背景
@@ -551,8 +551,8 @@ ApplicationWindow  {
                     anchors.topMargin: 4
 
                     Image {
-                        width: 28
-                        height: 28
+                        width: 32
+                        height: 32
                         source: model.fileIcon
                         fillMode: Image.PreserveAspectFit
                         anchors.centerIn: parent
@@ -620,7 +620,7 @@ ApplicationWindow  {
                             // 进度条
                             Rectangle {
                                 id: progressBarBg
-                                width: parent.width - 18
+                                width: parent.width - 26
                                 height: 4
                                 radius: 2
                                 color: "#E2E8F0"
@@ -637,19 +637,39 @@ ApplicationWindow  {
                             }
                             
                             // 进度百分比
+                            // Text {
+                            //     id: progressText
+                            //     text: qsTr("%1%").arg(model.fileProgress)
+                            //     font.pixelSize: 9
+                            //     font.bold: true
+                            //     color: textSecondary
+                            //     anchors {
+                            //         right: parent.right
+                            //         verticalCenter: parent.verticalCenter
+                            //     }
+                            //     visible: true
+                            // }
+                            // 传输速率文本
                             Text {
-                                id: progressText
-                                text: qsTr("%1%").arg(model.fileProgress)
-                                font.pixelSize: 9
-                                font.bold: true
+                                id: speedText
+                                    text: {
+                                        if (model.fileStatus === 3 || model.fileStatus === 4) {
+                                            if (model.fileSpeed !== undefined) {
+                                                return formatSpeed(model.fileSpeed)
+                                            }
+                                        }
+                                        return ""
+                                    }
+                                font.pixelSize: 8
                                 color: textSecondary
                                 anchors {
                                     right: parent.right
                                     verticalCenter: parent.verticalCenter
+                                    left: progressBarBg.right
+                                    leftMargin: 2
                                 }
-                                visible: (model.fileStatus === 3 || model.fileStatus === 4) && model.fileProgress != 100
+                                visible: text !== "" && (model.fileStatus === 3 || model.fileStatus === 4)
                             }
-                            
                             Text {
                                 id: normalStatusText
                                 text: {
@@ -1168,5 +1188,21 @@ ApplicationWindow  {
     function resetStatus() {
         isConnected = false
         current_device = ""
+    }
+    // 格式化速度显示
+    function formatSpeed(bytesPerSecond) {
+        if (bytesPerSecond <= 0) return "0 B/s"
+        
+        const units = ['B/s', 'KB/s', 'MB/s', 'GB/s']
+        let speed = bytesPerSecond
+        let unitIndex = 0
+        
+        while (speed >= 1024 && unitIndex < units.length - 1) {
+            speed /= 1024
+            unitIndex++
+        }
+        
+        // 使用 toFixed(0) 只保留整数，去掉小数部分
+        return speed.toFixed(0) + ' ' + units[unitIndex]
     }
 }

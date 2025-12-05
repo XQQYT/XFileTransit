@@ -50,7 +50,7 @@ accept连接-回调，有新连接-分配消息处理器上下文-接收消息-�
 class FileSyncEngineInterface
 {
 public:
-  inline static const uint32_t file_block_size = 40960;
+  inline static const uint32_t file_block_size = 128 * 1024;
 public:
   struct FileBlock {
     uint32_t id;           // 与头部id对应

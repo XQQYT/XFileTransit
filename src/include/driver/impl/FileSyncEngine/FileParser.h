@@ -5,6 +5,7 @@
 #include "driver/interface/JsonFactoryInterface.h"
 #include <map>
 #include <fstream>
+#include <chrono>
 
 class FileParser : public FileParserInterface
 {
@@ -28,6 +29,10 @@ private:
     bool is_folder{ false };
     uint8_t progress_count{ 0 };
     std::string file_name;
+
+    uint32_t bytes_received{ 0 };
+    std::chrono::steady_clock::time_point start_time_point;
+    std::chrono::steady_clock::time_point end_time_point;
 };
 
 #endif

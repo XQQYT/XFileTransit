@@ -38,9 +38,20 @@ void FileParser::parse(std::unique_ptr<NetworkInterface::UserMsg> msg)
         {
             file_stream->write(reinterpret_cast<const char*>(msg->data.data()) + 4, msg->data.size() - 4);
             received_size += msg->data.size() - 4;
-            if (progress_count >= 30)
+            bytes_received += msg->data.size() - 4;
+            if (progress_count >= 40)
             {
-                EventBusManager::instance().publish("/file/download_progress", current_file_id, calculateProgress(), false);
+                end_time_point = std::chrono::steady_clock::now();
+                auto elapsed_us = std::chrono::duration_cast<std::chrono::microseconds>(end_time_point - start_time_point);
+                uint32_t speed_bps = 0;
+                if (elapsed_us.count() > 0) {
+                    uint64_t bps = (static_cast<uint64_t>(bytes_received) * 1000000ULL) / elapsed_us.count();
+                    speed_bps = static_cast<uint32_t>(bps);
+                    bytes_received = 0;
+                }
+                start_time_point = std::chrono::steady_clock::now();
+                EventBusManager::instance().publish("/file/download_progress", current_file_id,
+                    calculateProgress(), static_cast<uint32_t>(speed_bps), false);
                 progress_count = 0;
             }
             ++progress_count;
@@ -108,6 +119,7 @@ void FileParser::onDirHeader(std::unique_ptr<Json::Parser> content_parser)
     }
     current_file_id = std::stoul(content_parser->getValue("id"));
     is_folder = true;
+    start_time_point = std::chrono::steady_clock::now();
 }
 
 void FileParser::onDirItemHeader(std::unique_ptr<Json::Parser> content_parser)
@@ -124,7 +136,8 @@ void FileParser::onDirItemHeader(std::unique_ptr<Json::Parser> content_parser)
 
 void FileParser::onFileEnd(std::unique_ptr<Json::Parser> content_parser)
 {
-    EventBusManager::instance().publish("/file/download_progress", current_file_id, static_cast<uint8_t>(100), true);
+    EventBusManager::instance().publish("/file/download_progress", current_file_id,
+        static_cast <uint8_t>(100), static_cast<uint32_t>(0), true);
     received_size = 0;
     progress_count = 0;
     file_stream->flush();

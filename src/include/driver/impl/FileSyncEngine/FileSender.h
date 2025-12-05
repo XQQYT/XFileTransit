@@ -2,6 +2,7 @@
 #include "driver/interface/FileSyncEngine/FileMsgBuilderInterface.h"
 #include <mutex>
 #include <thread>
+#include <chrono>
 
 class FileSender : public FileSenderInterface
 {
@@ -21,4 +22,8 @@ private:
     std::mutex mtx;
     std::thread* send_thread{ nullptr };
     std::unique_ptr<FileMsgBuilderInterface> file_msg_builder;
+
+    uint32_t bytes_sent{ 0 };
+    std::chrono::steady_clock::time_point start_time_point;
+    std::chrono::steady_clock::time_point end_time_point;
 };
