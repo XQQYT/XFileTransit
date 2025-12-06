@@ -6,8 +6,9 @@ Popup {
     id: loadingDialog
     width: 280
     height: 180
-    modal: true
+    modal: false
     dim: true
+    focus: false
     closePolicy: Popup.NoAutoClose
     
     // 公共接口
