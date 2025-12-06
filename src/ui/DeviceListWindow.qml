@@ -629,7 +629,7 @@ Window {
 
                         // 定义属性并添加默认值
                         property string deviceName: model.deviceName || "未知设备"
-                        property string deviceIp: model.deviceIP || "IP未知"  // 注意：这里是 deviceIP 不是 deviceIp
+                        property string deviceIp: model.deviceIP || "IP未知"
                         property string deviceType: model.deviceType || "未知"
 
                         RowLayout {

@@ -6,6 +6,7 @@
     <file>../ui/LoadingDialog.qml</file>
     <file>../ui/ConnectRequestDialog.qml</file>
     <file>../ui/GeneralDialog.qml</file>
+    <file>../ui/NetworkInfoDialog.qml</file>
   </qresource>
   <qresource prefix="/file_icon">
     <file>FileIcons/unknow_file.svg</file>

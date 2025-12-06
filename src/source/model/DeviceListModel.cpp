@@ -1,10 +1,11 @@
 #include "model/DeviceListModel.h"
 #include "control/EventBusManager.h"
+#include "model/ICMPScanner.h"
 
 DeviceListModel::DeviceListModel(QObject* parent) :
     QAbstractListModel(parent)
 {
-    QObject::connect(&icmp_scanner, &ICMPScanner::scanFinished, [this]() {
+    QObject::connect(&ICMPScanner::getInstance(), &ICMPScanner::scanFinished, [this]() {
         emit DeviceListModel::scanFinished();
         scanning = false;
         emit scanningChanged();
@@ -14,8 +15,8 @@ DeviceListModel::DeviceListModel(QObject* parent) :
             emit connectResult(ret, QString::fromStdString(di));
             }, Qt::QueuedConnection);
         });
-    QObject::connect(&icmp_scanner, &ICMPScanner::foundOne, this, &DeviceListModel::onFoundOne);
-    QObject::connect(&icmp_scanner, &ICMPScanner::scanProgress, this, [=](int progress) {
+    QObject::connect(&ICMPScanner::getInstance(), &ICMPScanner::foundOne, this, &DeviceListModel::onFoundOne);
+    QObject::connect(&ICMPScanner::getInstance(), &ICMPScanner::scanProgress, this, [=](int progress) {
         emit scanProgress(progress);
         });
 }
@@ -57,14 +58,15 @@ QHash<int, QByteArray> DeviceListModel::roleNames() const
 }
 void DeviceListModel::startScan()
 {
+    qDebug() << ICMPScanner::getInstance().getLocalNetworks();
     clearAll();
-    icmp_scanner.startScan();
+    ICMPScanner::getInstance().startScan();
     scanning = true;
     emit scanningChanged();
 }
 void DeviceListModel::stopScan()
 {
-    icmp_scanner.stopScan();
+    ICMPScanner::getInstance().stopScan();
     scanning = false;
     emit scanningChanged();
 }
@@ -106,16 +108,16 @@ void DeviceListModel::connectToTarget(const int index)
         return;
     auto device = device_list.at(index);
     EventBusManager::instance().publish("/network/send_connect_request",
-        icmp_scanner.getLocalComputerName().toStdString(),
-        icmp_scanner.findMatchingLocalIp(device.device_ip).toStdString(),
+        ICMPScanner::getInstance().getLocalComputerName().toStdString(),
+        ICMPScanner::getInstance().findMatchingLocalIp(device.device_ip).toStdString(),
         device.device_ip.toStdString());
 }
 
 void DeviceListModel::connectToTarget(const QString ip)
 {
     EventBusManager::instance().publish("/network/send_connect_request",
-        icmp_scanner.getLocalComputerName().toStdString(),
-        icmp_scanner.findMatchingLocalIp(ip).toStdString(),
+        ICMPScanner::getInstance().getLocalComputerName().toStdString(),
+        ICMPScanner::getInstance().findMatchingLocalIp(ip).toStdString(),
         ip.toStdString());
 }
 
@@ -126,5 +128,5 @@ void DeviceListModel::resetConnection()
 
 bool DeviceListModel::isLocalIp(const QString ip)
 {
-    return icmp_scanner.isLocalAddress(ip);
+    return ICMPScanner::getInstance().isLocalAddress(ip);
 }

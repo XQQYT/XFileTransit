@@ -57,7 +57,10 @@ QVector<DeviceInfo> ICMPScanner::getScanResults() const
 
 QVector<QString> ICMPScanner::getLocalNetworks()
 {
-    QVector<QString> networks;
+    if (!networks.empty())
+    {
+        return networks;
+    }
 
     foreach(const QNetworkInterface & netinterface, QNetworkInterface::allInterfaces()) {
         // 只启用且非回环的接口
@@ -198,7 +201,7 @@ void ICMPScanner::scanWorker()
         // 随机延迟 [0, 10] 毫秒
         int randomDelay = QRandomGenerator::global()->bounded(0, 11);
         QThread::msleep(randomDelay);
-        
+
         QString ip;
 
         {

@@ -4,7 +4,6 @@
 #include <QtCore/QVector>
 #include <QtCore/QString>
 #include <QtCore/QAbstractListModel>
-#include "model/ICMPScanner.h"
 
 struct DeviceInfo
 {
@@ -51,7 +50,6 @@ private:
     void clearAll();
     bool scanning;
     QVector<DeviceInfo> device_list;
-    ICMPScanner icmp_scanner;
 };
 
 #endif

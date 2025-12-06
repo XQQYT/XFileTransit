@@ -88,6 +88,7 @@ int main(int argc, char* argv[])
 
     // 创建模型实例
     auto file_list_model = ModelManager::getInstance().getFileListModel();
+    auto net_list_model = ModelManager::getInstance().getNetworkInfoModel();
     auto device_list_model = ModelManager::getInstance().getDeviceModel();
     auto connection_manager = ModelManager::getInstance().getConnectionManager();
     file_list_model->setParent(&engine);
@@ -95,6 +96,7 @@ int main(int argc, char* argv[])
 
     // 注册到 QML 上下文
     engine.rootContext()->setContextProperty("file_list_model", file_list_model.get());
+    engine.rootContext()->setContextProperty("net_info_list_model", net_list_model.get());
     engine.rootContext()->setContextProperty("device_list_model", device_list_model.get());
     engine.rootContext()->setContextProperty("connection_manager", connection_manager.get());
 

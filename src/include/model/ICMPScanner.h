@@ -23,7 +23,12 @@ class ICMPScanner : public QThread
     Q_OBJECT
 
 public:
-    explicit ICMPScanner(QObject* parent = nullptr);
+    static ICMPScanner& getInstance()
+    {
+        static ICMPScanner instance;
+        return instance;
+    }
+
     ~ICMPScanner();
 
     // 设置扫描的网络段 (如: "192.168.1.0/24" 或 "192.168.1.1-100")
@@ -58,6 +63,18 @@ public:
     {
         return local_ip.contains(ip);
     }
+    // 获取本地网络接口信息
+    QVector<QString> getLocalNetworks();
+
+    QString getIpByCidr(const QString& cidr)
+    {
+        auto i = cidr_ip.find(cidr);
+        if (i != cidr_ip.end())
+        {
+            return *i;
+        }
+        return "unknow";
+    }
 
 signals:
     // 扫描进度信号 (0-100)
@@ -75,10 +92,10 @@ protected:
     void run() override;
 
 private:
-    // 获取本地网络接口信息
-    QVector<QString> getLocalNetworks();
 
-    // ICMP探测接口 - 需要您实现这个函数
+    explicit ICMPScanner(QObject* parent = nullptr);
+
+    // ICMP探测接口
     bool pingHost(const QString& ipAddress, QString& hostType);
 
     // 解析网络范围
@@ -105,6 +122,7 @@ private:
 
     QSet<QString> local_ip;
     QMap<QString, QString> cidr_ip;
+    QVector<QString> networks;
 };
 
 #endif // ICMPSCANNER_H

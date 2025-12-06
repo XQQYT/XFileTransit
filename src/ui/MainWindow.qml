@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import Qt.labs.platform
 import QtQuick.Controls
+import QtQuick.Layouts
 
 ApplicationWindow  {
     id: root
@@ -60,6 +61,15 @@ ApplicationWindow  {
         
         onLoaded: {
             item.connection_model = connection_manager
+        }
+    }
+
+    Loader {
+        id: networkInfoDialogLoader  
+        source: "qrc:/qml/ui/NetworkInfoDialog.qml"
+        
+        onLoaded: {
+            item.networkInfoModel = net_info_list_model
         }
     }
 
@@ -917,7 +927,7 @@ ApplicationWindow  {
         }
         
         // 连接状态容器 - 在标题的右侧
-        Row {
+        RowLayout {
             id: connectionContainer
             spacing: 8
             anchors {
@@ -928,36 +938,36 @@ ApplicationWindow  {
             
             // 状态点
             Rectangle {
-                width: 8
-                height: 8
+                Layout.preferredWidth: 8
+                Layout.preferredHeight: 8
+                Layout.alignment: Qt.AlignVCenter
                 radius: 4
                 color: root.isConnected ? successColor : dangerColor
-                anchors.verticalCenter: parent.verticalCenter
             }
             
             // 状态文本
             Text {
                 id: connectionStatusText
+                Layout.alignment: Qt.AlignVCenter
                 text: root.connectionStatus
                 font.pixelSize: 12
                 color: root.isConnected ? successColor : dangerColor
-                anchors.verticalCenter: parent.verticalCenter
             }
             
-            // 现代化连接按钮
+            // 连接按钮
             Rectangle {
                 id: switchButton
-                width: 55
-                height: 24
+                Layout.preferredWidth: 55
+                Layout.preferredHeight: 24
+                Layout.alignment: Qt.AlignVCenter
                 radius: 12
                 color: switchMouseArea.containsMouse ? 
-                       (root.isConnected ? dangerColor : successColor) : 
-                       "#F1F5F9"
+                    (root.isConnected ? dangerColor : successColor) : 
+                    "#F1F5F9"
                 border.color: switchMouseArea.containsMouse ? 
-                             Qt.darker(root.isConnected ? dangerColor : successColor, 1.2) : 
-                             borderColor
+                            Qt.darker(root.isConnected ? dangerColor : successColor, 1.2) : 
+                            borderColor
                 border.width: 1
-                anchors.verticalCenter: parent.verticalCenter
                 
                 Text {
                     text: isConnected ? "断开" : "连接"
@@ -1003,6 +1013,47 @@ ApplicationWindow  {
                 }
             }
             
+            // IP信息按钮
+            Rectangle {
+                id: ipInfoButton
+                Layout.preferredWidth: 55
+                Layout.preferredHeight: 24
+                Layout.alignment: Qt.AlignVCenter
+                radius: 12
+                color: ipInfoMouse.containsMouse ? "#f0f9ff" : "#f8fafc"
+                border.color: ipInfoMouse.containsMouse ? "#7dd3fc" : "#e2e8f0"
+                border.width: 1.5
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "IP信息"
+                    font.pixelSize: 11
+                    font.family: "Microsoft YaHei UI"
+                    font.weight: Font.Medium
+                    color: "#0369a1"
+                }
+                    
+                MouseArea {
+                    id: ipInfoMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (networkInfoDialogLoader.status === Loader.Ready) 
+                        {
+                            networkInfoDialogLoader.item.show()
+                            networkInfoDialogLoader.item.requestActivate()
+                        }
+                    }
+                    onEntered: {
+                        mouseIsInWindow = true
+                    }
+                    onExited: {
+                        mouseIsInWindow = false
+                    }
+                }
+            }
+                
             Connections {
                 target: connection_manager
                 function onHaveConRequest(device_ip, device_name) {
@@ -1109,7 +1160,7 @@ ApplicationWindow  {
                 }
             }
         }        
-        
+
         // 清空按钮
         Rectangle {
             id: clearButton
