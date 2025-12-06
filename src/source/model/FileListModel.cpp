@@ -6,7 +6,7 @@
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
 #include <QtCore/QUrl>
-#include <QtGui/QGuiApplication>
+#include <QtWidgets/QApplication>
 #include <QtGui/QClipboard>
 
 FileListModel::FileListModel(QObject* parent) :

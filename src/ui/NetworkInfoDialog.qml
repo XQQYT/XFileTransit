@@ -32,6 +32,7 @@ Window {
     }
     
     onVisibleChanged: {
+        copyBtn.text = "复制全部信息"
         if (visible) {
             centerOnScreen()
             requestActivate()
@@ -414,26 +415,16 @@ Window {
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
                 color: copyAllMouse.containsMouse ? Qt.darker(primaryColor, 1.1) : primaryColor
-                
-                Row {
-                    anchors.centerIn: parent
-                    spacing: 8
                     
-                    Text {
-                        text: "📋"
-                        font.pixelSize: 14
-                        color: "white"
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    
-                    Text {
-                        text: "复制全部信息"
-                        font.pixelSize: 13
-                        font.bold: true
-                        font.family: "Microsoft YaHei UI"
-                        color: "white"
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
+                Text {
+                    id: copyBtn
+                    text: "复制全部信息"
+                    font.pixelSize: 13
+                    font.bold: true
+                    font.family: "Microsoft YaHei UI"
+                    color: "white"
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.horizontalCenter: parent.horizontalCenter
                 }
                 
                 MouseArea {
@@ -442,7 +433,8 @@ Window {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        // copyAllNetworkInfo()
+                        networkInfoModel.copyNetInfoText()
+                        copyBtn.text = "已复制到剪切板"
                     }
                 }
             }

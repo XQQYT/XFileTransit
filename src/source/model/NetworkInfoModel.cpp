@@ -1,5 +1,7 @@
 #include "model/NetworkInfoModel.h"
 #include "model/ICMPScanner.h"
+#include <QtWidgets/QApplication>
+#include <QtGui/QClipboard>
 
 NetworkInfoListModel::NetworkInfoListModel(QObject* parent) :
     QAbstractListModel(parent)
@@ -55,4 +57,17 @@ void NetworkInfoListModel::refreshNetInfo()
 {
     ICMPScanner::getInstance().refreshLocalNetwork();
     syncNetInfoToUI();
+}
+
+void NetworkInfoListModel::copyNetInfoText()
+{
+    QString text;
+    for (const auto& info : net_info_list) {
+        text += info.ip + "/" + info.cidr + "\n";
+    }
+
+    text = text.trimmed();
+
+    QClipboard* clipboard = QGuiApplication::clipboard();
+    clipboard->setText(text);
 }

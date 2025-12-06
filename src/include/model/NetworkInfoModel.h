@@ -31,6 +31,7 @@ public:
     QHash<int, QByteArray> roleNames() const override;
 
     Q_INVOKABLE void refreshNetInfo();
+    Q_INVOKABLE void copyNetInfoText();
 private:
     void syncNetInfoToUI();
 private:
