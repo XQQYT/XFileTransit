@@ -10,9 +10,9 @@
 
 ICMPScanner::ICMPScanner(QObject* parent)
     : QThread(parent)
-    , m_timeout(500)
-    , m_threadCount(10)
-    , m_stopScan(false)
+    , timeout(200)
+    , thread_count(10)
+    , stop_scan(false)
 {
 }
 
@@ -25,34 +25,34 @@ ICMPScanner::~ICMPScanner()
 
 void ICMPScanner::setNetworkRange(const QString& networkRange)
 {
-    m_networkRange = networkRange;
+    network_range = networkRange;
 }
 
 void ICMPScanner::setTimeout(int timeoutMs)
 {
-    m_timeout = timeoutMs;
+    timeout = timeoutMs;
 }
 
 void ICMPScanner::setThreadCount(int count)
 {
-    m_threadCount = qMax(1, count);
+    thread_count = qMax(1, count);
 }
 
 void ICMPScanner::startScan()
 {
-    m_stopScan = false;
+    stop_scan = false;
     start();
 }
 
 void ICMPScanner::stopScan()
 {
-    m_stopScan = true;
+    stop_scan = true;
 }
 
 QVector<DeviceInfo> ICMPScanner::getScanResults() const
 {
-    QMutexLocker locker(&m_mutex);
-    return m_scanResults;
+    QMutexLocker locker(&mutex);
+    return scan_results;
 }
 
 QVector<QString> ICMPScanner::getLocalNetworks()
@@ -99,22 +99,21 @@ QVector<QString> ICMPScanner::getLocalNetworks()
 
 void ICMPScanner::run()
 {
-    m_targetIPs.clear();
-    m_scanResults.clear();
+    target_ips.clear();
+    scan_results.clear();
 
     // 解析网络范围
     parseNetworkRange();
 
-    if (m_targetIPs.isEmpty()) {
+    if (target_ips.isEmpty()) {
         emit scanError("没有找到有效的IP地址范围");
         return;
     }
 
     emit scanProgress(0);
 
-    // 创建多个工作线程
     QVector<QThread*> workerThreads;
-    for (int i = 0; i < m_threadCount; ++i) {
+    for (int i = 0; i < thread_count; ++i) {
         QThread* thread = QThread::create([this]() { this->scanWorker(); });
         workerThreads.append(thread);
         thread->start();
@@ -126,14 +125,14 @@ void ICMPScanner::run()
         delete thread;
     }
 
-    if (!m_stopScan) {
+    if (!stop_scan) {
         emit scanFinished();
     }
 }
 
 void ICMPScanner::parseNetworkRange()
 {
-    if (m_networkRange.isEmpty()) {
+    if (network_range.isEmpty()) {
         // 如果没有设置网络范围，使用所有本地网络
         auto networks = getLocalNetworks();
         for (const QString& network : networks) {
@@ -144,14 +143,14 @@ void ICMPScanner::parseNetworkRange()
                     QString target_ip = QString("%1.%2.%3.%4")
                         .arg(parts[0]).arg(parts[1]).arg(parts[2]).arg(i);
                     if (!local_ip.contains(target_ip))
-                        m_targetIPs.append(target_ip);
+                        target_ips.append(target_ip);
                 }
             }
         }
     }
-    else if (m_networkRange.contains('/')) {
+    else if (network_range.contains('/')) {
         // CIDR格式: 192.168.1.0/24
-        QStringList parts = m_networkRange.split('/');
+        QStringList parts = network_range.split('/');
         if (parts.size() == 2) {
             QString baseIP = parts[0];
             int cidr = parts[1].toInt();
@@ -165,14 +164,14 @@ void ICMPScanner::parseNetworkRange()
                     QString target_ip = QString("%1.%2.%3.%4")
                         .arg(ipParts[0]).arg(ipParts[1]).arg(ipParts[2]).arg(i);
                     if (!local_ip.contains(target_ip))
-                        m_targetIPs.append(target_ip);
+                        target_ips.append(target_ip);
                 }
             }
         }
     }
-    else if (m_networkRange.contains('-')) {
+    else if (network_range.contains('-')) {
         // 范围格式: 192.168.1.1-100
-        QStringList parts = m_networkRange.split('-');
+        QStringList parts = network_range.split('-');
         if (parts.size() == 2) {
             QString baseIP = parts[0];
             int end = parts[1].toInt();
@@ -184,20 +183,20 @@ void ICMPScanner::parseNetworkRange()
                     QString target_ip = QString("%1.%2.%3.%4")
                         .arg(ipParts[0]).arg(ipParts[1]).arg(ipParts[2]).arg(i);
                     if (!local_ip.contains(target_ip))
-                        m_targetIPs.append(target_ip);
+                        target_ips.append(target_ip);
                 }
             }
         }
     }
     else {
         // 单个IP
-        m_targetIPs.append(m_networkRange);
+        target_ips.append(network_range);
     }
 }
 
 void ICMPScanner::scanWorker()
 {
-    while (!m_stopScan) {
+    while (!stop_scan) {
         // 随机延迟 [0, 10] 毫秒
         int randomDelay = QRandomGenerator::global()->bounded(0, 11);
         QThread::msleep(randomDelay);
@@ -205,11 +204,11 @@ void ICMPScanner::scanWorker()
         QString ip;
 
         {
-            QMutexLocker locker(&m_mutex);
-            if (m_targetIPs.isEmpty()) {
+            QMutexLocker locker(&mutex);
+            if (target_ips.isEmpty()) {
                 break;
             }
-            ip = m_targetIPs.takeFirst();
+            ip = target_ips.takeFirst();
         }
 
         // ICMP探测
@@ -222,8 +221,8 @@ void ICMPScanner::scanWorker()
             host.device_type = hostType;
             host.device_name = getComputerName(ip);
             {
-                QMutexLocker locker(&m_mutex);
-                m_scanResults.append(host);
+                QMutexLocker locker(&mutex);
+                scan_results.append(host);
             }
             emit foundOne(host);
         }
@@ -231,10 +230,10 @@ void ICMPScanner::scanWorker()
         // 计算进度
         int progress = 0;
         {
-            QMutexLocker locker(&m_mutex);
-            int total = m_targetIPs.size() + m_scanResults.size();
+            QMutexLocker locker(&mutex);
+            int total = target_ips.size() + scan_results.size();
             if (total > 0) {
-                progress = (m_scanResults.size() * 100) / total;
+                progress = (scan_results.size() * 100) / total;
             }
         }
 
@@ -307,7 +306,7 @@ bool ICMPScanner::pingHost(const QString& ipAddress, QString& hostType)
 
     // 发送ICMP Echo请求
     DWORD replies = IcmpSendEcho(hIcmp, ip, sendData, packetSize,
-        NULL, replyBuffer, replySize, m_timeout);
+        NULL, replyBuffer, replySize, timeout);
 
     bool success = false;
     if (replies > 0) {
@@ -338,10 +337,7 @@ bool ICMPScanner::pingHost(const QString& ipAddress, QString& hostType)
 
 QString ICMPScanner::getHostTypeFromResponse(const QString& responseData)
 {
-    // TODO: 根据ICMP响应数据解析主机类型
-    // 这里可以根据TTL、数据包特征等判断操作系统类型
-
-    // 临时实现
+    // 这里根据TTL、数据包特征等判断操作系统类型
     if (responseData.contains("Windows")) {
         return "Windows";
     }
@@ -373,11 +369,11 @@ uint32_t cidrToMask(int cidr) {
 // 判断 ip 是否在网段 cidr 中
 bool ICMPScanner::isIpInCidr(const QString& ip, const QString cidr) {
     int slashPos = cidr.lastIndexOf('/');
-    if (slashPos == -1) {  // 使用 -1 而不是 std::string::npos
+    if (slashPos == -1) {
         return false;
     }
 
-    QString networkStr = cidr.left(slashPos);  // 使用 left 而不是 mid(0, slashPos)
+    QString networkStr = cidr.left(slashPos);
     bool ok;
     int cidrBits = cidr.mid(slashPos + 1).toInt(&ok);
 

@@ -13,9 +13,6 @@
 #include <iphlpapi.h>
 #include <icmpapi.h>
 
-#pragma comment(lib, "ws2_32.lib")
-#pragma comment(lib, "iphlpapi.lib")
-
 struct DeviceInfo;
 // ICMP扫描器类
 class ICMPScanner : public QThread
@@ -110,15 +107,15 @@ private:
     QString getComputerName(const QString& ipAddress);
 
 
-    QString m_networkRange;
-    int m_timeout;
-    int m_threadCount;
-    bool m_stopScan;
+    QString network_range;
+    int timeout;
+    int thread_count;
+    bool stop_scan;
 
-    QVector<QString> m_targetIPs;
-    QVector<DeviceInfo> m_scanResults;
-    QSet<QString> m_pendingLookups;
-    mutable QMutex m_mutex;
+    QVector<QString> target_ips;
+    QVector<DeviceInfo> scan_results;
+    QSet<QString> pending_lookups;
+    mutable QMutex mutex;
 
     QSet<QString> local_ip;
     QMap<QString, QString> cidr_ip;
