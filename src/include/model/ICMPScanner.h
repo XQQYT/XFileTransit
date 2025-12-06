@@ -75,7 +75,7 @@ public:
         }
         return "unknow";
     }
-
+    void refreshLocalNetwork();
 signals:
     // 扫描进度信号 (0-100)
     void scanProgress(int percent);

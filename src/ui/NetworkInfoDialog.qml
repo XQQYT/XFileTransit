@@ -198,7 +198,8 @@ Window {
                 height: 40
                 anchors.top: titleRow.bottom
                 anchors.topMargin: 8
-                
+                spacing: 5
+
                 Text {
                     id: titleText
                     text: "网络信息列表"
@@ -209,8 +210,36 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 
+                // 刷新按钮
+                Rectangle {
+                    id: refreshButton
+                    width: 24
+                    height: 24
+                    radius: 6
+                    color: refreshMouseArea.containsMouse ? "#f1f5f9" : "transparent"
+                    anchors.verticalCenter: parent.verticalCenter
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: "↻"
+                        font.pixelSize: 20
+                        color: refreshMouseArea.containsMouse ? "#3b82f6" : "#94a3b8"
+                    }
+                    
+                    MouseArea {
+                        id: refreshMouseArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            refreshButton.visible = false
+                            networkInfoModel.refreshNetInfo()
+                            refreshButton.visible = true
+                        }
+                    }
+                }
                 Item { 
-                    width: parent.width - listCountText.width - titleText.width
+                    width: parent.width - listCountText.width - titleText.width - refreshButton.width
                     height: 1
                 }
                 
@@ -312,7 +341,7 @@ Window {
                         height: 60
                         color: index % 2 === 0 ? "#FFFFFF" : "#F8FAFC"
                         radius: 8
-                        anchors.horizontalCenter: parent.horizontalCenter
+                        // anchors.horizontalCenter: parent.horizontalCenter
 
                         RowLayout {
                             anchors.fill: parent

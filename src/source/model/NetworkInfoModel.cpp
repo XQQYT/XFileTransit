@@ -4,12 +4,7 @@
 NetworkInfoListModel::NetworkInfoListModel(QObject* parent) :
     QAbstractListModel(parent)
 {
-    beginInsertRows(QModelIndex(), net_info_list.count(), net_info_list.count());
-    for (auto& i : ICMPScanner::getInstance().getLocalNetworks())
-    {
-        net_info_list.emplace_back(ICMPScanner::getInstance().getIpByCidr(i), i);
-    }
-    endInsertRows();
+    syncNetInfoToUI();
 }
 NetworkInfoListModel::~NetworkInfoListModel()
 {
@@ -43,4 +38,21 @@ QHash<int, QByteArray> NetworkInfoListModel::roleNames() const
         { Roles::CIDR,"cidr" }
     };
     return roles;
+}
+
+void NetworkInfoListModel::syncNetInfoToUI()
+{
+    net_info_list.clear();
+    beginResetModel();
+    for (auto& i : ICMPScanner::getInstance().getLocalNetworks())
+    {
+        net_info_list.emplace_back(ICMPScanner::getInstance().getIpByCidr(i), i);
+    }
+    endResetModel();
+}
+
+void NetworkInfoListModel::refreshNetInfo()
+{
+    ICMPScanner::getInstance().refreshLocalNetwork();
+    syncNetInfoToUI();
 }

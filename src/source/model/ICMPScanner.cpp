@@ -417,3 +417,9 @@ QString ICMPScanner::getLocalComputerName()
 
     return computerName;
 }
+
+void ICMPScanner::refreshLocalNetwork()
+{
+    networks.clear();
+    getLocalNetworks();
+}
