@@ -2,6 +2,8 @@
 
 XFileTransit 是一款基于 C++ 和 Qt 开发的 Windows 局域网文件传输工具。支持文件拖拽，无需配置，局域网内高效安全共享文件。
 
+[点此进入官网](https://xqqyt.top/)
+
 ## 功能特点
 
 - 文件拖拽，一键发送
@@ -18,9 +20,7 @@ XFileTransit 是一款基于 C++ 和 Qt 开发的 Windows 局域网文件传输�
    ```bash
    git clone https://github.com/XQQYT/XFileTransit.git
    cd XFileTransit
-   mkdir build && cd build
-   cmake ..
-   make
+   .\build.bat
    ```
 3. 启动方式：运行 `XFileTransit.exe`，将文件拖入窗口即可共享。
    
