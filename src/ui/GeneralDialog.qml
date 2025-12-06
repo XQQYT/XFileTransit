@@ -16,11 +16,13 @@ Window {
     property int buttons: root.ok
     property int iconType: root.info
     
-    // 按钮类型枚举
-    readonly property int ok: 0x0001
-    readonly property int cancel: 0x0002
-    readonly property int yes: 0x0004
-    readonly property int no: 0x0008
+    // 按钮类型枚举（修正：使用2的幂次方进行位运算）
+    readonly property int ok: 0x0001        // 1
+    readonly property int cancel: 0x0002    // 2
+    readonly property int yes: 0x0004       // 4
+    readonly property int no: 0x0008        // 8
+    readonly property int closeWin: 0x0010  // 16
+    readonly property int hideWin: 0x0020   // 32
     
     // 图标类型枚举
     readonly property int none: 0
@@ -214,6 +216,58 @@ Window {
                         hoverEnabled: true
                         onClicked: {
                             root.clicked((root.buttons & root.yes) ? root.yes : root.ok)
+                            root.accepted()
+                            root.close()
+                        }
+                    }
+                }
+                // 隐藏按钮
+                Rectangle {
+                    width: 120
+                    height: 32
+                    radius: 4
+                    color: closeArea.containsMouse ? Qt.darker(getIconColor(), 1.1) : getIconColor()
+                    visible: root.buttons & root.hideWin
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: "最小化到托盘"
+                        font.pixelSize: 13
+                        color: "white"
+                    }
+                    
+                    MouseArea {
+                        id: hideArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: {
+                            root.clicked(root.hideWin)
+                            root.rejected()
+                            root.close()
+                        }
+                    }
+                }
+                // 关闭按钮
+                Rectangle {
+                    width: 72
+                    height: 32
+                    radius: 4
+                    color: hideArea.containsMouse ? Qt.darker("#6b7280", 1.1) : "#6b7280"
+                    visible: root.buttons & root.closeWin
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: "关闭"
+                        font.pixelSize: 13
+                        color: "white"
+                    }
+                    
+                    MouseArea {
+                        id: closeArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: {
+                            root.clicked(root.closeWin)
                             root.accepted()
                             root.close()
                         }

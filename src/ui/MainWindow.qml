@@ -1190,7 +1190,21 @@ ApplicationWindow  {
                         generalDialogLoader.item.requestActivate()
                     }
                 } else {
-                    Qt.quit()
+                    if (generalDialogLoader.status === Loader.Ready) {
+                        generalDialogLoader.item.iconType = generalDialogLoader.item.warning
+                        generalDialogLoader.item.text = "确定退出吗？"
+                        generalDialogLoader.item.buttons = generalDialogLoader.item.closeWin | generalDialogLoader.item.hideWin
+                        
+                        root.currentAcceptHandler = function() {
+                            Qt.quit()
+                        }
+                        root.currentRejectHandler = function() {
+                            root.hide()
+                        }
+
+                        generalDialogLoader.item.show()
+                        generalDialogLoader.item.requestActivate()
+                    }
                 }
             }
                 onEntered: {
