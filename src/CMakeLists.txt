@@ -27,12 +27,14 @@ add_executable(${PROJECT_NAME}
     ${APP_RES}
 )
 
+# Windows 特有的资源文件
 if(WIN32)
     target_sources(${PROJECT_NAME} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/res/logo/logo.rc
     )
 endif()
 
+# Windows MinGW 特有的链接标志
 if(WIN32 AND MINGW)
     if(CMAKE_BUILD_TYPE STREQUAL "Release")
         set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -49,6 +51,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+# 链接 Qt 库
 target_link_libraries(${PROJECT_NAME} PUBLIC
     Qt6::Core
     Qt6::Gui
@@ -58,15 +61,22 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     Qt6::QuickControls2
 )
 
+# 链接自定义库
 target_link_libraries(${PROJECT_NAME} PUBLIC
     driver
     control
     model
 )
 
+# 平台特有的系统库
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} PUBLIC
         ws2_32
         iphlpapi
+    )
+else()
+    target_link_libraries(${PROJECT_NAME} PUBLIC
+        pthread
+        dl
     )
 endif()

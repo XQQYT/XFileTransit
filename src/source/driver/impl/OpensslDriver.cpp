@@ -125,7 +125,7 @@ bool OpensslDriver::generateAndLoadTempCertificate()
     return true;
 }
 
-SecurityInterface::TlsInfo OpensslDriver::getAesKey(SOCKET socket)
+SecurityInterface::TlsInfo OpensslDriver::getAesKey(UnifiedSocket socket)
 {
     constexpr const uint32_t KEYLENGTH = 32;
 
@@ -226,7 +226,7 @@ SecurityInterface::TlsInfo OpensslDriver::getAesKey(SOCKET socket)
     return SecurityInterface::TlsInfo{ key };
 }
 
-void OpensslDriver::dealTlsRequest(SOCKET socket, std::function<void(bool, TlsInfo)> callback)
+void OpensslDriver::dealTlsRequest(UnifiedSocket socket, std::function<void(bool, TlsInfo)> callback)
 {
     if (!server_ctx) {
         std::cerr << "SSL server context not initialized" << std::endl;

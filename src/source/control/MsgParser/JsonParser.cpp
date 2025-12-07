@@ -4,24 +4,23 @@
 #include "control/GlobalStatusManager.h"
 #include <iostream>
 
-JsonParser::JsonParser() :
-    json_driver(std::make_unique<NlohmannJson>())
+JsonParser::JsonParser() : json_driver(std::make_unique<NlohmannJson>())
 {
-    type_funcfion_map["connect_request"] = std::bind(JsonParser::connectRequest, this, std::placeholders::_1);
-    type_funcfion_map["response"] = std::bind(JsonParser::resonpeResult, this, std::placeholders::_1);
-    type_funcfion_map["cancel_conn_request"] = std::bind(JsonParser::cancelConnRequest, this, std::placeholders::_1);
+    type_funcfion_map["connect_request"] = std::bind(&JsonParser::connectRequest, this, std::placeholders::_1);
+    type_funcfion_map["response"] = std::bind(&JsonParser::resonpeResult, this, std::placeholders::_1);
+    type_funcfion_map["cancel_conn_request"] = std::bind(&JsonParser::cancelConnRequest, this, std::placeholders::_1);
 
-    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::FileExpired)] = std::bind(JsonParser::syncExpiredFile, this, std::placeholders::_1);
-    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::AddFiles)] = std::bind(JsonParser::syncAddFiles, this, std::placeholders::_1);
-    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::RemoveFile)] = std::bind(JsonParser::syncDeleteFiles, this, std::placeholders::_1);
-    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::DownloadFile)] = std::bind(JsonParser::downloadFile, this, std::placeholders::_1);
+    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::FileExpired)] = std::bind(&JsonParser::syncExpiredFile, this, std::placeholders::_1);
+    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::AddFiles)] = std::bind(&JsonParser::syncAddFiles, this, std::placeholders::_1);
+    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::RemoveFile)] = std::bind(&JsonParser::syncDeleteFiles, this, std::placeholders::_1);
+    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::DownloadFile)] = std::bind(&JsonParser::downloadFile, this, std::placeholders::_1);
 }
 
 void JsonParser::parse(std::unique_ptr<NetworkInterface::UserMsg> data)
 {
     auto parser = json_driver->getParser();
     std::string data_str(std::make_move_iterator(data->data.begin()),
-        std::make_move_iterator(data->data.end()));
+                         std::make_move_iterator(data->data.end()));
     parser->loadJson(data_str);
     std::string type = parser->getValue("type");
     auto deal_func = type_funcfion_map.find(type);
@@ -53,14 +52,14 @@ void JsonParser::resonpeResult(std::unique_ptr<Json::Parser> parser)
     {
     case JsonMessageType::ResponseType::CONNECT_REQUEST_RESPONSE:
         publishResponse("/network/have_connect_request_result", arg0,
-            GlobalStatusManager::getInstance().getCurrentTargetDeviceIP());
+                        GlobalStatusManager::getInstance().getCurrentTargetDeviceIP());
         break;
     default:
         break;
     }
 }
 
-void JsonParser::publishResponse(std::string&& event_name, JsonMessageType::ResultType type)
+void JsonParser::publishResponse(std::string &&event_name, JsonMessageType::ResultType type)
 {
     switch (type)
     {
@@ -77,7 +76,7 @@ void JsonParser::publishResponse(std::string&& event_name, JsonMessageType::Resu
     }
 }
 
-void JsonParser::publishResponse(std::string&& event_name, JsonMessageType::ResultType type, std::string arg0)
+void JsonParser::publishResponse(std::string &&event_name, JsonMessageType::ResultType type, std::string arg0)
 {
     switch (type)
     {
@@ -105,7 +104,8 @@ void JsonParser::syncExpiredFile(std::unique_ptr<Json::Parser> parser)
 {
     std::vector<std::string> files;
     auto file_ids = parser->getArray("files");
-    for (const auto& id : file_ids) {
+    for (const auto &id : file_ids)
+    {
         auto tmp = id->getArrayItems();
         files.insert(files.end(), tmp.begin(), tmp.end());
     }
@@ -115,7 +115,7 @@ void JsonParser::syncAddFiles(std::unique_ptr<Json::Parser> parser)
 {
     auto array = parser->getArray("files");
     std::vector<std::vector<std::string>> files;
-    for (auto& cur_arr : array)
+    for (auto &cur_arr : array)
     {
         files.push_back(cur_arr->getArrayItems());
     }
@@ -126,7 +126,8 @@ void JsonParser::syncDeleteFiles(std::unique_ptr<Json::Parser> parser)
 {
     std::vector<std::string> files;
     auto file_ids = parser->getArray("files");
-    for (const auto& id : file_ids) {
+    for (const auto &id : file_ids)
+    {
         auto tmp = id->getArrayItems();
         files.insert(files.end(), tmp.begin(), tmp.end());
     }
@@ -137,7 +138,8 @@ void JsonParser::downloadFile(std::unique_ptr<Json::Parser> parser)
 {
     std::vector<std::string> files;
     auto file_ids = parser->getArray("files");
-    for (const auto& id : file_ids) {
+    for (const auto &id : file_ids)
+    {
         auto tmp = id->getArrayItems();
         files.insert(files.end(), tmp.begin(), tmp.end());
     }
