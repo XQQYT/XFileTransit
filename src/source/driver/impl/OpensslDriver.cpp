@@ -2,11 +2,14 @@
 #include <openssl/aes.h>
 #include <openssl/sha.h>
 #include <openssl/rand.h>
-#include <openssl/applink.c>
 #include <cstring> 
 #include <string>
 #include <iostream>
 #include <memory>
+
+#ifdef _WIN32
+    #include <openssl/applink.c>
+#endif
 
 OpensslDriver::OpensslDriver() : client_ctx(nullptr), server_ctx(nullptr)
 {

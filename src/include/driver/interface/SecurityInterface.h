@@ -5,7 +5,22 @@
 #include <stdint.h>
 #include <memory> 
 #include <functional>
-#include <winsock2.h>
+#ifdef _WIN32
+    #include <winsock2.h>
+#else
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <netdb.h>
+    #include <unistd.h>
+    #include <errno.h>
+    #include <fcntl.h>
+    #define close_socket close
+    #define SOCKET_ERROR_TIMEOUT ETIMEDOUT
+    typedef int SOCKET;
+    #define INVALID_SOCKET (-1)
+    #define SOCKET_ERROR (-1)
+#endif
 
 class SecurityInterface
 {

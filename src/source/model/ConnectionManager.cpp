@@ -16,7 +16,7 @@ ConnectionManager::ConnectionManager()
         std::placeholders::_1));
     EventBusManager::instance().subscribe("/network/connection_closed", std::bind(&ConnectionManager::onPeerClosed,
         this));
-    EventBusManager::instance().subscribe("/network/cancel_conn_request", std::bind(ConnectionManager::onCancelConnRequest,
+    EventBusManager::instance().subscribe("/network/cancel_conn_request", std::bind(&ConnectionManager::onCancelConnRequest,
         this,
         std::placeholders::_1,
         std::placeholders::_2));
