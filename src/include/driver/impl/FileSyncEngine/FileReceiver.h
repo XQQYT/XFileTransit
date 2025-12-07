@@ -32,9 +32,9 @@ private:
 private:
     UnifiedSocket listen_socket;
     sockaddr_in accept_addr;
-    std::thread *tcp_listen_thread;
+    std::unique_ptr<std::thread> tcp_listen_thread;
     std::vector<UnifiedSocket> receive_sockets;
-    std::vector<std::thread *> receive_threads;
+    std::vector<std::shared_ptr<std::thread>> receive_threads;
     std::unique_ptr<OuterMsgParserInterface> outer_parser;
 
     std::mutex sockets_mutex; // 保护receive_sockets

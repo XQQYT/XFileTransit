@@ -166,7 +166,7 @@ void FileListModel::addRemoteFiles(std::vector<std::vector<std::string>> files)
     {
         remote_files.append(FileInfo(true,
                                      std::stoul(file[0]), std::stoi(file[1]) != 0,
-                                     QString::fromStdString(file[2]), std::stoul(file[3])));
+                                     QString::fromStdString(file[2]), std::stoull(file[3])));
         GlobalStatusManager::getInstance().insertFile(remote_files.back().id, remote_files.back().file_name.toUtf8().constData());
     }
 

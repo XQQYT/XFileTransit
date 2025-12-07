@@ -537,7 +537,6 @@ void TcpDriver::closeSocket()
     }
 
     connect_status = false;
-    connection_status = ConnectionStatus::WAITING_TLS;
 
 #ifdef _WIN32
     WSACleanup();
@@ -557,14 +556,18 @@ void TcpDriver::setSecurityInstance(std::shared_ptr<SecurityInterface> instance)
 
 void TcpDriver::resetConnection()
 {
-    closeSocket();
-
-    // 重置状态
+    if (connect_status)
+    {
+        closesocket(client_socket);
+    }
+    recv_running = false;
+    client_socket = INVALID_SOCKET_VAL;
     candidate_ip.clear();
     client_tls_addr = {};
     client_tcp_addr = {};
     accept_addr = {};
     ignore_one_error = true;
+    connection_status = ConnectionStatus::WAITING_TLS;
 
     std::cout << "Connection reset" << std::endl;
 }

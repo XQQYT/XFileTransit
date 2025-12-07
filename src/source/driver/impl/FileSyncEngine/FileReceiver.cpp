@@ -72,8 +72,8 @@ void FileReceiver::start(std::function<void(UnifiedSocket)> accept_cb,
                          std::function<void(UnifiedSocket socket, std::unique_ptr<NetworkInterface::UserMsg>)> msg_cb)
 {
     running = true;
-    tcp_listen_thread = new std::thread([this, accept_cb = std::move(accept_cb), msg_cb = std::move(msg_cb)]()
-                                        {
+    tcp_listen_thread = std::make_unique<std::thread>([this, accept_cb = std::move(accept_cb), msg_cb = std::move(msg_cb)]()
+                                                      {
 #ifdef _WIN32
             // Windows使用WSAPoll
             WSAPOLLFD fds[1];
@@ -123,7 +123,7 @@ void FileReceiver::start(std::function<void(UnifiedSocket)> accept_cb,
                             accept_cb(accepted_socket);
                             
                             // 创建接收线程
-                            std::thread* recv_thread = new std::thread([this, accepted_socket, msg_cb, recv_thread]() {
+                            std::shared_ptr<std::thread> recv_thread = std::make_shared<std::thread>([this, accepted_socket, msg_cb]() {
                                 bool thread_running = true;
                                 
                                 // 为每个连接设置socket选项
@@ -154,15 +154,6 @@ void FileReceiver::start(std::function<void(UnifiedSocket)> accept_cb,
                                     },
                                     security_instance, thread_running);
                                     
-                                // 清理线程
-                                {
-                                    std::lock_guard<std::mutex> lock(threads_mutex);
-                                    auto it = std::find(receive_threads.begin(), receive_threads.end(), recv_thread);
-                                    if (it != receive_threads.end()) {
-                                        receive_threads.erase(it);
-                                    }
-                                }
-                                delete recv_thread;
                             });
                             
                             {
@@ -204,36 +195,19 @@ void FileReceiver::closeReceiver()
 {
     running = false;
 
-    // 等待监听线程结束
-    if (tcp_listen_thread)
-    {
-        if (tcp_listen_thread->joinable())
-        {
-            tcp_listen_thread->join();
-        }
-        delete tcp_listen_thread;
-        tcp_listen_thread = nullptr;
-    }
-
-    // 等待所有接收线程结束
-    {
-        std::lock_guard<std::mutex> lock(threads_mutex);
-        for (auto thread : receive_threads)
-        {
-            if (thread->joinable())
-            {
-                thread->join();
-            }
-            delete thread;
-        }
-        receive_threads.clear();
-    }
-
-    // 关闭所有socket
+    // 先关闭所有socket，这会中断阻塞的select/poll调用
     {
         std::lock_guard<std::mutex> lock(sockets_mutex);
         for (auto socket : receive_sockets)
         {
+            // 设置socket为异步关闭模式
+#ifdef _WIN32
+            // Windows上使用shutdown强制关闭
+            shutdown(socket, SD_BOTH);
+#else
+            // Linux上使用shutdown中断阻塞调用
+            shutdown(socket, SHUT_RDWR);
+#endif
             CLOSE_SOCKET(socket);
         }
         receive_sockets.clear();
@@ -242,8 +216,61 @@ void FileReceiver::closeReceiver()
     // 关闭监听socket
     if (listen_socket != INVALID_SOCKET_VAL)
     {
+#ifdef _WIN32
+        shutdown(listen_socket, SD_BOTH);
+#else
+        shutdown(listen_socket, SHUT_RDWR);
+#endif
         CLOSE_SOCKET(listen_socket);
         listen_socket = INVALID_SOCKET_VAL;
+    }
+
+    // 等待监听线程结束
+    if (tcp_listen_thread)
+    {
+        if (tcp_listen_thread->joinable())
+        {
+            tcp_listen_thread->join();
+        }
+        tcp_listen_thread.reset();
+        tcp_listen_thread = nullptr;
+    }
+
+    // 等待所有接收线程结束，设置超时避免无限等待
+    {
+        std::lock_guard<std::mutex> lock(threads_mutex);
+        for (auto thread : receive_threads)
+        {
+            if (thread->joinable())
+            {
+                // 设置超时，避免死锁
+                if (thread->joinable())
+                {
+                    // 尝试等待2秒
+                    auto start_time = std::chrono::steady_clock::now();
+                    bool thread_joined = false;
+
+                    while (std::chrono::steady_clock::now() - start_time < std::chrono::seconds(2))
+                    {
+                        if (thread->joinable())
+                        {
+                            thread->join();
+                            thread_joined = true;
+                            break;
+                        }
+                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                    }
+
+                    if (!thread_joined)
+                    {
+                        std::cerr << "Warning: Thread failed to join in time, detaching" << std::endl;
+                        thread->detach();
+                    }
+                }
+            }
+            thread.reset();
+        }
+        receive_threads.clear();
     }
 
     std::cout << "FileReceiver closed successfully" << std::endl;
