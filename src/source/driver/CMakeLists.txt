@@ -22,17 +22,21 @@ set(DRIVER_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/FileSyncEngine/FileSenderInterface.h
 )
 
-set(OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL-Win64")
-set(OPENSSL_INCLUDE_DIR "${OPENSSL_ROOT_DIR}/include")
-set(OPENSSL_CRYPTO_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MT/libcrypto.lib")
-set(OPENSSL_SSL_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MT/libssl.lib")
+if(WIN32)
 
-if(NOT EXISTS "${OPENSSL_CRYPTO_LIBRARY}")
-    message(WARNING "OpenSSL crypto library not found at: ${OPENSSL_CRYPTO_LIBRARY}")
+    set(OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL-Win64")
+    set(OPENSSL_INCLUDE_DIR "${OPENSSL_ROOT_DIR}/include")
+    set(OPENSSL_CRYPTO_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MT/libcrypto.lib")
+    set(OPENSSL_SSL_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MT/libssl.lib")
+    
+    if(NOT EXISTS "${OPENSSL_CRYPTO_LIBRARY}")
+        message(WARNING "OpenSSL crypto library not found at: ${OPENSSL_CRYPTO_LIBRARY}")
+    endif()
+    if(NOT EXISTS "${OPENSSL_SSL_LIBRARY}")
+        message(WARNING "OpenSSL ssl library not found at: ${OPENSSL_SSL_LIBRARY}")
+    endif()
 endif()
-if(NOT EXISTS "${OPENSSL_SSL_LIBRARY}")
-    message(WARNING "OpenSSL ssl library not found at: ${OPENSSL_SSL_LIBRARY}")
-endif()
+
 
 add_library(driver STATIC
     ${DRIVER_SOURCES}
@@ -45,10 +49,18 @@ target_include_directories(driver PUBLIC
     ${OPENSSL_INCLUDE_DIR}
 )
 
-target_link_libraries(driver PUBLIC 
-    "${OPENSSL_SSL_LIBRARY}"
-    "${OPENSSL_CRYPTO_LIBRARY}"
+if(WIN32)
+    target_link_libraries(driver PUBLIC 
+        "${OPENSSL_SSL_LIBRARY}"
+        "${OPENSSL_CRYPTO_LIBRARY}"
+        ws2_32
+        crypt32
+        bcrypt
+    )
+else()
+    target_link_libraries(driver PUBLIC 
     ws2_32
     crypt32
     bcrypt
-)
+    )
+endif()
