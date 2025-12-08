@@ -82,8 +82,8 @@ ApplicationWindow  {
                     showBlueBarTimer.start()
                 } else {
                     // 主窗口开始展开，立即隐藏蓝条
+                    blueBarWindow.visible = false
                     blueBarWindow.opacity = 0
-                    hideBlueBarTimer.start()
                 }
             }
         }
@@ -99,15 +99,6 @@ ApplicationWindow  {
                     blueBarWindow.raise()
                     blueBarWindow.requestActivate()
                 }
-            }
-        }
-        
-        //延迟隐藏蓝条窗口对象
-        Timer {
-            id: hideBlueBarTimer
-            interval: 150
-            onTriggered: {
-                blueBarWindow.visible = false
             }
         }
                 
@@ -137,8 +128,10 @@ ApplicationWindow  {
             hoverEnabled: !root.expanded
             enabled: !expanded
             onEntered: {
-                collapseTimer.stop()
-                root.expanded = true
+                if(!root.expanded){
+                    collapseTimer.stop()
+                    root.expanded = true
+                }
             }
         }
         
@@ -306,7 +299,7 @@ ApplicationWindow  {
         Behavior on opacity {
             NumberAnimation {
                 duration: animationDuration
-                easing.type: Easing.Linear
+                easing.type: Easing.OutCubic
             }
         }
 
@@ -379,8 +372,9 @@ ApplicationWindow  {
             enabled: root.expanded
 
             onEntered: {
-                collapseTimer.stop()
-                root.expanded = true
+                if(root.expanded){
+                    collapseTimer.stop()
+                }
             }
 
             onExited: {            
