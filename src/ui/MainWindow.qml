@@ -175,6 +175,14 @@ ApplicationWindow  {
         }
     }
 
+    Loader {
+        id: settingsWindowLoader  
+        source: "qrc:/qml/ui/SettingsWindow.qml"
+        
+        onLoaded: {
+        }
+    }
+
     Connections {
         target: connection_manager
         enabled: connectRequestLoader.status === Loader.Ready
@@ -1024,6 +1032,48 @@ ApplicationWindow  {
                             {
                                 networkInfoDialogLoader.item.show()
                                 networkInfoDialogLoader.item.requestActivate()
+                            }
+                        }
+                        onEntered: {
+                            mouseIsInWindow = true
+                        }
+                        onExited: {
+                            mouseIsInWindow = false
+                        }
+                    }
+                }
+
+                // 设置按钮
+                Rectangle {
+                    id: settingsButton
+                    Layout.preferredWidth: 55
+                    Layout.preferredHeight: 24
+                    Layout.alignment: Qt.AlignVCenter
+                    radius: 12
+                    color: settingsMouse.containsMouse ? "#f0f9ff" : "#f8fafc"
+                    border.color: settingsMouse.containsMouse ? "#7dd3fc" : "#e2e8f0"
+                    border.width: 1.5
+                    enabled: root.expanded 
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "设置"
+                        font.pixelSize: 11
+                        font.family: "Microsoft YaHei UI"
+                        font.weight: Font.Medium
+                        color: "#0369a1"
+                    }
+                        
+                    MouseArea {
+                        id: settingsMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (settingsWindowLoader.status === Loader.Ready) 
+                            {
+                                settingsWindowLoader.item.show()
+                                settingsWindowLoader.item.requestActivate()
                             }
                         }
                         onEntered: {
