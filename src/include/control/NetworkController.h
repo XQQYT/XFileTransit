@@ -11,6 +11,7 @@ class NetworkController
 public:
     void initSubscribe();
     NetworkController();
+
 private:
     void onSendConnectRequest(std::string sender_device_name, std::string sender_device_ip, std::string target_device_ip);
     void onSendConnectRequestResult(bool res);
@@ -24,6 +25,7 @@ private:
     void onSendSyncAddFiles(std::vector<std::string> files, uint8_t stride);
     void onSendSyncDeleteFile(uint32_t id);
     void onSendGetFile(uint32_t id);
+
 private:
     std::unique_ptr<NetworkInterface> control_msg_network_driver;
     std::unique_ptr<Json::JsonFactoryInterface> json_builder;

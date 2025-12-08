@@ -13,7 +13,7 @@ class ModelManager : public QObject
 {
     Q_OBJECT
 public:
-    static ModelManager& getInstance();
+    static ModelManager &getInstance();
 
     std::shared_ptr<NetworkInfoListModel> getNetworkInfoModel();
     std::shared_ptr<DeviceListModel> getDeviceModel();
@@ -22,8 +22,8 @@ public:
 
 private:
     ModelManager();
-    ModelManager(const ModelManager&) = delete;
-    ModelManager& operator=(const ModelManager&) = delete;
+    ModelManager(const ModelManager &) = delete;
+    ModelManager &operator=(const ModelManager &) = delete;
     ~ModelManager() = default;
 
 private:

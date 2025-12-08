@@ -60,7 +60,7 @@ void FileSyncEngine::haveFileMsg(UnifiedSocket socket, std::unique_ptr<NetworkIn
 void FileSyncEngine::start(std::string address, std::string recv_port,
                            std::shared_ptr<SecurityInterface> instance)
 {
-    std::cout << "FileSyncCore start" << std::endl;
+    LOG_INFO("FileSyncCore start");
 
     // 初始化receiver
     file_receiver = std::make_unique<FileReceiver>("0.0.0.0", recv_port, instance);
@@ -102,7 +102,7 @@ void FileSyncEngine::stop()
     if (!is_start)
         return;
     is_start = false;
-    std::cout << "FileSyncCore stop" << std::endl;
+    LOG_INFO("FileSyncCore stop");
     // 关闭线程
     for (auto &i : file_senders)
     {

@@ -2,6 +2,7 @@
 #include "driver/impl/OuterMsgBuilder.h"
 #include "driver/impl/OuterMsgParser.h"
 #include "driver/interface/PlatformSocket.h"
+#include "common/DebugOutputer.h"
 #include <iostream>
 #include <memory>
 #include <iomanip>
@@ -30,7 +31,7 @@ TcpDriver::TcpDriver()
 #ifdef _WIN32
     if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0)
     {
-        std::cerr << "WSAStartup failed\n";
+        LOG_ERROR("WSAStartup failed\n");
     }
 #endif
 }
@@ -45,7 +46,7 @@ void TcpDriver::initTlsSocket(const std::string &address, const std::string &tls
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (client_socket == INVALID_SOCKET_VAL)
     {
-        std::cerr << "Failed to create TLS socket: " << GET_SOCKET_ERROR << std::endl;
+        LOG_ERROR("Failed to create TLS socket: " << GET_SOCKET_ERROR);
         return;
     }
 
@@ -54,7 +55,7 @@ void TcpDriver::initTlsSocket(const std::string &address, const std::string &tls
 
     if (inet_pton(AF_INET, address.c_str(), &client_tls_addr.sin_addr) <= 0)
     {
-        std::cerr << "Invalid TLS address: " << address << std::endl;
+        LOG_ERROR("Invalid TLS address: " << address);
         CLOSE_SOCKET(client_socket);
         client_socket = INVALID_SOCKET_VAL;
     }
@@ -67,7 +68,7 @@ void TcpDriver::initTcpSocket(const std::string &address, const std::string &tcp
 
     if (inet_pton(AF_INET, address.c_str(), &client_tcp_addr.sin_addr) <= 0)
     {
-        std::cerr << "Invalid TCP address: " << address << std::endl;
+        LOG_ERROR("Invalid TCP address: " << address);
     }
 }
 
@@ -115,7 +116,7 @@ void TcpDriver::dealConnectError()
             this->dce_cb(ConnectError::CONNECT_INTERRUPTED);
             break;
         default:
-            std::cerr << "Connect unknown error: " << error_code << std::endl;
+            LOG_ERROR("Connect unknown error: " << error_code);
             break;
         }
     }
@@ -127,7 +128,7 @@ void TcpDriver::connectTo(std::function<void(bool)> callback)
 
     if (client_socket == INVALID_SOCKET_VAL)
     {
-        std::cerr << "Socket not initialized" << std::endl;
+        LOG_ERROR("Socket not initialized");
         if (callback)
             callback(false);
         return;
@@ -140,7 +141,7 @@ void TcpDriver::connectTo(std::function<void(bool)> callback)
     }
     else
     {
-        std::cout << "Connect successful" << std::endl;
+        LOG_INFO("Connect successful");
     }
 
     if (security_instance && ret == 0)
@@ -153,7 +154,7 @@ void TcpDriver::connectTo(std::function<void(bool)> callback)
         client_socket = socket(AF_INET, SOCK_STREAM, 0);
         if (client_socket == INVALID_SOCKET_VAL)
         {
-            std::cerr << "Failed to create new socket for TCP connection" << std::endl;
+            LOG_ERROR("Failed to create new socket for TCP connection");
             if (callback)
                 callback(false);
             return;
@@ -184,7 +185,7 @@ void TcpDriver::sendMsg(const std::string &msg)
 {
     if (!connect_status)
     {
-        std::cerr << "Not connected, cannot send message" << std::endl;
+        LOG_ERROR("Not connected, cannot send message");
         return;
     }
 
@@ -193,7 +194,7 @@ void TcpDriver::sendMsg(const std::string &msg)
 
     if (!ready_to_send_msg)
     {
-        std::cerr << "Failed to build message" << std::endl;
+        LOG_ERROR("Failed to build message");
         return;
     }
 
@@ -212,11 +213,11 @@ void TcpDriver::sendMsg(const std::string &msg)
             {
                 continue; // 被信号中断，重试
             }
-            std::cerr << "Send failed, error: " << err << std::endl;
+            LOG_ERROR("Send failed, error: " << err);
             break;
         }
         sended_length += ret;
-        std::cout << sended_length << " / " << final_msg_length << std::endl;
+        LOG_INFO(sended_length << " / " << final_msg_length);
     }
 }
 
@@ -225,7 +226,7 @@ UnifiedSocket TcpDriver::createListenSocket(const std::string &address, const st
     UnifiedSocket sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock == INVALID_SOCKET_VAL)
     {
-        std::cerr << "Failed to create listen socket: " << GET_SOCKET_ERROR << std::endl;
+        LOG_ERROR("Failed to create listen socket: " << GET_SOCKET_ERROR);
         return INVALID_SOCKET_VAL;
     }
 
@@ -249,7 +250,7 @@ UnifiedSocket TcpDriver::createListenSocket(const std::string &address, const st
     {
         if (inet_pton(AF_INET, address.c_str(), &addr.sin_addr) <= 0)
         {
-            std::cerr << "Invalid listen address: " << address << std::endl;
+            LOG_ERROR("Invalid listen address: " << address);
             CLOSE_SOCKET(sock);
             return INVALID_SOCKET_VAL;
         }
@@ -257,19 +258,19 @@ UnifiedSocket TcpDriver::createListenSocket(const std::string &address, const st
 
     if (bind(sock, (sockaddr *)&addr, sizeof(addr)) == SOCKET_ERROR_VAL)
     {
-        std::cerr << "Bind failed: " << GET_SOCKET_ERROR << std::endl;
+        LOG_ERROR("Bind failed: " << GET_SOCKET_ERROR);
         CLOSE_SOCKET(sock);
         return INVALID_SOCKET_VAL;
     }
 
     if (listen(sock, 5) == SOCKET_ERROR_VAL)
     {
-        std::cerr << "Listen failed: " << GET_SOCKET_ERROR << std::endl;
+        LOG_ERROR("Listen failed: " << GET_SOCKET_ERROR);
         CLOSE_SOCKET(sock);
         return INVALID_SOCKET_VAL;
     }
 
-    std::cout << "Listen socket created on " << address << ":" << port << std::endl;
+    LOG_INFO("Listen socket created on " << address << ":" << port);
     return sock;
 }
 
@@ -341,7 +342,7 @@ void TcpDriver::startTlsListen(const std::string &address, const std::string &tl
                             {
                                 char client_ip[INET_ADDRSTRLEN];
                                 inet_ntop(AF_INET, &(client_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
-                                std::cout << "TLS connection from: " << client_ip << std::endl;
+                                LOG_INFO("TLS connection from: " << client_ip );
 
                                 security_instance->dealTlsRequest(accepted_socket, 
                                     [this, accepted_socket, &cb, &client_addr](bool ret, SecurityInterface::TlsInfo info) {
@@ -358,11 +359,11 @@ void TcpDriver::startTlsListen(const std::string &address, const std::string &tl
                                 CLOSE_SOCKET(accepted_socket);
                             }
                         } else {
-                            std::cerr << "Failed to accept TLS connection: " << GET_SOCKET_ERROR << std::endl;
+                            LOG_ERROR("Failed to accept TLS connection: " << GET_SOCKET_ERROR);
                         }
                     }
                 } else if (result < 0) {
-                    std::cerr << "Error in poll for TLS: " << GET_SOCKET_ERROR << std::endl;
+                    LOG_ERROR("Error in poll for TLS: " << GET_SOCKET_ERROR);
                 }
             } else {
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -370,7 +371,7 @@ void TcpDriver::startTlsListen(const std::string &address, const std::string &tl
         }
 
         CLOSE_SOCKET(tls_listen_socket);
-        std::cout << "TLS listen thread exited" << std::endl; });
+        LOG_INFO("TLS listen thread exited" ); });
 }
 
 void TcpDriver::startTcpListen(const std::string &address, const std::string &tcp_port,
@@ -426,7 +427,7 @@ void TcpDriver::startTcpListen(const std::string &address, const std::string &tc
                             inet_ntop(AF_INET, &(client_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
                             uint16_t client_port = ntohs(client_addr.sin_port);
 
-                            std::cout << "TCP connection from: " << client_ip << ":" << client_port << std::endl;
+                            LOG_INFO("TCP connection from: " << client_ip << ":" << client_port);
 
                             if (candidate_ip == client_ip)
                             {
@@ -434,18 +435,18 @@ void TcpDriver::startTcpListen(const std::string &address, const std::string &tc
                                 connect_status = true;
                                 if (cb) cb(true);
                                 this->connection_status = ConnectionStatus::TCP_ESTABLISHED;
-                                std::cout << "TCP connection established with: " << client_ip << std::endl;
+                                LOG_INFO("TCP connection established with: " << client_ip );
                             } else {
-                                std::cout << "TCP connection from different IP, expected: " 
-                                          << candidate_ip << ", got: " << client_ip << std::endl;
+                                LOG_INFO("TCP connection from different IP, expected: " 
+                                          << candidate_ip << ", got: " << client_ip );
                                 CLOSE_SOCKET(accepted_socket);
                             }
                         } else {
-                            std::cerr << "Failed to accept TCP connection: " << GET_SOCKET_ERROR << std::endl;
+                            LOG_ERROR("Failed to accept TCP connection: " << GET_SOCKET_ERROR);
                         }
                     }
                 } else if (result < 0) {
-                    std::cerr << "Error in poll for TCP: " << GET_SOCKET_ERROR << std::endl;
+                    LOG_ERROR("Error in poll for TCP: " << GET_SOCKET_ERROR);
                 }
             } else {
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -453,7 +454,7 @@ void TcpDriver::startTcpListen(const std::string &address, const std::string &tc
         }
 
         CLOSE_SOCKET(tcp_listen_socket);
-        std::cout << "TCP listen thread exited" << std::endl; });
+        LOG_INFO("TCP listen thread exited"); });
 }
 
 void TcpDriver::startListen(const std::string &address, const std::string &tls_port,
@@ -488,7 +489,7 @@ void TcpDriver::recvMsg(std::function<void(std::unique_ptr<UserMsg> parsed_msg)>
                 security_instance, 
                 recv_running);
         }
-        std::cout << "Receive thread exited" << std::endl; });
+        LOG_INFO("Receive thread exited"); });
 }
 
 void TcpDriver::closeSocket()
@@ -542,7 +543,7 @@ void TcpDriver::closeSocket()
     WSACleanup();
 #endif
 
-    std::cout << "Socket closed" << std::endl;
+    LOG_INFO("Socket closed");
 }
 
 void TcpDriver::setSecurityInstance(std::shared_ptr<SecurityInterface> instance)
@@ -569,5 +570,5 @@ void TcpDriver::resetConnection()
     ignore_one_error = true;
     connection_status = ConnectionStatus::WAITING_TLS;
 
-    std::cout << "Connection reset" << std::endl;
+    LOG_INFO("Connection reset");
 }

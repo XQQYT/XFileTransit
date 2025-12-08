@@ -15,7 +15,7 @@ struct DeviceInfo
 class DeviceListModel : public QAbstractListModel
 {
     Q_OBJECT
-        Q_PROPERTY(bool scanning READ getIsScanning NOTIFY scanningChanged)
+    Q_PROPERTY(bool scanning READ getIsScanning NOTIFY scanningChanged)
 public:
     enum Roles
     {
@@ -24,10 +24,10 @@ public:
         DeviceType
     };
 
-    explicit DeviceListModel(QObject* parent = nullptr);
+    explicit DeviceListModel(QObject *parent = nullptr);
     ~DeviceListModel();
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;
 
     Q_INVOKABLE void startScan();
@@ -46,6 +46,7 @@ signals:
     void scanProgress(int precent);
 private slots:
     void onFoundOne(DeviceInfo info);
+
 private:
     void clearAll();
     bool scanning;

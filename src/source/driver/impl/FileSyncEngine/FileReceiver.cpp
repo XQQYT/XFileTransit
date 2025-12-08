@@ -1,5 +1,6 @@
 #include "driver/impl/FileSyncEngine/FileReceiver.h"
 #include "driver/impl/OuterMsgParser.h"
+#include "common/DebugOutputer.h"
 #include <iostream>
 #include <cstring>
 #include <mutex>
@@ -17,7 +18,7 @@ UnifiedSocket FileReceiver::createListenSocket(const std::string &address, const
     UnifiedSocket sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock == INVALID_SOCKET_VAL)
     {
-        std::cerr << "Failed to create socket: " << GET_SOCKET_ERROR << std::endl;
+        LOG_ERROR("Failed to create socket: " << GET_SOCKET_ERROR);
         return INVALID_SOCKET_VAL;
     }
 
@@ -42,7 +43,7 @@ UnifiedSocket FileReceiver::createListenSocket(const std::string &address, const
     {
         if (inet_pton(AF_INET, address.c_str(), &addr.sin_addr) <= 0)
         {
-            std::cerr << "Invalid address: " << address << std::endl;
+            LOG_ERROR("Invalid address: " << address);
             CLOSE_SOCKET(sock);
             return INVALID_SOCKET_VAL;
         }
@@ -51,7 +52,7 @@ UnifiedSocket FileReceiver::createListenSocket(const std::string &address, const
     // 绑定socket
     if (bind(sock, (sockaddr *)&addr, sizeof(addr)) == SOCKET_ERROR_VAL)
     {
-        std::cerr << "Bind failed: " << GET_SOCKET_ERROR << std::endl;
+        LOG_ERROR("Bind failed: " << GET_SOCKET_ERROR);
         CLOSE_SOCKET(sock);
         return INVALID_SOCKET_VAL;
     }
@@ -59,12 +60,12 @@ UnifiedSocket FileReceiver::createListenSocket(const std::string &address, const
     // 监听socket
     if (listen(sock, 5) == SOCKET_ERROR_VAL)
     {
-        std::cerr << "Listen failed: " << GET_SOCKET_ERROR << std::endl;
+        LOG_ERROR("Listen failed: " << GET_SOCKET_ERROR);
         CLOSE_SOCKET(sock);
         return INVALID_SOCKET_VAL;
     }
 
-    std::cout << "Listen socket created successfully on " << address << ":" << port << std::endl;
+    LOG_INFO("Listen socket created successfully on " << address << ":" << port);
     return sock;
 }
 
@@ -115,9 +116,9 @@ void FileReceiver::start(std::function<void(UnifiedSocket)> accept_cb,
                                 receive_sockets.push_back(accepted_socket);
                             }
                             
-                            std::cout << "Accepted connection from " 
+                            LOG_INFO("Accepted connection from " 
                                       << inet_ntoa(client_addr.sin_addr) << ":" 
-                                      << ntohs(client_addr.sin_port) << std::endl;
+                                      << ntohs(client_addr.sin_port));
                             
                             // 调用accept回调
                             accept_cb(accepted_socket);
@@ -145,12 +146,12 @@ void FileReceiver::start(std::function<void(UnifiedSocket)> accept_cb,
                                     }, 
                                     [this, accepted_socket]() {
                                         // 连接关闭回调
-                                        std::cout << "Connection closed for socket: " << accepted_socket << std::endl;
+                                        LOG_INFO("Connection closed for socket: " << accepted_socket);
                                         this->removeSocket(accepted_socket);
                                     },
                                     [](const NetworkInterface::RecvError error) {
                                         // 接收错误回调
-                                        std::cerr << "Receive error: " << static_cast<int>(error) << std::endl;
+                                        LOG_ERROR("Receive error: " << static_cast<int>(error));
                                     },
                                     security_instance, thread_running);
                                     
@@ -163,13 +164,13 @@ void FileReceiver::start(std::function<void(UnifiedSocket)> accept_cb,
                         }
                         else
                         {
-                            std::cerr << "Failed to accept connection: " << GET_SOCKET_ERROR << std::endl;
+                            LOG_ERROR("Failed to accept connection: " << GET_SOCKET_ERROR);
                         }
                     }
                 }
                 else if (result < 0)
                 {
-                    std::cerr << "Error in poll: " << GET_SOCKET_ERROR << std::endl;
+                    LOG_ERROR("Error in poll: " << GET_SOCKET_ERROR);
                     break;
                 }
                 
@@ -187,7 +188,7 @@ void FileReceiver::removeSocket(UnifiedSocket socket)
     {
         CLOSE_SOCKET(socket);
         receive_sockets.erase(it);
-        std::cout << "Socket " << socket << " removed" << std::endl;
+        LOG_INFO("Socket " << socket << " removed");
     }
 }
 
@@ -263,7 +264,7 @@ void FileReceiver::closeReceiver()
 
                     if (!thread_joined)
                     {
-                        std::cerr << "Warning: Thread failed to join in time, detaching" << std::endl;
+                        LOG_ERROR("Warning: Thread failed to join in time, detaching");
                         thread->detach();
                     }
                 }
@@ -273,7 +274,7 @@ void FileReceiver::closeReceiver()
         receive_threads.clear();
     }
 
-    std::cout << "FileReceiver closed successfully" << std::endl;
+    LOG_INFO("FileReceiver closed successfully");
 }
 
 void FileReceiver::stop()

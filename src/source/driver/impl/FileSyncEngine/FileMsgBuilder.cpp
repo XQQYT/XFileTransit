@@ -41,8 +41,8 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildHeader()
         if (!file_reader || !file_reader->is_open())
         {
             std::error_code ec(errno, std::generic_category());
-            std::cerr << "Failed to open file: " << FileStreamHelper::wstringToLocalPath(wpath)
-                      << " - Error: " << ec.message() << std::endl;
+            LOG_ERROR("Failed to open file: " << FileStreamHelper::wstringToLocalPath(wpath)
+                                              << " - Error: " << ec.message());
         }
 
         file_total_size = FileSystemUtils::getFileSize(file_path);
@@ -76,7 +76,7 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildHeader()
 
         if (!file_reader || !file_reader->is_open())
         {
-            std::cerr << "Failed to open file: " << FileStreamHelper::wstringToLocalPath(wpath) << std::endl;
+            LOG_ERROR("Failed to open file: " << FileStreamHelper::wstringToLocalPath(wpath));
             // 如果文件打开失败，跳过这个文件
             file_total_size = 0;
             file_sended_size = 0;

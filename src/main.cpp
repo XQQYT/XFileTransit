@@ -8,6 +8,8 @@
 #include "control/EventBusManager.h"
 #include "control/NetworkController.h"
 #include "control/FileSyncEngine/FileSyncEngine.h"
+// common
+#include "common/DebugOutputer.h"
 
 #include <QtGui/QFont>
 
@@ -33,7 +35,6 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/network/have_recv_error");
     // 收到对端关闭连接
     EventBusManager::instance().registerEvent("/network/connection_closed");
-
     // 发送添加文件消息
     EventBusManager::instance().registerEvent("/sync/send_addfiles");
     // 收到添加文件消息
@@ -42,23 +43,23 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/sync/send_deletefiles");
     // 收到删除文件消息
     EventBusManager::instance().registerEvent("/sync/have_deletefiles");
-
+    // 发送失效文件
     EventBusManager::instance().registerEvent("/sync/send_expired_file");
-
+    // 受到失效文件
     EventBusManager::instance().registerEvent("/sync/have_expired_file");
-
+    // 初始化文件传输引擎
     EventBusManager::instance().registerEvent("/file/initialize_FileSyncCore");
-
+    // 关闭文件传输引擎
     EventBusManager::instance().registerEvent("/file/close_FileSyncCore");
-
+    // 发送获取文件请求
     EventBusManager::instance().registerEvent("/file/send_get_file");
-
+    // 收到下载请求
     EventBusManager::instance().registerEvent("/file/have_download_request");
-
+    // 向发送队列添加任务
     EventBusManager::instance().registerEvent("/file/have_file_to_send");
-
+    // 上传进度更新
     EventBusManager::instance().registerEvent("/file/upload_progress");
-
+    // 下载进度更新
     EventBusManager::instance().registerEvent("/file/download_progress");
 }
 int main(int argc, char *argv[])
@@ -68,7 +69,7 @@ int main(int argc, char *argv[])
     SetConsoleCP(CP_UTF8);
 #endif
 
-    std::cout << "tmp dir " << GlobalStatusManager::absolute_tmp_dir << std::endl;
+    LOG_INFO("tmp dir " << GlobalStatusManager::absolute_tmp_dir);
 
     QApplication app(argc, argv);
     app.setApplicationName("Xqqyt");

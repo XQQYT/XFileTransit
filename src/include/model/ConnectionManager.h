@@ -21,11 +21,10 @@ signals:
     void conRequestCancel(const QString device_ip, const QString device_name);
     void haveConnectError(QString message);
     void haveRecvError(QString message);
-    //提供给ui，明确对方关闭连接
+    // 提供给ui，明确对方关闭连接
     void peerClosed();
-    //广播信号,作用在model
+    // 广播信号,作用在model
     void connectionClosed();
 };
-
 
 #endif

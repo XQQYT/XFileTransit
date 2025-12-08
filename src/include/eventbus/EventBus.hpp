@@ -27,7 +27,7 @@ class EventBusException : public std::exception
 {
 public:
     explicit EventBusException(std::string msg) : message(std::move(msg)) {}
-    const char* what() const noexcept override { return message.c_str(); }
+    const char *what() const noexcept override { return message.c_str(); }
 
 protected:
     std::string message;
@@ -71,27 +71,32 @@ struct function_traits<Ret(Args...)>
 // Function pointer
 template <typename Ret, typename... Args>
 struct function_traits<Ret (*)(Args...)> : function_traits<Ret(Args...)>
-{};
+{
+};
 
 // std::function
 template <typename Ret, typename... Args>
 struct function_traits<std::function<Ret(Args...)>> : function_traits<Ret(Args...)>
-{};
+{
+};
 
 // Member function pointer
 template <typename ClassType, typename Ret, typename... Args>
 struct function_traits<Ret (ClassType::*)(Args...)> : function_traits<Ret(Args...)>
-{};
+{
+};
 
 // const member function pointer
 template <typename ClassType, typename Ret, typename... Args>
 struct function_traits<Ret (ClassType::*)(Args...) const> : function_traits<Ret(Args...)>
-{};
+{
+};
 
 // Function objects (including lambda)
 template <typename Callable>
 struct function_traits : function_traits<decltype(&Callable::operator())>
-{};
+{
+};
 
 #ifdef _MSC_VER
 template <typename Ret, typename ClassType, typename... Args, typename... BoundArgs>
@@ -102,7 +107,8 @@ struct function_traits<std::_Binder<std::_Unforced, Ret (ClassType::*)(Args...),
 #else
 template <typename Callable, typename... Args>
 struct function_traits<std::_Bind<Callable(Args...)>> : function_traits<Callable>
-{};
+{
+};
 #endif
 
 using callback_id = size_t;
@@ -154,7 +160,7 @@ public:
             validateConfig(*this);
         }
 
-        static void validateConfig(const  EventBusConfig& config)
+        static void validateConfig(const EventBusConfig &config)
         {
             if (config.thread_min <= 0)
             {
@@ -185,23 +191,25 @@ public:
         }
     };
 
-    struct EventSystemStatus {
-        size_t registered_events_count;      // Registered events count
-        size_t total_subscriptions;          // Total subscriptions
-        size_t events_triggered_count;       // Events triggered count
-        size_t events_failed_count;          // Events failed count
-        size_t active_subscriptions;         // Active subscriptions count
+    struct EventSystemStatus
+    {
+        size_t registered_events_count;                                   // Registered events count
+        size_t total_subscriptions;                                       // Total subscriptions
+        size_t events_triggered_count;                                    // Events triggered count
+        size_t events_failed_count;                                       // Events failed count
+        size_t active_subscriptions;                                      // Active subscriptions count
         std::unordered_map<std::string, size_t> event_subscription_count; // Subscriptions per event
     };
 
-    struct EventBusStatus {
+    struct EventBusStatus
+    {
         ThreadPool<>::ThreadPoolStatus thread_pool_status; // Thread pool status
-        EventSystemStatus event_system_status; // Event system status
-        bool is_initialized;                 // Initialization status
-        EventBus::ThreadModel thread_model;  // Thread model
-        EventBus::TaskModel task_model;      // Task model
-        unsigned int max_threads;            // Max threads limit
-        unsigned int max_tasks;              // Max tasks limit
+        EventSystemStatus event_system_status;             // Event system status
+        bool is_initialized;                               // Initialization status
+        EventBus::ThreadModel thread_model;                // Thread model
+        EventBus::TaskModel task_model;                    // Task model
+        unsigned int max_threads;                          // Max threads limit
+        unsigned int max_tasks;                            // Max tasks limit
     };
 
 public:
@@ -213,16 +221,16 @@ public:
      * @brief Destroy the EventBus object
      */
     virtual ~EventBus() = default;
-    EventBus(const EventBus&) = delete;
-    EventBus(EventBus&&) = delete;
-    EventBus& operator=(const EventBus&) = delete;
+    EventBus(const EventBus &) = delete;
+    EventBus(EventBus &&) = delete;
+    EventBus &operator=(const EventBus &) = delete;
 
     /**
      * @brief Initialize the EventBus with configuration
      * @param config EventBusConfig object
      * @throw runtime_error if configuration is invalid
      */
-    void initEventBus(const EventBusConfig& config)
+    void initEventBus(const EventBusConfig &config)
     {
         EventBusConfig::validateConfig(config);
         this->config = config;
@@ -283,11 +291,14 @@ public:
      * @brief Register an event with a given name
      * @param eventName Name of the event
      */
-    void registerEvent(const std::string& eventName)
+    void registerEvent(const std::string &eventName)
     {
         ensureInitialized();
         auto [it, inserted] = callbacks_map.try_emplace(eventName);
-        if (inserted) { it->second.reserve(3); }
+        if (inserted)
+        {
+            it->second.reserve(3);
+        }
     }
 
     /**
@@ -298,7 +309,7 @@ public:
      * @return callback_id Unique subscription ID
      */
     template <typename... Args>
-    callback_id subscribe(const std::string& eventName, std::function<void(Args...)> callback)
+    callback_id subscribe(const std::string &eventName, std::function<void(Args...)> callback)
     {
         auto it = callbacks_map.find(eventName);
         if (it == callbacks_map.end())
@@ -307,7 +318,7 @@ public:
         }
         event_statistics[eventName].subscription_count++;
         callback_id id = ++next_id;
-        it->second.emplace_back(CallbackWrapper {id, std::move(callback)});
+        it->second.emplace_back(CallbackWrapper{id, std::move(callback)});
         return id;
     }
 
@@ -319,7 +330,7 @@ public:
      * @return callback_id Unique subscription ID
      */
     template <typename Callback>
-    callback_id subscribe(const std::string& eventName, Callback&& callback)
+    callback_id subscribe(const std::string &eventName, Callback &&callback)
     {
         ensureInitialized();
         using signature = typename function_traits<std::decay_t<Callback>>::signature;
@@ -334,7 +345,7 @@ public:
      * @return callback_id Unique subscription ID
      */
     template <typename... Args>
-    callback_id subscribeSafe(const std::string& eventName, std::function<void(Args...)> callback)
+    callback_id subscribeSafe(const std::string &eventName, std::function<void(Args...)> callback)
     {
         registerEvent(eventName);
         return subscribe(eventName, callback);
@@ -348,7 +359,7 @@ public:
      * @return callback_id Unique subscription ID
      */
     template <typename Callback>
-    callback_id subscribeSafe(const std::string eventName, Callback&& callback)
+    callback_id subscribeSafe(const std::string eventName, Callback &&callback)
     {
         registerEvent(eventName);
         using signature = typename function_traits<std::decay_t<Callback>>::signature;
@@ -362,7 +373,7 @@ public:
      * @param args Event arguments
      */
     template <typename... Args>
-    void publish(const std::string& eventName, Args&&... args)
+    void publish(const std::string &eventName, Args &&...args)
     {
         ensureInitialized();
         auto it = callbacks_map.find(eventName);
@@ -372,17 +383,17 @@ public:
         }
 
         events_triggered_count.fetch_add(1, std::memory_order_relaxed);
-        auto& event_stats = event_statistics[eventName];
+        auto &event_stats = event_statistics[eventName];
         event_stats.triggered_count.fetch_add(1, std::memory_order_relaxed);
 
         if constexpr (sizeof...(Args) == 0)
         {
-            for (auto& wrapper : it->second)
+            for (auto &wrapper : it->second)
             {
                 if (task_model == TaskModel::NORMAL)
                 {
                     thread_pool->addTask(
-                        [this,&wrapper,&eventName]
+                        [this, &wrapper, &eventName]
                         {
                             try
                             {
@@ -396,8 +407,7 @@ public:
                             {
                                 events_failed_count.fetch_add(1, std::memory_order_relaxed);
                                 event_statistics[eventName].failed_count.fetch_add(1, std::memory_order_relaxed);
-                                std::cerr << "Callback execution failed for event: " << wrapper.id
-                                          << "\n";
+                                LOG_ERROR("Callback execution failed for event: " << wrapper.id << "\n");
                             }
                         });
                 }
@@ -413,17 +423,17 @@ public:
             using DecayedTuple = std::tuple<std::decay_t<Args>...>;
             auto args_tuple = std::make_shared<DecayedTuple>(std::forward<Args>(args)...);
 
-            for (auto& wrapper : it->second)
+            for (auto &wrapper : it->second)
             {
                 if (task_model == TaskModel::NORMAL)
                 {
                     thread_pool->addTask(
-                        [this,wrapper, args_tuple]()
+                        [this, wrapper, args_tuple]()
                         {
                             try
                             {
                                 if (auto cb = std::any_cast<std::function<void(std::decay_t<Args>...)>>(
-                                    &wrapper.callback))
+                                        &wrapper.callback))
                                 {
                                     std::apply(*cb, *args_tuple);
                                 }
@@ -433,15 +443,15 @@ public:
                                     (*cb)();
                                 }
                             }
-                            catch (const std::exception& e)
+                            catch (const std::exception &e)
                             {
-                                std::cerr << "Callback execution failed for event: " << wrapper.id
-                                          << ", error: " << e.what() << "\n";
+                                LOG_ERROR("Callback execution failed for event: " << wrapper.id
+                                                                                  << ", error: " << e.what() << "\n");
                             }
                             catch (...)
                             {
-                                std::cerr << "Unknown error in callback execution for event: "
-                                          << wrapper.id << "\n";
+                                LOG_ERROR("Unknown error in callback execution for event: "
+                                          << wrapper.id << "\n");
                             }
                         });
                 }
@@ -462,7 +472,7 @@ public:
      * @param args Event arguments
      */
     template <typename... Args>
-    void publishWithPriority(TaskPriority priority, const std::string& eventName, Args&&... args)
+    void publishWithPriority(TaskPriority priority, const std::string &eventName, Args &&...args)
     {
         ensureInitialized();
         auto it = callbacks_map.find(eventName);
@@ -473,7 +483,7 @@ public:
 
         if constexpr (sizeof...(Args) == 0)
         {
-            for (auto& wrapper : it->second)
+            for (auto &wrapper : it->second)
             {
                 if (task_model == TaskModel::NORMAL)
                 {
@@ -484,7 +494,7 @@ public:
                 {
                     thread_pool->addTask(
                         static_cast<int>(priority),
-                        [this,&wrapper]()
+                        [this, &wrapper]()
                         {
                             try
                             {
@@ -496,8 +506,8 @@ public:
                             }
                             catch (...)
                             {
-                                std::cerr << "Callback execution failed for event: " << wrapper.id
-                                          << "\n";
+                                LOG_ERROR("Callback execution failed for event: " << wrapper.id
+                                                                                  << "\n");
                             }
                         });
                 }
@@ -508,7 +518,7 @@ public:
             auto args_tuple =
                 std::make_shared<std::tuple<std::decay_t<Args>...>>(std::forward<Args>(args)...);
 
-            for (auto& wrapper : it->second)
+            for (auto &wrapper : it->second)
             {
                 if (task_model == TaskModel::NORMAL)
                 {
@@ -519,7 +529,7 @@ public:
                 {
                     thread_pool->addTask(
                         static_cast<int>(priority),
-                        [this,&wrapper, args_tuple]()
+                        [this, &wrapper, args_tuple]()
                         {
                             try
                             {
@@ -536,8 +546,8 @@ public:
                             }
                             catch (...)
                             {
-                                std::cerr << "Callback execution failed for event: " << wrapper.id
-                                          << "\n";
+                                LOG_ERROR("Callback execution failed for event: " << wrapper.id
+                                                                                  << "\n");
                             }
                         });
                 }
@@ -551,7 +561,7 @@ public:
      * @return true If registered
      * @return false Otherwise
      */
-    bool isEventRegistered(const std::string& eventName) const
+    bool isEventRegistered(const std::string &eventName) const
     {
         return callbacks_map.count(eventName) > 0;
     }
@@ -563,17 +573,21 @@ public:
      * @return true If unsubscribed successfully
      * @return false If not found
      */
-    bool unsubscribe(const std::string& eventName, callback_id id)
+    bool unsubscribe(const std::string &eventName, callback_id id)
     {
         ensureInitialized();
 
         auto iter = callbacks_map.find(eventName);
-        if (iter == callbacks_map.end()) { return false; }
+        if (iter == callbacks_map.end())
+        {
+            return false;
+        }
 
-        auto& callbacks = iter->second;
+        auto &callbacks = iter->second;
         auto it = std::find_if(callbacks.begin(),
                                callbacks.end(),
-                               [id](const CallbackWrapper& wrapper) { return wrapper.id == id; });
+                               [id](const CallbackWrapper &wrapper)
+                               { return wrapper.id == id; });
         if (it != callbacks.end())
         {
             callbacks.erase(it);
@@ -594,7 +608,7 @@ public:
     EventBusStatus getStatus() const
     {
         EventBusStatus status;
-        
+
         // Basic status
         status.is_initialized = init_status;
         if (init_status)
@@ -603,7 +617,7 @@ public:
             status.task_model = config.task_model;
             status.max_threads = config.thread_max;
             status.max_tasks = config.task_max;
-            
+
             // Threadpool status
             if (thread_pool)
             {
@@ -615,15 +629,15 @@ public:
                 status.thread_pool_status.pending_tasks = pool_status.pending_tasks;
                 status.thread_pool_status.is_running = pool_status.is_running;
             }
-            
+
             // Event system status
             status.event_system_status.registered_events_count = callbacks_map.size();
             status.event_system_status.events_triggered_count = events_triggered_count.load();
             status.event_system_status.events_failed_count = events_failed_count.load();
-            
+
             // Calculate subscription statistics
             size_t total_subscriptions = 0;
-            for (const auto& [event_name, callbacks] : callbacks_map)
+            for (const auto &[event_name, callbacks] : callbacks_map)
             {
                 size_t event_subs = callbacks.size();
                 total_subscriptions += event_subs;
@@ -632,7 +646,7 @@ public:
             status.event_system_status.total_subscriptions = total_subscriptions;
             status.event_system_status.active_subscriptions = total_subscriptions;
         }
-        
+
         return status;
     }
 
@@ -640,7 +654,8 @@ public:
      * @brief Get simplified status information (better performance)
      * @return A simplified struct containing key states
      */
-    struct SimplifiedStatus {
+    struct SimplifiedStatus
+    {
         bool is_initialized;
         unsigned int thread_count;
         unsigned int queue_size;
@@ -649,30 +664,30 @@ public:
         size_t events_triggered;
         size_t events_failed;
     };
-    
+
     SimplifiedStatus getSimplifiedStatus() const
     {
         SimplifiedStatus status;
         status.is_initialized = init_status;
-        
+
         if (init_status && thread_pool)
         {
             auto pool_status = thread_pool->getStatus();
             status.thread_count = pool_status.thread_count;
             status.queue_size = pool_status.queue_size;
-            
+
             status.registered_events = callbacks_map.size();
             status.events_triggered = events_triggered_count.load();
             status.events_failed = events_failed_count.load();
-            
+
             size_t total_subs = 0;
-            for (const auto& [_, callbacks] : callbacks_map)
+            for (const auto &[_, callbacks] : callbacks_map)
             {
                 total_subs += callbacks.size();
             }
             status.total_subscriptions = total_subs;
         }
-        
+
         return status;
     }
 
@@ -681,37 +696,39 @@ public:
      * @param eventName Event name
      * @return Event statistical information. If the event does not exist, an empty optional is returned.
      */
-    struct EventStatistics {
+    struct EventStatistics
+    {
         size_t subscription_count;
         size_t triggered_count;
         size_t failed_count;
         double success_rate;
     };
-    
-    std::optional<EventStatistics> getEventStatistics(const std::string& eventName) const
+
+    std::optional<EventStatistics> getEventStatistics(const std::string &eventName) const
     {
         auto event_it = event_statistics.find(eventName);
         if (event_it == event_statistics.end())
         {
             return std::nullopt;
         }
-        
-        const auto& stats = event_it->second;
+
+        const auto &stats = event_it->second;
         EventStatistics result;
         result.subscription_count = stats.subscription_count;
         result.triggered_count = stats.triggered_count.load();
         result.failed_count = stats.failed_count.load();
-        
+
         if (result.triggered_count > 0)
         {
-            result.success_rate = (1.0 - static_cast<double>(result.failed_count) / 
-                                 static_cast<double>(result.triggered_count)) * 100.0;
+            result.success_rate = (1.0 - static_cast<double>(result.failed_count) /
+                                             static_cast<double>(result.triggered_count)) *
+                                  100.0;
         }
         else
         {
             result.success_rate = 100.0;
         }
-        
+
         return result;
     }
 
@@ -726,13 +743,13 @@ public:
         {
             events_triggered_count.store(0);
             events_failed_count.store(0);
-            for (auto& [_, stats] : event_statistics)
+            for (auto &[_, stats] : event_statistics)
             {
                 stats.triggered_count.store(0);
                 stats.failed_count.store(0);
             }
         }
-        
+
         if (reset_threadpool && thread_pool)
         {
             thread_pool->resetStatistics();
@@ -758,18 +775,19 @@ private:
         std::any callback;
     };
     std::unordered_map<std::string, std::vector<CallbackWrapper>> callbacks_map;
-    std::atomic<callback_id> next_id {0};
+    std::atomic<callback_id> next_id{0};
     std::unique_ptr<ThreadPool<>> thread_pool;
     EventBusConfig config;
-    bool init_status {};
+    bool init_status{};
     TaskModel task_model;
 
-        struct EventStats {
+    struct EventStats
+    {
         std::atomic<size_t> triggered_count{0};
         std::atomic<size_t> failed_count{0};
         size_t subscription_count{0};
     };
-    
+
     std::atomic<size_t> events_triggered_count{0};
     std::atomic<size_t> events_failed_count{0};
     std::unordered_map<std::string, EventStats> event_statistics;

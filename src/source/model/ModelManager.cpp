@@ -1,16 +1,17 @@
 #include "model/ModelManager.h"
 
 ModelManager::ModelManager()
-    :net_info_model(std::make_shared<NetworkInfoListModel>()),
-    device_model(std::make_shared<DeviceListModel>()),
-    file_list_model(std::make_shared<FileListModel>()),
-    connection_manager(std::make_shared<ConnectionManager>())
+    : net_info_model(std::make_shared<NetworkInfoListModel>()),
+      device_model(std::make_shared<DeviceListModel>()),
+      file_list_model(std::make_shared<FileListModel>()),
+      connection_manager(std::make_shared<ConnectionManager>())
 {
     connect(connection_manager.get(), &ConnectionManager::connectionClosed,
-        file_list_model.get(), &FileListModel::onConnectionClosed);
+            file_list_model.get(), &FileListModel::onConnectionClosed);
 }
 
-ModelManager& ModelManager::getInstance() {
+ModelManager &ModelManager::getInstance()
+{
     static ModelManager instance;
     return instance;
 }

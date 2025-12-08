@@ -5,6 +5,7 @@
 #include "driver/impl/FileUtility.h"
 #include "control/EventBusManager.h"
 #include "driver/interface/FileStreamHelper.h"
+#include "common/DebugOutputer.h"
 #include <string>
 
 FileParser::FileParser() : json_parser(std::make_unique<NlohmannJson>())
@@ -59,7 +60,7 @@ void FileParser::parse(std::unique_ptr<NetworkInterface::UserMsg> msg)
         }
         else
         {
-            std::cout << "FStream hasn't ready" << std::endl;
+            LOG_ERROR("FStream hasn't ready");
         }
     }
     else
@@ -67,7 +68,7 @@ void FileParser::parse(std::unique_ptr<NetworkInterface::UserMsg> msg)
         auto parser = json_parser->getParser();
         std::string json_str = std::string(msg->data.data(), msg->data.data() + msg->data.size());
         parser->loadJson(json_str);
-        std::cout << "File Msg  " << std::string(msg->data.data(), msg->data.data() + msg->data.size()) << std::endl;
+        LOG_INFO("File Msg  " << std::string(msg->data.data(), msg->data.data() + msg->data.size()));
         auto parser_func = type_parser_map.find(parser->getValue("type"));
         if (parser_func != type_parser_map.end())
         {
@@ -75,7 +76,7 @@ void FileParser::parse(std::unique_ptr<NetworkInterface::UserMsg> msg)
         }
         else
         {
-            std::cout << "Invalid type" << std::endl;
+            LOG_ERROR("Invalid type");
         }
     }
 }
@@ -101,7 +102,7 @@ void FileParser::onFileHeader(std::unique_ptr<Json::Parser> content_parser)
 
     if (!file_stream || !file_stream->is_open())
     {
-        std::cerr << "Failed to open: " << FileStreamHelper::wstringToLocalPath(full_path) << std::endl;
+        LOG_ERROR("Failed to open: " << FileStreamHelper::wstringToLocalPath(full_path));
     }
     else
     {
@@ -143,7 +144,7 @@ void FileParser::onDirItemHeader(std::unique_ptr<Json::Parser> content_parser)
 
     if (!file_stream || !file_stream->is_open())
     {
-        std::cerr << "Failed to open: " << FileStreamHelper::wstringToLocalPath(full_path) << std::endl;
+        LOG_ERROR("Failed to open: " << FileStreamHelper::wstringToLocalPath(full_path));
     }
 
     file_name = content_parser->getValue("path");

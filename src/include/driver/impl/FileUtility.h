@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <climits>
+#include "common/DebugOutputer.h"
 
 // 平台特定的头文件
 #ifdef _WIN32
@@ -30,13 +31,13 @@ public:
         {
             if (!fs::exists(filePath))
             {
-                std::cerr << "文件不存在: " << filePath << std::endl;
+                LOG_ERROR("文件不存在: " << filePath);
                 return 0;
             }
 
             if (fs::is_directory(filePath))
             {
-                std::cerr << "路径是目录，不是文件: " << filePath << std::endl;
+                LOG_ERROR("路径是目录，不是文件: " << filePath);
                 return 0;
             }
 
@@ -44,7 +45,7 @@ public:
         }
         catch (const fs::filesystem_error &ex)
         {
-            std::cerr << "获取文件大小错误: " << ex.what() << std::endl;
+            LOG_ERROR("获取文件大小错误: " << ex.what());
             return 0;
         }
     }
@@ -63,7 +64,7 @@ public:
         }
         catch (const fs::filesystem_error &ex)
         {
-            std::cerr << "判断目录错误: " << ex.what() << std::endl;
+            LOG_ERROR("判断目录错误: " << ex.what());
             return false;
         }
     }
@@ -74,7 +75,7 @@ public:
 
         if (!fs::exists(rootPath))
         {
-            std::cerr << "路径不存在: " << rootPath << std::endl;
+            LOG_ERROR("路径不存在: " << rootPath);
             return leafFolders;
         }
 
@@ -155,7 +156,7 @@ public:
         }
         catch (const std::exception &e)
         {
-            std::cerr << "相对路径转换错误: " << e.what() << std::endl;
+            LOG_ERROR("相对路径转换错误: " << e.what());
             // 如果出错，返回原始路径
             return absolutePath;
         }
@@ -169,14 +170,14 @@ public:
             bool result = fs::create_directories(path, ec);
             if (ec)
             {
-                std::cerr << "创建目录错误: " << ec.message() << std::endl;
+                LOG_ERROR("建目录错误:" << ec.message().c_str());
                 return false;
             }
             return result;
         }
         catch (const std::exception &e)
         {
-            std::cerr << "创建目录异常: " << e.what() << std::endl;
+            LOG_ERROR("创建目录异常: " << e.what());
             return false;
         }
     }
@@ -190,14 +191,14 @@ public:
             bool result = fs::create_directories(path, ec);
             if (ec)
             {
-                std::cerr << "创建目录错误: " << ec.message() << std::endl;
+                LOG_ERROR("创建目录错误: " << ec.message().c_str());
                 return false;
             }
             return result;
         }
         catch (const std::exception &e)
         {
-            std::cerr << "创建目录异常: " << e.what() << std::endl;
+            LOG_ERROR("创建目录异常: " << e.what());
             return false;
         }
     }
@@ -287,7 +288,7 @@ public:
         {
             if (!fs::exists(path))
             {
-                std::cerr << "路径不存在: " << path.string() << std::endl;
+                LOG_ERROR("路径不存在: " << path.string());
                 return 0;
             }
             if (fs::is_regular_file(path))
@@ -301,7 +302,7 @@ public:
             {
                 if (ec)
                 {
-                    std::cerr << "访问目录项出错: " << ec.message() << std::endl;
+                    LOG_ERROR("访问目录项出错: " << ec.message().c_str());
                     continue;
                 }
                 if (fs::is_regular_file(entry.status()))
@@ -313,8 +314,8 @@ public:
                     }
                     else
                     {
-                        std::cerr << "获取文件大小失败: " << entry.path().string()
-                                  << " - " << ec.message() << std::endl;
+                        LOG_ERROR("获取文件大小失败: " << entry.path().string()
+                                                       << " - " << ec.message().c_str());
                     }
                 }
             }
@@ -322,13 +323,13 @@ public:
         }
         catch (const fs::filesystem_error &e)
         {
-            std::cerr << "文件系统错误: " << e.what()
-                      << " - 错误码: " << e.code().value() << std::endl;
+            LOG_ERROR("文件系统错误: " << e.what()
+                                       << " - 错误码: " << e.code().value());
             return static_cast<uint64_t>(-1);
         }
         catch (const std::exception &e)
         {
-            std::cerr << "未知错误: " << e.what() << std::endl;
+            LOG_ERROR("未知错误: " << e.what());
             return static_cast<uint64_t>(-1);
         }
     }
@@ -380,7 +381,7 @@ public:
 
         if (!fs::exists(rootPath))
         {
-            std::cerr << "根路径不存在: " << rootPath << std::endl;
+            LOG_ERROR("根路径不存在: " << rootPath);
             return leafFiles;
         }
 
@@ -400,7 +401,7 @@ public:
         }
         catch (const fs::filesystem_error &ex)
         {
-            std::cerr << "遍历目录错误: " << ex.what() << std::endl;
+            LOG_ERROR("遍历目录错误: " << ex.what());
         }
 
         return leafFiles;
@@ -413,7 +414,7 @@ public:
 
         if (!fs::exists(dirPath))
         {
-            std::cerr << "目录不存在: " << dirPath << std::endl;
+            LOG_ERROR("目录不存在: " << dirPath);
             return files;
         }
 
@@ -429,7 +430,7 @@ public:
         }
         catch (const fs::filesystem_error &ex)
         {
-            std::cerr << "读取目录错误: " << ex.what() << std::endl;
+            LOG_ERROR("读取目录错误: " << ex.what());
         }
 
         return files;
@@ -442,7 +443,7 @@ public:
 
         if (!fs::exists(dirPath))
         {
-            std::cerr << "目录不存在: " << dirPath << std::endl;
+            LOG_ERROR("目录不存在: " << dirPath);
             return dirs;
         }
 
@@ -458,7 +459,7 @@ public:
         }
         catch (const fs::filesystem_error &ex)
         {
-            std::cerr << "读取目录错误: " << ex.what() << std::endl;
+            LOG_ERROR("读取目录错误: " << ex.what());
         }
 
         return dirs;
@@ -481,14 +482,14 @@ public:
 
             if (ec)
             {
-                std::cerr << "复制文件错误: " << ec.message() << std::endl;
+                LOG_ERROR("复制文件错误: " << ec.message().c_str());
                 return false;
             }
             return true;
         }
         catch (const std::exception &e)
         {
-            std::cerr << "复制文件异常: " << e.what() << std::endl;
+            LOG_ERROR("复制文件异常: " << e.what());
             return false;
         }
     }
@@ -503,7 +504,7 @@ public:
 
             if (ec)
             {
-                std::cerr << "删除错误: " << ec.message() << std::endl;
+                LOG_ERROR("删除错误: " << ec.message().c_str());
                 return false;
             }
 
@@ -511,7 +512,7 @@ public:
         }
         catch (const std::exception &e)
         {
-            std::cerr << "删除异常: " << e.what() << std::endl;
+            LOG_ERROR("删除异常: " << e.what());
             return false;
         }
     }
@@ -543,7 +544,7 @@ private:
         }
         catch (const fs::filesystem_error &ex)
         {
-            std::cerr << "访问路径错误: " << currentPath.string() << " - " << ex.what() << std::endl;
+            LOG_ERROR("访问路径错误: " << currentPath.string() << " - " << ex.what());
         }
     }
 };

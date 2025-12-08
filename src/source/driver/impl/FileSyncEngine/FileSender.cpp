@@ -2,6 +2,7 @@
 #include "driver/impl/FileSyncEngine/FileMsgBuilder.h"
 #include "control/EventBusManager.h"
 #include "driver/interface/PlatformSocket.h"
+#include "common/DebugOutputer.h"
 #include <iostream>
 #include <cerrno>
 #include <cstring>
@@ -11,7 +12,7 @@ bool FileSender::initialize()
 #ifdef _WIN32
     if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0)
     {
-        std::cerr << "WSAStartup failed: " << GET_SOCKET_ERROR << std::endl;
+        LOG_ERROR("WSAStartup failed: " << GET_SOCKET_ERROR);
         return false;
     }
 #endif
@@ -19,7 +20,7 @@ bool FileSender::initialize()
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (client_socket == INVALID_SOCKET_VAL)
     {
-        std::cerr << "Failed to create socket: " << GET_SOCKET_ERROR << std::endl;
+        LOG_ERROR("Failed to create socket: " << GET_SOCKET_ERROR);
         return false;
     }
 
@@ -28,7 +29,7 @@ bool FileSender::initialize()
 
     if (inet_pton(AF_INET, address.c_str(), &client_tcp_addr.sin_addr) <= 0)
     {
-        std::cerr << "Invalid address: " << address << std::endl;
+        LOG_ERROR("Invalid address: " << address);
         CLOSE_SOCKET(client_socket);
         client_socket = INVALID_SOCKET_VAL;
         return false;
@@ -36,7 +37,7 @@ bool FileSender::initialize()
 
     if (connect(client_socket, (sockaddr *)&client_tcp_addr, sizeof(client_tcp_addr)) == SOCKET_ERROR_VAL)
     {
-        std::cerr << "Connect failed: " << GET_SOCKET_ERROR << std::endl;
+        LOG_ERROR("Connect failed: " << GET_SOCKET_ERROR);
         CLOSE_SOCKET(client_socket);
         client_socket = INVALID_SOCKET_VAL;
         return false;
@@ -48,7 +49,7 @@ bool FileSender::initialize()
         getOuterMsgBuilder().setSecurityInstance(security_instance);
     }
 
-    std::cout << "FileSender initialized successfully" << std::endl;
+    LOG_INFO("FileSender initialized successfully");
     return true;
 }
 
@@ -67,7 +68,7 @@ void FileSender::sendMsg(std::vector<uint8_t> &&msg, bool is_binary)
     auto ready_to_send_msg = getOuterMsgBuilder().buildMsg(msg, flag);
     if (!ready_to_send_msg)
     {
-        std::cerr << "Failed to build message" << std::endl;
+        LOG_ERROR("Failed to build message");
         return;
     }
 
@@ -86,7 +87,7 @@ void FileSender::sendMsg(std::vector<uint8_t> &&msg, bool is_binary)
             {
                 continue; // 被信号中断，重试
             }
-            std::cerr << "Send failed, error: " << err << std::endl;
+            LOG_ERROR("Send failed, error: " << err);
             break;
         }
         sended_length += ret;
@@ -171,7 +172,7 @@ void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::stri
                 }
             }
             
-            std::cout << "FileSender thread exited" << std::endl; });
+            LOG_INFO("FileSender thread exited"); });
     }
 }
 
@@ -208,5 +209,5 @@ FileSender::~FileSender()
     WSACleanup();
 #endif
 
-    std::cout << "FileSender destroyed" << std::endl;
+    LOG_INFO("FileSender destroyed");
 }

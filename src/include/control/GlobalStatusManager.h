@@ -9,12 +9,13 @@ class GlobalStatusManager
 public:
     inline static const std::string absolute_tmp_dir = FileSystemUtils::getExecutableDirectory() + "XFiletransitTmp/";
 
-    enum class idType {
+    enum class idType
+    {
         Low,
         High,
         Undefined
     };
-    static GlobalStatusManager& getInstance()
+    static GlobalStatusManager &getInstance()
     {
         static GlobalStatusManager instance;
         return instance;
@@ -27,11 +28,11 @@ public:
     {
         return current_target_device_ip;
     }
-    inline void setCurrentTargetDeviceName(std::string&& dn)
+    inline void setCurrentTargetDeviceName(std::string &&dn)
     {
         current_target_device_name = dn;
     }
-    inline void setCurrentTargetDeviceIP(const std::string& di)
+    inline void setCurrentTargetDeviceIP(const std::string &di)
     {
         current_target_device_ip = di;
     }
@@ -43,11 +44,11 @@ public:
     {
         return current_local_device_ip;
     }
-    inline void setCurrentLocalDeviceName(std::string&& dn)
+    inline void setCurrentLocalDeviceName(std::string &&dn)
     {
         current_local_device_name = dn;
     }
-    inline void setCurrentLocalDeviceIP(std::string&& di)
+    inline void setCurrentLocalDeviceIP(std::string &&di)
     {
         current_local_device_ip = di;
     }
@@ -89,9 +90,9 @@ public:
             break;
         }
     }
-    inline void insertFile(uint32_t id, const std::string& filename)
+    inline void insertFile(uint32_t id, const std::string &filename)
     {
-        id_filename.insert({ id,filename });
+        id_filename.insert({id, filename});
     }
     inline void removeFile(uint32_t id)
     {
@@ -112,7 +113,7 @@ private:
 
     std::string current_local_device_name;
     std::string current_local_device_ip;
-    bool is_connected{ false };
+    bool is_connected{false};
     uint32_t file_id_counter;
     idType current_type;
     std::unordered_map<uint32_t, std::string> id_filename;

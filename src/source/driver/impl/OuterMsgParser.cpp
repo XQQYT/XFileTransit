@@ -1,6 +1,7 @@
 #include "driver/impl/OuterMsgParser.h"
 #include "driver/interface/SecurityInterface.h"
 #include "driver/interface/PlatformSocket.h"
+#include "common/DebugOutputer.h"
 #include <iostream>
 #include <stdexcept>
 #include <cstring>
@@ -65,7 +66,7 @@ void OuterMsgParser::dealRecvError(std::function<void()> dcc_cb,
             dre_cb(NetworkInterface::RecvError::RECV_NETWORK_RESET);
             break;
         default:
-            std::cerr << "Recv unknown error: " << error_code << std::endl;
+            LOG_ERROR("Recv unknown error: " << error_code);
             break;
         }
     }
@@ -267,7 +268,7 @@ void OuterMsgParser::delegateRecv(UnifiedSocket client_socket,
     }
     catch (const std::exception &e)
     {
-        std::cerr << "delegateRecv exception: " << e.what() << std::endl;
+        LOG_ERROR("delegateRecv exception: " << e.what());
         dealRecvError(dcc_cb, dre_cb);
     }
 

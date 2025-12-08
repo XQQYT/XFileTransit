@@ -18,6 +18,10 @@ qt6_add_resources(APP_RES
     ${CMAKE_CURRENT_SOURCE_DIR}/res/res.qrc
 )
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_definitions(DEBUG_OUTPUT)
+endif()
+
 add_subdirectory(source/driver)
 add_subdirectory(source/control)
 add_subdirectory(source/model)
@@ -34,7 +38,6 @@ if(WIN32)
     )
 endif()
 
-# Windows MinGW 特有的链接标志
 if(WIN32 AND MINGW)
     if(CMAKE_BUILD_TYPE STREQUAL "Release")
         set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -46,10 +49,10 @@ if(WIN32 AND MINGW)
         )
     endif()
 endif()
-
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
 
 # 链接 Qt 库
 target_link_libraries(${PROJECT_NAME} PUBLIC
@@ -61,7 +64,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     Qt6::QuickControls2
 )
 
-# 链接自定义库
 target_link_libraries(${PROJECT_NAME} PUBLIC
     driver
     control

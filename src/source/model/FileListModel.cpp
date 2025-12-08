@@ -348,7 +348,6 @@ void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
     for (auto id : file_ids)
     {
         uint32_t target_id = std::stoul(id);
-        std::cout << "haveDownLoadRequest " << target_id << std::endl;
         auto target_file = findFileInfoById(target_id);
         // 文件失效
         if (!FileSystemUtils::fileIsExist(target_file.second.source_path.toStdString()))
