@@ -2,6 +2,10 @@
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QQmlContext>
 #include <QtQuickControls2/QQuickStyle>
+#include <QtNetwork/QLocalSocket>
+#include <QtNetwork/QLocalServer>
+#include <QtWidgets/QMessageBox>
+#include <QtGui/QWindow>
 // model
 #include "model/ModelManager.h"
 // control
@@ -62,6 +66,7 @@ void initRegisterEvents()
     // 下载进度更新
     EventBusManager::instance().registerEvent("/file/download_progress");
 }
+
 int main(int argc, char *argv[])
 {
 #ifdef _WIN32
@@ -72,14 +77,39 @@ int main(int argc, char *argv[])
     LOG_INFO("tmp dir " << GlobalStatusManager::absolute_tmp_dir);
 
     QApplication app(argc, argv);
-    app.setApplicationName("Xqqyt");
-    app.setOrganizationName("XQQYT");
+    app.setApplicationName("XFileTransit");
+    app.setOrganizationName("Xqqyt");
     app.setWindowIcon(QIcon(":/logo/logo/logo_small.ico"));
 
     QQuickStyle::setStyle("Basic");
 
     QFont defaultFont("Segoe UI");
     app.setFont(defaultFont);
+
+    // 检测是否已有一个实例在运行
+    const QString appId = "XFileTransit_unique_app_id_" + app.applicationName();
+
+    QLocalSocket socket;
+    socket.connectToServer(appId);
+
+    if (socket.waitForConnected(500))
+    {
+        // 已有一个实例在运行
+        socket.close();
+        QMessageBox::information(nullptr, "程序已在运行",
+                                 "XFileTransit 已在运行中。\n请检查系统托盘或任务栏。");
+        return 0;
+    }
+
+    QLocalServer::removeServer(appId);
+
+    QLocalServer server;
+    if (!server.listen(appId))
+    {
+        QMessageBox::critical(nullptr, "错误",
+                              "无法创建应用程序实例，请检查系统权限。");
+        return -1;
+    }
 
     QQmlApplicationEngine engine;
     // 初始化组件
@@ -105,7 +135,16 @@ int main(int argc, char *argv[])
     engine.load(QUrl("qrc:/qml/ui/MainWindow.qml"));
 
     if (engine.rootObjects().isEmpty())
+    {
+        server.close();
+        QLocalServer::removeServer(appId);
         return -1;
+    }
+
+    QObject::connect(&app, &QApplication::aboutToQuit, [&server, appId]()
+                     {
+        server.close();
+        QLocalServer::removeServer(appId); });
 
     return app.exec();
 }

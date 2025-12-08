@@ -78,10 +78,8 @@ ApplicationWindow  {
             target: root
             function onExpandedChanged() {
                 if (!root.expanded) {
-                    // 主窗口开始收缩，延迟后显示蓝条
                     showBlueBarTimer.start()
                 } else {
-                    // 主窗口开始展开，立即隐藏蓝条
                     blueBarWindow.visible = false
                     blueBarWindow.opacity = 0
                 }
@@ -252,6 +250,7 @@ ApplicationWindow  {
                 text: qsTr("显示/隐藏主窗口")
                 onTriggered: {
                     root.visible = !root.visible
+                    blueBarWindow.visible = root.visible
                     if (root.visible) {
                         root.raise()
                         root.requestActivate()
