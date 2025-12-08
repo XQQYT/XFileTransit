@@ -7,63 +7,33 @@
 #include <QtCore/QVector>
 #include <QtCore/QSet>
 #include <QtCore/QMutex>
+#include "model/DeviceListModel.h"
+#include "driver/interface/PlatformSocket.h"
 
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <iphlpapi.h>
-#include <icmpapi.h>
-
-struct DeviceInfo;
-// ICMP扫描器类
 class ICMPScanner : public QThread
 {
     Q_OBJECT
 
 public:
-    static ICMPScanner& getInstance()
+    ~ICMPScanner();
+    static ICMPScanner &getInstance()
     {
         static ICMPScanner instance;
         return instance;
     }
-
-    ~ICMPScanner();
-
-    // 设置扫描的网络段 (如: "192.168.1.0/24" 或 "192.168.1.1-100")
-    void setNetworkRange(const QString& networkRange);
-
-    // 设置超时时间(毫秒)
+    void setNetworkRange(const QString &networkRange);
     void setTimeout(int timeoutMs);
-
-    // 设置线程数 (用于并行扫描)
     void setThreadCount(int count);
 
-    // 开始扫描
     void startScan();
-
-    // 停止扫描
     void stopScan();
 
-    // 获取扫描结果
     QVector<DeviceInfo> getScanResults() const;
-
-    //判断ip是否在某一网段cidr
-    bool isIpInCidr(const QString& ip, const QString cidr);
-
-    //查找网段中本机的IP
-    QString findMatchingLocalIp(const QString& remote_ip);
-
-    //获取本机设备名
-    QString getLocalComputerName();
-
-    //判断是否为本机地址
-    inline bool isLocalAddress(const QString ip)
-    {
-        return local_ip.contains(ip);
-    }
-    // 获取本地网络接口信息
     QVector<QString> getLocalNetworks();
-
-    QString getIpByCidr(const QString& cidr)
+    QString findMatchingLocalIp(const QString &remote_ip);
+    QString getLocalComputerName();
+    void refreshLocalNetwork();
+    QString getIpByCidr(const QString &cidr)
     {
         auto i = cidr_ip.find(cidr);
         if (i != cidr_ip.end())
@@ -72,54 +42,44 @@ public:
         }
         return "unknow";
     }
-    void refreshLocalNetwork();
+    // 判断是否为本机地址
+    inline bool isLocalAddress(const QString ip)
+    {
+        return local_ip.contains(ip);
+    }
 signals:
-    // 扫描进度信号 (0-100)
-    void scanProgress(int percent);
-
-    // 扫描完成信号
+    void foundOne(const DeviceInfo &host);
+    void scanProgress(int progress);
     void scanFinished();
+    void scanError(const QString &error);
 
-    // 扫描错误信号
-    void scanError(const QString& error);
-
-    //发现一个主机
-    void foundOne(DeviceInfo info);
 protected:
     void run() override;
 
 private:
-
-    explicit ICMPScanner(QObject* parent = nullptr);
-
-    // ICMP探测接口
-    bool pingHost(const QString& ipAddress, QString& hostType);
-
-    // 解析网络范围
     void parseNetworkRange();
-
-    // 工作线程函数
     void scanWorker();
+    bool pingHost(const QString &ipAddress, QString &hostType);
+    QString getComputerName(const QString &ipAddress);
+    QString getHostTypeFromResponse(const QString &responseData);
+    bool isIpInCidr(const QString &ip, const QString cidr);
 
-    // 获取主机类型
-    QString getHostTypeFromResponse(const QString& responseData);
-
-    QString getComputerName(const QString& ipAddress);
-
-
+private:
+    ICMPScanner(QObject *parent = nullptr);
     QString network_range;
     int timeout;
     int thread_count;
     bool stop_scan;
 
+    mutable QMutex mutex;
     QVector<QString> target_ips;
     QVector<DeviceInfo> scan_results;
-    QSet<QString> pending_lookups;
-    mutable QMutex mutex;
-
     QSet<QString> local_ip;
-    QMap<QString, QString> cidr_ip;
     QVector<QString> networks;
+    QMap<QString, QString> cidr_ip;
 };
+
+uint32_t ipToUint32(const QString &ip);
+uint32_t cidrToMask(int cidr);
 
 #endif // ICMPSCANNER_H

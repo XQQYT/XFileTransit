@@ -7,46 +7,47 @@
 #include <thread>
 #include <atomic>
 
-#include <winsock2.h>
-#include <ws2tcpip.h>
-
 class TcpDriver : public NetworkInterface
 {
 public:
     TcpDriver();
     ~TcpDriver();
-    void initTlsSocket(const std::string& address, const std::string& tls_port) override;
-    void initTcpSocket(const std::string& address, const std::string& tcp_port) override;
+    void initTlsSocket(const std::string &address, const std::string &tls_port) override;
+    void initTcpSocket(const std::string &address, const std::string &tcp_port) override;
     void connectTo(std::function<void(bool)> callback = nullptr) override;
-    void sendMsg(const std::string& msg) override;
-    //设置安全实例才会开启tls监听
-    void startListen(const std::string& address, const std::string& tls_port, const std::string& tcp_port,
-        std::function<bool(bool)> tls_callback, std::function<bool(bool)> tcp_callback) override;
-    void startTlsListen(const std::string& address, const std::string& tls_port, std::function<bool(bool)> tls_callback) override;
-    void startTcpListen(const std::string& address, const std::string& tcp_port, std::function<bool(bool)> tcp_callback) override;
+    void sendMsg(const std::string &msg) override;
+    // 设置安全实例才会开启tls监听
+    void startListen(const std::string &address, const std::string &tls_port, const std::string &tcp_port,
+                     std::function<bool(bool)> tls_callback, std::function<bool(bool)> tcp_callback) override;
+    void startTlsListen(const std::string &address, const std::string &tls_port, std::function<bool(bool)> tls_callback) override;
+    void startTcpListen(const std::string &address, const std::string &tcp_port, std::function<bool(bool)> tcp_callback) override;
     void recvMsg(std::function<void(std::unique_ptr<NetworkInterface::UserMsg>)> callback) override;
     void closeSocket() override;
     void setSecurityInstance(std::shared_ptr<SecurityInterface> instance) override;
     void resetConnection() override;
+
 private:
-    enum class ConnectionStatus {
+    enum class ConnectionStatus
+    {
         WAITING_TLS,
         TLS_CONNECTED,
         TCP_ESTABLISHED
-    }connection_status;
+    } connection_status;
 
-    SOCKET createListenSocket(const std::string& address, const std::string& port);
+    UnifiedSocket createListenSocket(const std::string &address, const std::string &port);
     void dealConnectError();
+
 private:
+#ifdef _WIN32
     WSADATA wsa_data;
+#endif
+    UnifiedSocket client_socket = INVALID_SOCKET_VAL;
+    UnifiedSocket tls_listen_socket = INVALID_SOCKET_VAL;
+    UnifiedSocket tcp_listen_socket = INVALID_SOCKET_VAL;
 
-    SOCKET client_socket = INVALID_SOCKET;
-    SOCKET tls_listen_socket = INVALID_SOCKET;
-    SOCKET tcp_listen_socket = INVALID_SOCKET;
-
-    HANDLE tls_wakeup_event;
-    HANDLE tcp_wakeup_event;
-    HANDLE recv_wakeup_event;
+    UnifiedSocket tls_wakeup_event;
+    UnifiedSocket tcp_wakeup_event;
+    UnifiedSocket recv_wakeup_event;
 
     std::string candidate_ip;
     std::unique_ptr<OuterMsgBuilderInterface> msg_builder;
@@ -56,15 +57,15 @@ private:
     sockaddr_in client_tcp_addr;
     sockaddr_in accept_addr;
 
-    std::thread* receive_thread;
-    std::thread* tls_listen_thread;
-    std::thread* tcp_listen_thread;
+    std::thread *receive_thread;
+    std::thread *tls_listen_thread;
+    std::thread *tcp_listen_thread;
 
-    bool ignore_one_error{ false };
+    bool ignore_one_error{false};
 
-    std::atomic<bool> listen_running{ false };
-    bool recv_running{ false };
-    std::atomic<bool> connect_status{ false };
+    std::atomic<bool> listen_running{false};
+    bool recv_running{false};
+    std::atomic<bool> connect_status{false};
 };
 
 #endif //_TCPDRIVER_H

@@ -2,81 +2,114 @@
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QQmlContext>
 #include <QtQuickControls2/QQuickStyle>
+#include <QtNetwork/QLocalSocket>
+#include <QtNetwork/QLocalServer>
+#include <QtWidgets/QMessageBox>
+#include <QtGui/QWindow>
 // model
 #include "model/ModelManager.h"
 // control
 #include "control/EventBusManager.h"
 #include "control/NetworkController.h"
 #include "control/FileSyncEngine/FileSyncEngine.h"
+// common
+#include "common/DebugOutputer.h"
 
 #include <QtGui/QFont>
 
 void initRegisterEvents()
 {
-    //发送连接请求
+    // 发送连接请求
     EventBusManager::instance().registerEvent("/network/send_connect_request");
-    //收到连接请求
+    // 收到连接请求
     EventBusManager::instance().registerEvent("/network/have_connect_request");
-    //发送请求结果，接受/拒绝
+    // 发送请求结果，接受/拒绝
     EventBusManager::instance().registerEvent("/network/send_connect_request_result");
-    //重置底层连接
+    // 重置底层连接
     EventBusManager::instance().registerEvent("/network/reset_connection");
-    //收到取消连接
+    // 收到取消连接
     EventBusManager::instance().registerEvent("/network/cancel_conn_request");
-    //收到请求结果，接受/拒绝
+    // 收到请求结果，接受/拒绝
     EventBusManager::instance().registerEvent("/network/have_connect_request_result");
-    //断开所有连接
+    // 断开所有连接
     EventBusManager::instance().registerEvent("/network/disconnect");
-    //收到驱动connect的错误
+    // 收到驱动connect的错误
     EventBusManager::instance().registerEvent("/network/have_connect_error");
-    //收到驱动recv的错误
+    // 收到驱动recv的错误
     EventBusManager::instance().registerEvent("/network/have_recv_error");
-    //收到对端关闭连接
+    // 收到对端关闭连接
     EventBusManager::instance().registerEvent("/network/connection_closed");
-
-    //发送添加文件消息
+    // 发送添加文件消息
     EventBusManager::instance().registerEvent("/sync/send_addfiles");
-    //收到添加文件消息
+    // 收到添加文件消息
     EventBusManager::instance().registerEvent("/sync/have_addfiles");
-    //发送删除文件消息
+    // 发送删除文件消息
     EventBusManager::instance().registerEvent("/sync/send_deletefiles");
-    //收到删除文件消息
+    // 收到删除文件消息
     EventBusManager::instance().registerEvent("/sync/have_deletefiles");
-
+    // 发送失效文件
     EventBusManager::instance().registerEvent("/sync/send_expired_file");
-
+    // 受到失效文件
     EventBusManager::instance().registerEvent("/sync/have_expired_file");
-
+    // 初始化文件传输引擎
     EventBusManager::instance().registerEvent("/file/initialize_FileSyncCore");
-
+    // 关闭文件传输引擎
     EventBusManager::instance().registerEvent("/file/close_FileSyncCore");
-
+    // 发送获取文件请求
     EventBusManager::instance().registerEvent("/file/send_get_file");
-
+    // 收到下载请求
     EventBusManager::instance().registerEvent("/file/have_download_request");
-
+    // 向发送队列添加任务
     EventBusManager::instance().registerEvent("/file/have_file_to_send");
-
+    // 上传进度更新
     EventBusManager::instance().registerEvent("/file/upload_progress");
-
+    // 下载进度更新
     EventBusManager::instance().registerEvent("/file/download_progress");
 }
-int main(int argc, char* argv[])
+
+int main(int argc, char *argv[])
 {
+#ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
+#endif
 
-    std::cout << "tmp dir " << GlobalStatusManager::absolute_tmp_dir << std::endl;
+    LOG_INFO("tmp dir " << GlobalStatusManager::absolute_tmp_dir);
 
     QApplication app(argc, argv);
-    app.setApplicationName("Xqqyt");
-    app.setOrganizationName("XQQYT");
+    app.setApplicationName("XFileTransit");
+    app.setOrganizationName("Xqqyt");
     app.setWindowIcon(QIcon(":/logo/logo/logo_small.ico"));
 
     QQuickStyle::setStyle("Basic");
 
     QFont defaultFont("Segoe UI");
     app.setFont(defaultFont);
+
+    // 检测是否已有一个实例在运行
+    const QString appId = "XFileTransit_unique_app_id_" + app.applicationName();
+
+    QLocalSocket socket;
+    socket.connectToServer(appId);
+
+    if (socket.waitForConnected(500))
+    {
+        // 已有一个实例在运行
+        socket.close();
+        QMessageBox::information(nullptr, "程序已在运行",
+                                 "XFileTransit 已在运行中。\n请检查系统托盘或任务栏。");
+        return 0;
+    }
+
+    QLocalServer::removeServer(appId);
+
+    QLocalServer server;
+    if (!server.listen(appId))
+    {
+        QMessageBox::critical(nullptr, "错误",
+                              "无法创建应用程序实例，请检查系统权限。");
+        return -1;
+    }
 
     QQmlApplicationEngine engine;
     // 初始化组件
@@ -91,8 +124,6 @@ int main(int argc, char* argv[])
     auto net_list_model = ModelManager::getInstance().getNetworkInfoModel();
     auto device_list_model = ModelManager::getInstance().getDeviceModel();
     auto connection_manager = ModelManager::getInstance().getConnectionManager();
-    file_list_model->setParent(&engine);
-    device_list_model->setParent(&engine);
 
     // 注册到 QML 上下文
     engine.rootContext()->setContextProperty("file_list_model", file_list_model.get());
@@ -104,7 +135,16 @@ int main(int argc, char* argv[])
     engine.load(QUrl("qrc:/qml/ui/MainWindow.qml"));
 
     if (engine.rootObjects().isEmpty())
+    {
+        server.close();
+        QLocalServer::removeServer(appId);
         return -1;
+    }
+
+    QObject::connect(&app, &QApplication::aboutToQuit, [&server, appId]()
+                     {
+        server.close();
+        QLocalServer::removeServer(appId); });
 
     return app.exec();
 }

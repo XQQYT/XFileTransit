@@ -17,20 +17,22 @@ class FileListModel : public QAbstractListModel
   Q_OBJECT
 
 public:
-  static inline const uint32_t auto_download_file_size = 50 * 1024 * 1024;//50MB
-  enum FileStatus {
-    StatusPending = 0,     // 等待
-    StatusLocalDefault,   //本地文件默认
-    StatusRemoteDefault,  //远程文件默认
-    StatusUploading,       // 上传中
-    StatusDownloading,     // 下载中  
-    StatusUploadCompleted, // 上传完成
+  static inline const uint32_t auto_download_file_size = 50 * 1024 * 1024; // 50MB
+  enum FileStatus
+  {
+    StatusPending = 0,       // 等待
+    StatusLocalDefault,      // 本地文件默认
+    StatusRemoteDefault,     // 远程文件默认
+    StatusUploading,         // 上传中
+    StatusDownloading,       // 下载中
+    StatusUploadCompleted,   // 上传完成
     StatusDownloadCompleted, // 下载完成
-    StatusError           // 错误
+    StatusError              // 错误
   };
   Q_ENUM(FileStatus)
 
-    enum Roles {
+  enum Roles
+  {
     FileNameRole = Qt::UserRole + 1,
     FileSourcePathRole,
     FileUrlRole,
@@ -42,21 +44,21 @@ public:
     FileSpeedRole
   };
 
-  explicit FileListModel(QObject* parent = nullptr);
+  explicit FileListModel(QObject *parent = nullptr);
   ~FileListModel();
 
   // QAbstractItemModel接口实现
-  int rowCount(const QModelIndex& parent = QModelIndex()) const override;
-  QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+  int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+  QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
   QHash<int, QByteArray> roleNames() const override;
 
-  Q_INVOKABLE void addFiles(const QList<QString>& files, bool is_remote_file);
+  Q_INVOKABLE void addFiles(const QList<QString> &files, bool is_remote_file);
   Q_INVOKABLE void removeFile(int index);
   Q_INVOKABLE void clearAll();
   Q_INVOKABLE int getFileCount() const;
   Q_INVOKABLE void syncCurrentFiles();
   Q_INVOKABLE void updateFilesId();
-  Q_INVOKABLE void copyText(const QString& text);
+  Q_INVOKABLE void copyText(const QString &text);
   Q_INVOKABLE void downloadFile(int index);
   Q_INVOKABLE void cleanTmpFiles();
   Q_INVOKABLE bool isTransferring();
@@ -64,15 +66,17 @@ public:
   void haveDownLoadRequest(std::vector<std::string> file_ids);
 public slots:
   void onConnectionClosed();
+
 private:
-  bool isFileExists(const QString& filePath);
+  bool isFileExists(const QString &filePath);
   void removeAllRemoteFiles();
   void onHaveExpiredFile(std::vector<std::string> id);
   void deleteFile(int index);
   void removeFileById(std::vector<std::string> id);
   void onUploadFileProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end);
   void onDownLoadProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end);
-  std::pair<int, FileInfo&> findFileInfoById(uint32_t id);
+  std::pair<int, FileInfo &> findFileInfoById(uint32_t id);
+
 private:
   QList<FileInfo> file_list;
   QHash<uint32_t, QVector<uint32_t>> speed_history;
@@ -85,8 +89,8 @@ public:
   bool is_remote_file;
   bool is_folder;
   QString file_name;
-  QString source_path;  //is_remote_file为false是才有效
-  QUrl file_url;   //is_remote_file为false是才有效
+  QString source_path; // is_remote_file为false是才有效
+  QUrl file_url;       // is_remote_file为false是才有效
   quint64 file_size;
   QString format_file_size;
   QUrl icon;
@@ -97,7 +101,7 @@ public:
 public:
   FileInfo() = default;
 
-  static QString getFileName(const QString& file_url)
+  static QString getFileName(const QString &file_url)
   {
     int last_separator_index = file_url.lastIndexOf('/');
     if (last_separator_index == -1)
@@ -105,9 +109,10 @@ public:
     return file_url.mid(last_separator_index + 1);
   }
 
-  static QString getFilePath(const QString& file_url)
+  static QString getFilePath(const QString &file_url)
   {
-    if (file_url.startsWith("file:///")) {
+    if (file_url.startsWith("file:///"))
+    {
 #ifdef Q_OS_WIN
       return QUrl(file_url).toLocalFile();
 #else
@@ -117,27 +122,29 @@ public:
     return file_url;
   }
 
-  static quint64 getFileSize(const QString& file_url)
+  static quint64 getFileSize(const QString &file_url)
   {
     QString file_path = getFilePath(file_url);
     QFile file(file_path);
-    if (!file.exists()) {
+    if (!file.exists())
+    {
       qDebug() << "文件不存在:" << file_path;
       return 0;
     }
     return file.size();
   }
 
-  //TODO
-  //改为生产消费模型 ，防止大文件卡死
-  static quint64 getFolderSize(const QString& folderPath)
+  // TODO
+  // 改为生产消费模型 ，防止大文件卡死
+  static quint64 getFolderSize(const QString &folderPath)
   {
     quint64 totalSize = 0;
 
     // 递归遍历所有文件和目录
     QDirIterator it(folderPath, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
 
-    while (it.hasNext()) {
+    while (it.hasNext())
+    {
       it.next();
       totalSize += it.fileInfo().size();
     }
@@ -147,11 +154,12 @@ public:
 
   static QString formatFileSize(quint64 bytes)
   {
-    const char* suffixes[] = { "B", "KB", "MB", "GB", "TB", "PB" };
+    const char *suffixes[] = {"B", "KB", "MB", "GB", "TB", "PB"};
     double size = static_cast<double>(bytes);
     int i = 0;
 
-    while (size >= 1024 && i < 5) {
+    while (size >= 1024 && i < 5)
+    {
       size /= 1024;
       ++i;
     }
@@ -162,29 +170,30 @@ public:
     else
       return QString("%1 %2").arg(QString::number(size, 'f', 2)).arg(suffixes[i]);
   }
-  static bool isDirectoryWithQDir(const QString& filePath)
+  static bool isDirectoryWithQDir(const QString &filePath)
   {
     QFileInfo fileInfo(filePath);
     return fileInfo.exists() && fileInfo.isDir();
   }
-  static QString getFileSuffix(const QString& fileName)
+  static QString getFileSuffix(const QString &fileName)
   {
     int last_dot = fileName.lastIndexOf('.');
-    if (last_dot != -1 && last_dot < fileName.length() - 1) {
+    if (last_dot != -1 && last_dot < fileName.length() - 1)
+    {
       return fileName.mid(last_dot + 1).toLower();
     }
     return "";
   }
-  //一般用于本地文件构造
-  FileInfo(const bool irf, const QString& url, const quint32 file_id = 0, const quint64 size = 0, const QString& fn = QString())
-    : is_remote_file(irf), file_url(url), file_status(FileListModel::FileStatus::StatusLocalDefault)
+  // 一般用于本地文件构造
+  FileInfo(const bool irf, const QString &url, const quint32 file_id = 0, const quint64 size = 0, const QString &fn = QString())
+      : is_remote_file(irf), file_url(url), file_status(FileListModel::FileStatus::StatusLocalDefault)
   {
     if (irf)
     {
       throw std::runtime_error("Don'n use this Constructor to construct locate file");
     }
 
-    //不是远程文件时，从本地获取文件信息
+    // 不是远程文件时，从本地获取文件信息
     id = GlobalStatusManager::getInstance().getFileId();
     file_name = getFileName(url);
     source_path = getFilePath(url);
@@ -203,10 +212,10 @@ public:
     progress = 0;
   }
 
-  //一般用于远程文件构建
+  // 一般用于远程文件构建
   FileInfo(const bool irf, const quint32 file_id, const bool is_folder, const QString fn, quint64 fs)
-    : is_remote_file(irf), id(file_id), is_folder(this->is_folder), file_name(fn), file_size(fs),
-    file_status(FileListModel::FileStatus::StatusRemoteDefault)
+      : is_remote_file(irf), id(file_id), is_folder(this->is_folder), file_name(fn), file_size(fs),
+        file_status(FileListModel::FileStatus::StatusRemoteDefault)
   {
     if (!irf)
     {

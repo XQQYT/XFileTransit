@@ -9,8 +9,8 @@ struct NetworkInfo
 {
     QString ip;
     QString cidr;
-    NetworkInfo(const QString a_ip, const QString a_cidr) :
-        ip(a_ip), cidr(a_cidr) {
+    NetworkInfo(const QString a_ip, const QString a_cidr) : ip(a_ip), cidr(a_cidr)
+    {
     }
 };
 
@@ -24,16 +24,18 @@ public:
         CIDR
     };
 
-    explicit NetworkInfoListModel(QObject* parent = nullptr);
+    explicit NetworkInfoListModel(QObject *parent = nullptr);
     ~NetworkInfoListModel();
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;
 
     Q_INVOKABLE void refreshNetInfo();
     Q_INVOKABLE void copyNetInfoText();
+
 private:
     void syncNetInfoToUI();
+
 private:
     QList<NetworkInfo> net_info_list;
 };

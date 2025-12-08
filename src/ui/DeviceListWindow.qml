@@ -625,7 +625,7 @@ Window {
                         height: 72
                         color: index % 2 === 0 ? "#FFFFFF" : "#F8FAFC"
                         radius: 8
-                        anchors.horizontalCenter: parent.horizontalCenter
+                        // anchors.horizontalCenter: parent.horizontalCenter
 
                         // 定义属性并添加默认值
                         property string deviceName: model.deviceName || "未知设备"

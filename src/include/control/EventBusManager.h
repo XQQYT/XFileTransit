@@ -6,14 +6,14 @@
 class EventBusManager
 {
 public:
-    static EventBusManager& instance()
+    static EventBusManager &instance()
     {
         static EventBusManager instance;
         return instance;
     }
-    void startEventBus(const EventBus::EventBusConfig& cig = {})
+    void startEventBus(const EventBus::EventBusConfig &cig = {})
     {
-        //默认配置
+        // 默认配置
         if (cig.thread_model == EventBus::ThreadModel::UNDEFINED)
         {
             EventBus::EventBusConfig config;
@@ -29,26 +29,27 @@ public:
             event_bus.initEventBus(cig);
         }
     }
-    void registerEvent(const std::string& eventName)
+    void registerEvent(const std::string &eventName)
     {
         event_bus.registerEvent(eventName);
     }
     template <typename Callback>
-    callback_id subscribe(const std::string& eventName, Callback&& callback)
+    callback_id subscribe(const std::string &eventName, Callback &&callback)
     {
         return event_bus.subscribe(eventName, std::forward<Callback>(callback));
     }
     template <typename... Args>
-    void publish(const std::string& eventName, Args&&... args)
+    void publish(const std::string &eventName, Args &&...args)
     {
         event_bus.publish(eventName, std::forward<Args>(args)...);
     }
+
 private:
     EventBusManager() = default;
-    EventBusManager(const EventBusManager&) = delete;
-    EventBusManager& operator=(const EventBusManager&) = delete;
-    EventBusManager(EventBusManager&&) = delete;
-    EventBusManager& operator=(EventBusManager&&) = delete;
+    EventBusManager(const EventBusManager &) = delete;
+    EventBusManager &operator=(const EventBusManager &) = delete;
+    EventBusManager(EventBusManager &&) = delete;
+    EventBusManager &operator=(EventBusManager &&) = delete;
 
     EventBus event_bus;
 };

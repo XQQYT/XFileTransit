@@ -9,61 +9,61 @@
 #include <QtWidgets/QApplication>
 #include <QtGui/QClipboard>
 
-FileListModel::FileListModel(QObject* parent) :
-    QAbstractListModel(parent)
+FileListModel::FileListModel(QObject *parent) : QAbstractListModel(parent)
 {
-    //FileInfo默认为LOW
+    // FileInfo默认为LOW
     GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
 
     EventBusManager::instance().subscribe("/sync/have_expired_file",
-        std::bind(&FileListModel::onHaveExpiredFile,
-            this,
-            std::placeholders::_1));
+                                          std::bind(&FileListModel::onHaveExpiredFile,
+                                                    this,
+                                                    std::placeholders::_1));
     EventBusManager::instance().subscribe("/sync/have_addfiles",
-        std::bind(&FileListModel::addRemoteFiles,
-            this,
-            std::placeholders::_1));
+                                          std::bind(&FileListModel::addRemoteFiles,
+                                                    this,
+                                                    std::placeholders::_1));
     EventBusManager::instance().subscribe("/sync/have_deletefiles",
-        std::bind(&FileListModel::removeFileById,
-            this,
-            std::placeholders::_1));
+                                          std::bind(&FileListModel::removeFileById,
+                                                    this,
+                                                    std::placeholders::_1));
     EventBusManager::instance().subscribe("/file/have_download_request",
-        std::bind(&FileListModel::haveDownLoadRequest,
-            this,
-            std::placeholders::_1));
+                                          std::bind(&FileListModel::haveDownLoadRequest,
+                                                    this,
+                                                    std::placeholders::_1));
     EventBusManager::instance().subscribe("/file/upload_progress",
-        std::bind(&FileListModel::onUploadFileProgress,
-            this,
-            std::placeholders::_1,
-            std::placeholders::_2,
-            std::placeholders::_3,
-            std::placeholders::_4));
+                                          std::bind(&FileListModel::onUploadFileProgress,
+                                                    this,
+                                                    std::placeholders::_1,
+                                                    std::placeholders::_2,
+                                                    std::placeholders::_3,
+                                                    std::placeholders::_4));
     EventBusManager::instance().subscribe("/file/download_progress",
-        std::bind(&FileListModel::onDownLoadProgress,
-            this,
-            std::placeholders::_1,
-            std::placeholders::_2,
-            std::placeholders::_3,
-            std::placeholders::_4));
+                                          std::bind(&FileListModel::onDownLoadProgress,
+                                                    this,
+                                                    std::placeholders::_1,
+                                                    std::placeholders::_2,
+                                                    std::placeholders::_3,
+                                                    std::placeholders::_4));
 }
 
 FileListModel::~FileListModel()
 {
 }
 
-int FileListModel::rowCount(const QModelIndex& parent) const
+int FileListModel::rowCount(const QModelIndex &parent) const
 {
     return parent.isValid() ? 0 : file_list.size();
 }
 
-QVariant FileListModel::data(const QModelIndex& index, int role) const
+QVariant FileListModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid() || index.row() < 0 || index.row() >= file_list.size())
         return QVariant();
 
-    const FileInfo& file = file_list.at(index.row());
+    const FileInfo &file = file_list.at(index.row());
 
-    switch (role) {
+    switch (role)
+    {
     case Qt::ToolTipRole:
         return file.file_name + "\n路径: " + (file.is_remote_file ? "remote file" : file.source_path) + "\n大小: " + file.format_file_size;
     case FileNameRole:
@@ -101,37 +101,39 @@ QHash<int, QByteArray> FileListModel::roleNames() const
         {isRemoteRole, "isRemote"},
         {FileProgressRole, "fileProgress"},
         {FileSpeedRole, "fileSpeed"},
-        {Qt::ToolTipRole, "toolTip"}
-    };
+        {Qt::ToolTipRole, "toolTip"}};
     return roles;
 }
 
-std::pair<int, FileInfo&> FileListModel::findFileInfoById(uint32_t id)
+std::pair<int, FileInfo &> FileListModel::findFileInfoById(uint32_t id)
 {
     auto it = std::find_if(file_list.begin(), file_list.end(),
-        [id](const FileInfo& info) {
-            return info.id == id;
-        });
-    if (it == file_list.end()) {
+                           [id](const FileInfo &info)
+                           {
+                               return info.id == id;
+                           });
+    if (it == file_list.end())
+    {
         throw std::runtime_error("FileInfo with id " + std::to_string(id) + " not found");
     }
     int index = std::distance(file_list.begin(), it);
-    return std::pair<int, FileInfo&>(index, *it);
+    return std::pair<int, FileInfo &>(index, *it);
 }
 
-//添加本地文件
-void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
+// 添加本地文件
+void FileListModel::addFiles(const QList<QString> &files, bool is_remote_file)
 {
     if (files.isEmpty())
         return;
 
     QVector<FileInfo> unique_files;
     std::vector<std::string> files_to_send;
-    for (const QString& file : files)
+    for (const QString &file : files)
     {
-        if (!isFileExists(file)) {
+        if (!isFileExists(file))
+        {
             FileInfo cur_file(is_remote_file, file);
-            //步长为3
+            // 步长为3
             if (GlobalStatusManager::getInstance().getConnectStatus())
             {
                 files_to_send.push_back(std::to_string(cur_file.id));
@@ -143,8 +145,9 @@ void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
         }
     }
 
-    //只有存在新文件时才插入
-    if (!unique_files.isEmpty()) {
+    // 只有存在新文件时才插入
+    if (!unique_files.isEmpty())
+    {
         beginInsertRows(QModelIndex(), file_list.size(), file_list.size() + unique_files.size() - 1);
         file_list.append(unique_files);
         endInsertRows();
@@ -159,11 +162,11 @@ void FileListModel::addFiles(const QList<QString>& files, bool is_remote_file)
 void FileListModel::addRemoteFiles(std::vector<std::vector<std::string>> files)
 {
     QVector<FileInfo> remote_files;
-    for (const auto& file : files)
+    for (const auto &file : files)
     {
         remote_files.append(FileInfo(true,
-            std::stoul(file[0]), std::stoi(file[1]) != 0,
-            QString::fromStdString(file[2]), std::stoul(file[3])));
+                                     std::stoul(file[0]), std::stoi(file[1]) != 0,
+                                     QString::fromStdString(file[2]), std::stoull(file[3])));
         GlobalStatusManager::getInstance().insertFile(remote_files.back().id, remote_files.back().file_name.toUtf8().constData());
     }
 
@@ -173,7 +176,7 @@ void FileListModel::addRemoteFiles(std::vector<std::vector<std::string>> files)
         file_list.append(remote_files);
         endInsertRows();
     }
-    for (int i = 0;i < file_list.size();++i)
+    for (int i = 0; i < file_list.size(); ++i)
     {
         if (file_list[i].file_size <= auto_download_file_size && file_list[i].file_status == StatusRemoteDefault)
         {
@@ -182,12 +185,13 @@ void FileListModel::addRemoteFiles(std::vector<std::vector<std::string>> files)
     }
 }
 
-bool FileListModel::isFileExists(const QString& filePath)
+bool FileListModel::isFileExists(const QString &filePath)
 {
     return std::any_of(file_list.begin(), file_list.end(),
-        [&](const FileInfo& info) {
-            return info.file_url == filePath;
-        });
+                       [&](const FileInfo &info)
+                       {
+                           return info.file_url == filePath;
+                       });
 }
 
 void FileListModel::removeFile(int index)
@@ -242,7 +246,7 @@ void FileListModel::removeAllRemoteFiles()
 
 void FileListModel::updateFilesId()
 {
-    for (auto& file : file_list)
+    for (auto &file : file_list)
     {
         file.id = GlobalStatusManager::getInstance().getFileId();
     }
@@ -252,10 +256,11 @@ void FileListModel::syncCurrentFiles()
 {
     std::vector<std::string> files_to_send;
     files_to_send.reserve(file_list.size());
-    for (auto& cur_file : file_list)
+    for (auto &cur_file : file_list)
     {
-        if (cur_file.is_remote_file) continue;
-        //先更新当前所有文件的id
+        if (cur_file.is_remote_file)
+            continue;
+        // 先更新当前所有文件的id
         cur_file.id = GlobalStatusManager::getInstance().getFileId();
 
         files_to_send.push_back(std::to_string(cur_file.id));
@@ -269,9 +274,9 @@ void FileListModel::syncCurrentFiles()
     }
 }
 
-void FileListModel::copyText(const QString& text)
+void FileListModel::copyText(const QString &text)
 {
-    QClipboard* clipboard = QGuiApplication::clipboard();
+    QClipboard *clipboard = QGuiApplication::clipboard();
     clipboard->setText(text);
 }
 
@@ -283,13 +288,13 @@ void FileListModel::deleteFile(int index)
 
 void FileListModel::onHaveExpiredFile(std::vector<std::string> id)
 {
-    for (auto& file_id : id)
+    for (auto &file_id : id)
     {
         uint32_t target_id = std::stoul(file_id);
         auto file = findFileInfoById(target_id);
         file.second.file_status = FileStatus::StatusError;
         QModelIndex model_index = index(file.first, 0);
-        QVector<int> roles = { FileStatusRole };
+        QVector<int> roles = {FileStatusRole};
 
         emit dataChanged(model_index, model_index, roles);
     }
@@ -297,21 +302,28 @@ void FileListModel::onHaveExpiredFile(std::vector<std::string> id)
 
 void FileListModel::removeFileById(std::vector<std::string> id)
 {
-    if (id.empty()) return;
+    if (id.empty())
+        return;
     std::vector<int> indicesToRemove;
-    for (const auto& fileIdStr : id) {
+    for (const auto &fileIdStr : id)
+    {
         uint32_t target_id = std::stoul(fileIdStr);
-        for (int i = 0; i < file_list.size(); ++i) {
-            if (file_list[i].id == target_id) {
+        for (int i = 0; i < file_list.size(); ++i)
+        {
+            if (file_list[i].id == target_id)
+            {
                 indicesToRemove.push_back(i);
                 break;
             }
         }
     }
-    if (indicesToRemove.empty()) return;
+    if (indicesToRemove.empty())
+        return;
     std::sort(indicesToRemove.begin(), indicesToRemove.end(), std::greater<int>());
-    for (int index : indicesToRemove) {
-        if (index >= 0 && index < file_list.size()) {
+    for (int index : indicesToRemove)
+    {
+        if (index >= 0 && index < file_list.size())
+        {
             deleteFile(index);
             beginRemoveRows(QModelIndex(), index, index);
             file_list.removeAt(index);
@@ -326,7 +338,7 @@ void FileListModel::downloadFile(int i)
     file_list[i].file_status = FileStatus::StatusPending;
 
     QModelIndex model_index = index(i, 0);
-    QVector<int> roles = { FileStatusRole };
+    QVector<int> roles = {FileStatusRole};
 
     emit dataChanged(model_index, model_index, roles);
 }
@@ -336,9 +348,8 @@ void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
     for (auto id : file_ids)
     {
         uint32_t target_id = std::stoul(id);
-        std::cout << "haveDownLoadRequest " << target_id << std::endl;
         auto target_file = findFileInfoById(target_id);
-        //文件失效
+        // 文件失效
         if (!FileSystemUtils::fileIsExist(target_file.second.source_path.toStdString()))
         {
             target_file.second.file_status = FileStatus::StatusError;
@@ -353,7 +364,7 @@ void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
         }
 
         QModelIndex model_index = index(target_file.first, 0);
-        QVector<int> roles = { FileStatusRole };
+        QVector<int> roles = {FileStatusRole};
 
         emit dataChanged(model_index, model_index, roles);
     }
@@ -362,39 +373,45 @@ void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
 void FileListModel::onUploadFileProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end)
 {
     auto target_file = findFileInfoById(id);
-    if (target_file.first == -1) return;
+    if (target_file.first == -1)
+        return;
 
     // 更新状态和进度
     target_file.second.file_status = is_end ? FileStatus::StatusUploadCompleted : FileStatus::StatusUploading;
     target_file.second.progress = static_cast<quint8>(progress);
 
     // 使用移动平均计算速度
-    if (!is_end) {
-        if (!speed_history.contains(id)) {
+    if (!is_end)
+    {
+        if (!speed_history.contains(id))
+        {
             speed_history[id] = QVector<uint32_t>();
         }
-        auto& history = speed_history[id];
+        auto &history = speed_history[id];
         history.append(speed);
         // 保持30个记录
         const int MAX_HISTORY_SIZE = 30;
-        if (history.size() > MAX_HISTORY_SIZE) {
+        if (history.size() > MAX_HISTORY_SIZE)
+        {
             history.removeFirst();
         }
 
         // 计算平均值
         uint64_t sum = 0;
-        for (auto s : history) {
+        for (auto s : history)
+        {
             sum += s;
         }
         target_file.second.speed = static_cast<quint32>(sum / history.size());
     }
-    else {
+    else
+    {
         target_file.second.speed = 0;
         speed_history.remove(id);
     }
 
     QModelIndex model_index = index(target_file.first, 0);
-    QVector<int> roles = { FileStatusRole, FileProgressRole, FileSpeedRole };
+    QVector<int> roles = {FileStatusRole, FileProgressRole, FileSpeedRole};
     emit dataChanged(model_index, model_index, roles);
 }
 
@@ -406,32 +423,37 @@ void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, uint32_t s
     target_file.second.progress = static_cast<int>(progress);
 
     // 使用移动平均计算速度
-    if (!is_end) {
-        if (!speed_history.contains(id)) {
+    if (!is_end)
+    {
+        if (!speed_history.contains(id))
+        {
             speed_history[id] = QVector<uint32_t>();
         }
-        auto& history = speed_history[id];
+        auto &history = speed_history[id];
         history.append(speed);
         // 保持30个记录
         const int MAX_HISTORY_SIZE = 30;
-        if (history.size() > MAX_HISTORY_SIZE) {
+        if (history.size() > MAX_HISTORY_SIZE)
+        {
             history.removeFirst();
         }
 
         // 计算平均值
         uint64_t sum = 0;
-        for (auto s : history) {
+        for (auto s : history)
+        {
             sum += s;
         }
         target_file.second.speed = static_cast<quint32>(sum / history.size());
     }
-    else {
+    else
+    {
         target_file.second.speed = 0;
         speed_history.remove(id);
     }
 
     QModelIndex model_index = index(target_file.first, 0);
-    QVector<int> roles = { FileStatusRole, FileProgressRole };
+    QVector<int> roles = {FileStatusRole, FileProgressRole};
 
     emit dataChanged(model_index, model_index, roles);
 }
@@ -440,7 +462,8 @@ void FileListModel::cleanTmpFiles()
 {
     QDir dir(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir));
 
-    if (!dir.exists()) {
+    if (!dir.exists())
+    {
         return;
     }
 
@@ -449,7 +472,7 @@ void FileListModel::cleanTmpFiles()
 
 bool FileListModel::isTransferring()
 {
-    for (auto& file : file_list)
+    for (auto &file : file_list)
     {
         if (file.file_status == FileStatus::StatusDownloading || file.file_status == FileStatus::StatusUploading)
         {

@@ -2,37 +2,32 @@
 #include "control/EventBusManager.h"
 #include "model/ICMPScanner.h"
 
-DeviceListModel::DeviceListModel(QObject* parent) :
-    QAbstractListModel(parent)
+DeviceListModel::DeviceListModel(QObject *parent) : QAbstractListModel(parent)
 {
-    QObject::connect(&ICMPScanner::getInstance(), &ICMPScanner::scanFinished, [this]() {
+    QObject::connect(&ICMPScanner::getInstance(), &ICMPScanner::scanFinished, [this]()
+                     {
         emit DeviceListModel::scanFinished();
         scanning = false;
-        emit scanningChanged();
-        });
-    EventBusManager::instance().subscribe("/network/have_connect_request_result", [this](bool ret, std::string di) {
-        QMetaObject::invokeMethod(this, [this, ret, di]() {
-            emit connectResult(ret, QString::fromStdString(di));
-            }, Qt::QueuedConnection);
-        });
+        emit scanningChanged(); });
+    EventBusManager::instance().subscribe("/network/have_connect_request_result", [this](bool ret, std::string di)
+                                          { QMetaObject::invokeMethod(this, [this, ret, di]()
+                                                                      { emit connectResult(ret, QString::fromStdString(di)); }, Qt::QueuedConnection); });
     QObject::connect(&ICMPScanner::getInstance(), &ICMPScanner::foundOne, this, &DeviceListModel::onFoundOne);
-    QObject::connect(&ICMPScanner::getInstance(), &ICMPScanner::scanProgress, this, [=](int progress) {
-        emit scanProgress(progress);
-        });
+    QObject::connect(&ICMPScanner::getInstance(), &ICMPScanner::scanProgress, this, [=](int progress)
+                     { emit scanProgress(progress); });
 }
 DeviceListModel::~DeviceListModel()
 {
-
 }
-int DeviceListModel::rowCount(const QModelIndex& parent) const
+int DeviceListModel::rowCount(const QModelIndex &parent) const
 {
     return parent.isValid() ? 0 : device_list.size();
 }
-QVariant DeviceListModel::data(const QModelIndex& index, int role) const
+QVariant DeviceListModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid() || index.row() < 0 || index.row() >= device_list.size())
         return QVariant();
-    const DeviceInfo& info = device_list.at(index.row());
+    const DeviceInfo &info = device_list.at(index.row());
     switch (role)
     {
     case Qt::DisplayRole:
@@ -51,14 +46,12 @@ QHash<int, QByteArray> DeviceListModel::roleNames() const
 {
     static QHash<int, QByteArray> roles = {
         {DeviceName, "deviceName"},
-        { DeviceIP,"deviceIP" },
-        { DeviceType,"deviceType" }
-    };
+        {DeviceIP, "deviceIP"},
+        {DeviceType, "deviceType"}};
     return roles;
 }
 void DeviceListModel::startScan()
 {
-    qDebug() << ICMPScanner::getInstance().getLocalNetworks();
     clearAll();
     ICMPScanner::getInstance().startScan();
     scanning = true;
@@ -74,9 +67,10 @@ void DeviceListModel::stopScan()
 void DeviceListModel::onFoundOne(DeviceInfo info)
 {
     // 检查是否已存在该设备
-    for (const auto& existingDevice : device_list)
+    for (const auto &existingDevice : device_list)
     {
-        if (existingDevice.device_ip == info.device_ip) {
+        if (existingDevice.device_ip == info.device_ip)
+        {
             return; // 已存在，不重复添加
         }
     }
@@ -93,7 +87,8 @@ void DeviceListModel::refresh()
     clearAll();
     startScan();
 }
-void DeviceListModel::clearAll() {
+void DeviceListModel::clearAll()
+{
     if (device_list.isEmpty())
     {
         return;
@@ -108,17 +103,17 @@ void DeviceListModel::connectToTarget(const int index)
         return;
     auto device = device_list.at(index);
     EventBusManager::instance().publish("/network/send_connect_request",
-        ICMPScanner::getInstance().getLocalComputerName().toStdString(),
-        ICMPScanner::getInstance().findMatchingLocalIp(device.device_ip).toStdString(),
-        device.device_ip.toStdString());
+                                        ICMPScanner::getInstance().getLocalComputerName().toStdString(),
+                                        ICMPScanner::getInstance().findMatchingLocalIp(device.device_ip).toStdString(),
+                                        device.device_ip.toStdString());
 }
 
 void DeviceListModel::connectToTarget(const QString ip)
 {
     EventBusManager::instance().publish("/network/send_connect_request",
-        ICMPScanner::getInstance().getLocalComputerName().toStdString(),
-        ICMPScanner::getInstance().findMatchingLocalIp(ip).toStdString(),
-        ip.toStdString());
+                                        ICMPScanner::getInstance().getLocalComputerName().toStdString(),
+                                        ICMPScanner::getInstance().findMatchingLocalIp(ip).toStdString(),
+                                        ip.toStdString());
 }
 
 void DeviceListModel::resetConnection()

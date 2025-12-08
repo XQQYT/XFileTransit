@@ -21,18 +21,20 @@ public:
     void stop();
     void onHaveFileToSend(uint32_t id, std::string path);
     std::optional<std::pair<uint32_t, std::string>> getPendingFile();
-    void haveFileConnection(SOCKET socket);
-    void haveFileMsg(SOCKET socket, std::unique_ptr<NetworkInterface::UserMsg> msg);
+    void haveFileConnection(UnifiedSocket socket);
+    void haveFileMsg(UnifiedSocket socket, std::unique_ptr<NetworkInterface::UserMsg> msg);
     ~FileSyncEngine();
+
 private:
     std::vector<std::shared_ptr<FileSenderInterface>> file_senders;
     std::unique_ptr<FileReceiverInterface> file_receiver;
-    std::unordered_map<SOCKET, std::unique_ptr<FileParserInterface>> file_parser_map;
+    std::unordered_map<UnifiedSocket, std::unique_ptr<FileParserInterface>> file_parser_map;
     std::shared_ptr<std::condition_variable> cv;
     std::mutex mtx;
+
 private:
-    std::queue<std::pair<uint32_t, std::string> > pending_send_files;
-    bool is_start{ false };
+    std::queue<std::pair<uint32_t, std::string>> pending_send_files;
+    bool is_start{false};
 };
 
 #endif

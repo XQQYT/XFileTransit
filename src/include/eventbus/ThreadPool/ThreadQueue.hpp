@@ -20,7 +20,8 @@
 static const unsigned int default_capacity = 1024;
 
 template <class... Args>
-class ThreadQueue : public Queue<Args...> {
+class ThreadQueue : public Queue<Args...>
+{
 public:
     explicit ThreadQueue(int max) noexcept
         : capacity(max)
@@ -32,7 +33,7 @@ public:
     {
     }
 
-    void addTask(std::function<void(Args...)>&& func, Args&&... args)
+    void addTask(std::function<void(Args...)> &&func, Args &&...args)
     {
         {
             std::unique_lock<std::mutex> lock(mtx);
@@ -65,11 +66,13 @@ public:
         return task;
     }
 
-    inline unsigned int getCapacity() noexcept {
+    inline unsigned int getCapacity() noexcept
+    {
         return capacity;
     }
 
-    inline unsigned int getSize() noexcept {
+    inline unsigned int getSize() noexcept
+    {
         return size.load();
     }
 
@@ -77,7 +80,7 @@ private:
     std::queue<std::pair<std::function<void(Args...)>, std::tuple<Args...>>> task_queue;
     std::mutex mtx;
     unsigned int capacity;
-    std::atomic<unsigned int> size{ 0 };
+    std::atomic<unsigned int> size{0};
 };
 
 #endif

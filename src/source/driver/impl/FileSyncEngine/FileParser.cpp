@@ -4,15 +4,15 @@
 #include "control/GlobalStatusManager.h"
 #include "driver/impl/FileUtility.h"
 #include "control/EventBusManager.h"
+#include "driver/interface/FileStreamHelper.h"
+#include "common/DebugOutputer.h"
 #include <string>
-#include <iostream>
 
-FileParser::FileParser() :
-    json_parser(std::make_unique<NlohmannJson>())
+FileParser::FileParser() : json_parser(std::make_unique<NlohmannJson>())
 {
     if (!FileSystemUtils::directoryExists(GlobalStatusManager::absolute_tmp_dir))
     {
-        FileSystemUtils::createDirectoryRecursive(FileSystemUtils::utf8ToWide(GlobalStatusManager::absolute_tmp_dir));
+        FileSystemUtils::createDirectoryRecursive(GlobalStatusManager::absolute_tmp_dir);
     }
     type_parser_map["file_header"] = std::bind(&FileParser::onFileHeader, this, std::placeholders::_1);
     type_parser_map["dir_header"] = std::bind(&FileParser::onDirHeader, this, std::placeholders::_1);
@@ -22,7 +22,8 @@ FileParser::FileParser() :
 
 uint8_t FileParser::calculateProgress()
 {
-    if (total_size == 0) {
+    if (total_size == 0)
+    {
         return 0;
     }
     uint64_t effective_size = (received_size > total_size) ? total_size : received_size;
@@ -36,7 +37,7 @@ void FileParser::parse(std::unique_ptr<NetworkInterface::UserMsg> msg)
     {
         if (file_stream)
         {
-            file_stream->write(reinterpret_cast<const char*>(msg->data.data()) + 4, msg->data.size() - 4);
+            file_stream->write(reinterpret_cast<const char *>(msg->data.data()) + 4, msg->data.size() - 4);
             received_size += msg->data.size() - 4;
             bytes_received += msg->data.size() - 4;
             if (progress_count >= 40)
@@ -44,21 +45,22 @@ void FileParser::parse(std::unique_ptr<NetworkInterface::UserMsg> msg)
                 end_time_point = std::chrono::steady_clock::now();
                 auto elapsed_us = std::chrono::duration_cast<std::chrono::microseconds>(end_time_point - start_time_point);
                 uint32_t speed_bps = 0;
-                if (elapsed_us.count() > 0) {
+                if (elapsed_us.count() > 0)
+                {
                     uint64_t bps = (static_cast<uint64_t>(bytes_received) * 1000000ULL) / elapsed_us.count();
                     speed_bps = static_cast<uint32_t>(bps);
                     bytes_received = 0;
                 }
                 start_time_point = std::chrono::steady_clock::now();
                 EventBusManager::instance().publish("/file/download_progress", current_file_id,
-                    calculateProgress(), static_cast<uint32_t>(speed_bps), false);
+                                                    calculateProgress(), static_cast<uint32_t>(speed_bps), false);
                 progress_count = 0;
             }
             ++progress_count;
         }
         else
         {
-            std::cout << "FStream hasn't ready" << std::endl;
+            LOG_ERROR("FStream hasn't ready");
         }
     }
     else
@@ -66,7 +68,7 @@ void FileParser::parse(std::unique_ptr<NetworkInterface::UserMsg> msg)
         auto parser = json_parser->getParser();
         std::string json_str = std::string(msg->data.data(), msg->data.data() + msg->data.size());
         parser->loadJson(json_str);
-        std::cout << "File Msg  " << std::string(msg->data.data(), msg->data.data() + msg->data.size()) << std::endl;
+        LOG_INFO("File Msg  " << std::string(msg->data.data(), msg->data.data() + msg->data.size()));
         auto parser_func = type_parser_map.find(parser->getValue("type"));
         if (parser_func != type_parser_map.end())
         {
@@ -74,7 +76,7 @@ void FileParser::parse(std::unique_ptr<NetworkInterface::UserMsg> msg)
         }
         else
         {
-            std::cout << "Invalid type" << std::endl;
+            LOG_ERROR("Invalid type");
         }
     }
 }
@@ -84,39 +86,50 @@ void FileParser::onFileHeader(std::unique_ptr<Json::Parser> content_parser)
     uint32_t id = std::stoul(content_parser->getValue("id"));
     if (file_stream)
     {
-        file_stream.release();
+        file_stream.reset();
     }
-    //接收到的字符是utf8，需要转换成宽字节
+
+    // 接收到的字符是utf8，需要转换成宽字节
     std::wstring wide_tmp_dir = FileSystemUtils::utf8ToWide(GlobalStatusManager::absolute_tmp_dir);
     std::wstring wide_filename = FileSystemUtils::utf8ToWide(GlobalStatusManager::getInstance().getFileName(id));
     std::wstring full_path = wide_tmp_dir + wide_filename;
 
     current_file_id = std::stoul(content_parser->getValue("id"));
-    file_stream = std::make_unique<std::ofstream>(full_path.c_str(), std::ios::binary);
-    total_size = std::stoul(content_parser->getValue("total_size"));
-    if (!file_stream->is_open())
+
+    file_stream = FileStreamHelper::createOutputFileStream(full_path);
+
+    total_size = std::stoull(content_parser->getValue("total_size"));
+
+    if (!file_stream || !file_stream->is_open())
     {
-        std::wcout << L"Failed to open: " << full_path << std::endl;
+        LOG_ERROR("Failed to open: " << FileStreamHelper::wstringToLocalPath(full_path));
+    }
+    else
+    {
+        start_time_point = std::chrono::steady_clock::now();
     }
 }
 
 void FileParser::onDirHeader(std::unique_ptr<Json::Parser> content_parser)
 {
     uint32_t id = std::stoul(content_parser->getValue("id"));
-    total_size = std::stoul(content_parser->getValue("total_size"));
+    total_size = std::stoull(content_parser->getValue("total_size"));
     std::wstring wide_tmp_dir = FileSystemUtils::utf8ToWide(GlobalStatusManager::absolute_tmp_dir);
     std::wstring wide_filename = FileSystemUtils::utf8ToWide(GlobalStatusManager::getInstance().getFileName(id));
     std::wstring end = FileSystemUtils::utf8ToWide("/");
     dir_path = wide_tmp_dir + wide_filename + end;
+
     auto leaf_paths = content_parser->getArray("leaf_paths");
-    for (auto& i : leaf_paths)
+    for (auto &i : leaf_paths)
     {
         auto tmp = i->getArrayItems();
-        for (auto& a : tmp)
+        for (auto &a : tmp)
         {
-            FileSystemUtils::createDirectoryRecursive(dir_path + FileSystemUtils::utf8ToWide(a));
+            std::string path_str = FileStreamHelper::wstringToLocalPath(dir_path + FileSystemUtils::utf8ToWide(a));
+            FileSystemUtils::createDirectoryRecursive(path_str);
         }
     }
+
     current_file_id = std::stoul(content_parser->getValue("id"));
     is_folder = true;
     start_time_point = std::chrono::steady_clock::now();
@@ -126,20 +139,29 @@ void FileParser::onDirItemHeader(std::unique_ptr<Json::Parser> content_parser)
 {
     std::wstring file_relative_path = FileSystemUtils::utf8ToWide(content_parser->getValue("path"));
     std::wstring full_path = dir_path + file_relative_path;
-    file_stream = std::make_unique<std::ofstream>(full_path.c_str(), std::ios::binary);
-    if (!file_stream->is_open())
+
+    file_stream = FileStreamHelper::createOutputFileStream(full_path);
+
+    if (!file_stream || !file_stream->is_open())
     {
-        std::wcout << L"Failed to open: " << full_path << std::endl;
+        LOG_ERROR("Failed to open: " << FileStreamHelper::wstringToLocalPath(full_path));
     }
+
     file_name = content_parser->getValue("path");
 }
 
 void FileParser::onFileEnd(std::unique_ptr<Json::Parser> content_parser)
 {
     EventBusManager::instance().publish("/file/download_progress", current_file_id,
-        static_cast <uint8_t>(100), static_cast<uint32_t>(0), true);
+                                        static_cast<uint8_t>(100), static_cast<uint32_t>(0), true);
     received_size = 0;
+
+    static uint8_t progress_count = 0;
     progress_count = 0;
-    file_stream->flush();
-    file_stream.reset();
+
+    if (file_stream)
+    {
+        file_stream->flush();
+        file_stream.reset();
+    }
 }
