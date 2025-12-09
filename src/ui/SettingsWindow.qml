@@ -35,11 +35,13 @@ ApplicationWindow {
     
     // 主题切换处理
     function switchTheme(theme) {
+        settings_model.currentTheme = theme
         console.log("切换主题:", theme)
     }
     
     // 语言切换处理
     function switchLanguage(language) {
+        settings_model.currentLanguage = language
         console.log("切换语言:", language)
     }
     
@@ -50,31 +52,37 @@ ApplicationWindow {
     
     // 清除缓存
     function clearCache() {
+        settings_model.cacheSize = 0
         console.log("清除缓存")
     }
     
     // 切换自动下载
     function toggleAutoDownload(enabled) {
+        settings_model.autoDownload = enabled
         console.log("自动下载:", enabled ? "启用" : "禁用")
     }
     
     // 设置并发传输数
     function setConcurrentTransfers(count) {
+        settings_model.concurrentTransfers = count
         console.log("设置并发传输数:", count)
     }
     
     // 切换加密
     function toggleEncryption(enabled) {
+        settings_model.enableEncryption = enabled
         console.log("传输加密:", enabled ? "启用" : "禁用")
     }
     
     // 切换智能展开
     function toggleExpandOnAction(enabled) {
+        settings_model.expandOnAction = enabled
         console.log("智能展开:", enabled ? "启用" : "禁用")
     }
     
     // 检查更新
     function checkForUpdates() {
+        settings_model.isUpdateAvailable = true
         console.log("检查更新")
     }
     
@@ -379,7 +387,7 @@ ApplicationWindow {
                             }
                             
                             Text {
-                                text: model.appVersion
+                                text: settings_model.appVersion
                                 font.pixelSize: 11
                                 color: textSecondary
                             }
@@ -501,9 +509,9 @@ ApplicationWindow {
                                         width: 100
                                         height: 120
                                         radius: 12
-                                        color: model.currentTheme === "light" ? primaryColor : "#f8fafc"
-                                        border.color: model.currentTheme === "light" ? primaryLightColor : borderColor
-                                        border.width: model.currentTheme === "light" ? 3 : 2
+                                        color: settings_model.currentTheme === 0 ? primaryColor : "#f8fafc"
+                                        border.color: settings_model.currentTheme === 0 ? primaryLightColor : borderColor
+                                        border.width: settings_model.currentTheme === 0 ? 3 : 2
                                         
                                         Column {
                                             anchors.centerIn: parent
@@ -519,14 +527,14 @@ ApplicationWindow {
                                                 text: "浅色"
                                                 font.pixelSize: 14
                                                 font.weight: Font.Medium
-                                                color: currentTheme === "light" ? "white" : textPrimary
+                                                color: settings_model.currentTheme === 0 ? "white" : textPrimary
                                                 anchors.horizontalCenter: parent.horizontalCenter
                                             }
                                             
                                             Text {
                                                 text: "Light"
                                                 font.pixelSize: 11
-                                                color: currentTheme === "light" ? "rgba(255,255,255,0.8)" : textSecondary
+                                                color: settings_model.currentTheme === 0 ? "rgba(255,255,255,0.8)" : textSecondary
                                                 anchors.horizontalCenter: parent.horizontalCenter
                                             }
                                         }
@@ -534,7 +542,7 @@ ApplicationWindow {
                                         MouseArea {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
-                                            onClicked: switchTheme("light")
+                                            onClicked: switchTheme(0)
                                         }
                                     }
                                     
@@ -544,9 +552,9 @@ ApplicationWindow {
                                         width: 100
                                         height: 120
                                         radius: 12
-                                        color: currentTheme === "dark" ? primaryColor : "#f8fafc"
-                                        border.color: currentTheme === "dark" ? primaryLightColor : borderColor
-                                        border.width: currentTheme === "dark" ? 3 : 2
+                                        color: settings_model.currentTheme === 1 ? primaryColor : "#f8fafc"
+                                        border.color: settings_model.currentTheme === 1 ? primaryLightColor : borderColor
+                                        border.width: settings_model.currentTheme === 1 ? 3 : 2
                                         
                                         Column {
                                             anchors.centerIn: parent
@@ -562,14 +570,14 @@ ApplicationWindow {
                                                 text: "深色"
                                                 font.pixelSize: 14
                                                 font.weight: Font.Medium
-                                                color: currentTheme === "dark" ? "white" : textPrimary
+                                                color: settings_model.currentTheme === 1 ? "white" : textPrimary
                                                 anchors.horizontalCenter: parent.horizontalCenter
                                             }
                                             
                                             Text {
                                                 text: "Dark"
                                                 font.pixelSize: 11
-                                                color: currentTheme === "dark" ? "rgba(255,255,255,0.8)" : textSecondary
+                                                color: settings_model.currentTheme === 1 ? "rgba(255,255,255,0.8)" : textSecondary
                                                 anchors.horizontalCenter: parent.horizontalCenter
                                             }
                                         }
@@ -577,7 +585,7 @@ ApplicationWindow {
                                         MouseArea {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
-                                            onClicked: switchTheme("dark")
+                                            onClicked: switchTheme(1)
                                         }
                                     }
                                     
@@ -587,9 +595,9 @@ ApplicationWindow {
                                         width: 100
                                         height: 120
                                         radius: 12
-                                        color: currentTheme === "auto" ? primaryColor : "#f8fafc"
-                                        border.color: currentTheme === "auto" ? primaryLightColor : borderColor
-                                        border.width: currentTheme === "auto" ? 3 : 2
+                                        color: settings_model.currentTheme === 2 ? primaryColor : "#f8fafc"
+                                        border.color: settings_model.currentTheme === 2 ? primaryLightColor : borderColor
+                                        border.width: settings_model.currentTheme === 2 ? 3 : 2
                                         
                                         Column {
                                             anchors.centerIn: parent
@@ -600,14 +608,14 @@ ApplicationWindow {
                                                 text: "自动"
                                                 font.pixelSize: 14
                                                 font.weight: Font.Medium
-                                                color: currentTheme === "auto" ? "white" : textPrimary
+                                                color: settings_model.currentTheme === 2 ? 1 : textPrimary
                                                 anchors.horizontalCenter: parent.horizontalCenter
                                             }
                                             
                                             Text {
                                                 text: "Auto"
                                                 font.pixelSize: 11
-                                                color: currentTheme === "auto" ? "rgba(255,255,255,0.8)" : textSecondary
+                                                color: settings_model.currentTheme === 2 ? "rgba(255,255,255,0.8)" : textSecondary
                                                 anchors.horizontalCenter: parent.horizontalCenter
                                             }
                                         }
@@ -615,7 +623,7 @@ ApplicationWindow {
                                         MouseArea {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
-                                            onClicked: switchTheme("auto")
+                                            onClicked: switchTheme(2)
                                         }
                                     }
                                 }
@@ -676,21 +684,21 @@ ApplicationWindow {
                                             id: chineseLang
                                             width: parent.width / 2
                                             height: parent.height
-                                            color: model.currentLanguage === "zh" ? primaryColor : "transparent"
+                                            color: settings_model.currentLanguage === 0 ? primaryColor : "transparent"
                                             radius: 10
                                             
                                             Text {
                                                 text: "简体中文"
                                                 font.pixelSize: 16
                                                 font.weight: Font.Bold
-                                                color: model.currentLanguage === "zh" ? "white" : textPrimary
+                                                color: settings_model.currentLanguage === 0 ? "white" : textPrimary
                                                 anchors.centerIn: parent
                                             }
                                             
                                             MouseArea {
                                                 anchors.fill: parent
                                                 cursorShape: Qt.PointingHandCursor
-                                                onClicked: switchLanguage("zh")
+                                                onClicked: switchLanguage(0)
                                             }
                                         }
                                         
@@ -698,28 +706,28 @@ ApplicationWindow {
                                             id: englishLang
                                             width: parent.width / 2
                                             height: parent.height
-                                            color: model.currentLanguage === "en" ? primaryColor : "transparent"
+                                            color: settings_model.currentLanguage === 1 ? primaryColor : "transparent"
                                             radius: 10
                                             
                                             Text {
                                                 text: "English"
                                                 font.pixelSize: 16
-                                                font.weight: model.currentLanguage === "en" ? Font.Bold : Font.Normal
-                                                color: model.currentLanguage === "en" ? "white" : textPrimary
+                                                font.weight: settings_model.currentLanguage === 1 ? Font.Bold : Font.Normal
+                                                color: settings_model.currentLanguage === 1 ? "white" : textPrimary
                                                 anchors.centerIn: parent
                                             }
                                             
                                             MouseArea {
                                                 anchors.fill: parent
                                                 cursorShape: Qt.PointingHandCursor
-                                                onClicked: switchLanguage("en")
+                                                onClicked: switchLanguage(1)
                                             }
                                         }
                                     }
                                 }
                                 
                                 Text {
-                                    text: "当前语言: " + (model.currentLanguage === "zh" ? "简体中文" : "English")
+                                    text: "当前语言: " + (settings_model.currentLanguage === 0 ? "简体中文" : "English")
                                     font.pixelSize: 14
                                     color: textSecondary
                                 }
@@ -821,7 +829,7 @@ ApplicationWindow {
                                         anchors.margins: 5
                                         
                                         Text {
-                                            text: model.cachePath
+                                            text: settings_model.cachePath
                                             font.pixelSize: 14
                                             color: textPrimary
                                             elide: Text.ElideMiddle
@@ -870,7 +878,7 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: model.cacheSize.toFixed(1) + " MB"
+                                            text: settings_model.cacheSize.toFixed(1) + " MB"
                                             font {
                                                 pixelSize: 16
                                                 weight: Font.Bold
@@ -968,7 +976,7 @@ ApplicationWindow {
                                     spacing: 15
                                     
                                     Text {
-                                        text: "缓存大小: " + model.cacheSize.toFixed(1) + " MB"
+                                        text: "缓存大小: " + settings_model.cacheSize.toFixed(1) + " MB"
                                         font.pixelSize: 14
                                         color: textPrimary
                                         anchors.verticalCenter: parent.verticalCenter
@@ -1008,7 +1016,7 @@ ApplicationWindow {
                                     color: "#e2e8f0"
                                     
                                     Rectangle {
-                                        width: parent.width * (model.cacheSize / (15.0 * 1024))
+                                        width: parent.width * (settings_model.cacheSize / (15.0 * 1024))
                                         height: parent.height
                                         radius: 4
                                         color: accentOrange
@@ -1118,11 +1126,11 @@ ApplicationWindow {
                                         width: 60
                                         height: 30
                                         radius: 15
-                                        color: model.autoDownload ? primaryColor : "#e2e8f0"
+                                        color: settings_model.autoDownload ? primaryColor : "#e2e8f0"
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Rectangle {
-                                            x: model.autoDownload ? parent.width - width - 3 : 3
+                                            x: settings_model.autoDownload ? parent.width - width - 3 : 3
                                             y: 3
                                             width: 24
                                             height: 24
@@ -1137,7 +1145,7 @@ ApplicationWindow {
                                         MouseArea {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
-                                            onClicked: toggleAutoDownload(!autoDownload)
+                                            onClicked: toggleAutoDownload(!settings_model.autoDownload)
                                         }
                                     }
                                 }
@@ -1196,7 +1204,7 @@ ApplicationWindow {
                                     
                                     Text {
                                         id: valueText
-                                        text: model.concurrentTransfers
+                                        text: settings_model.concurrentTransfers
                                         font {
                                             pixelSize: 24
                                             weight: Font.Bold
@@ -1219,7 +1227,7 @@ ApplicationWindow {
                                         
                                         Rectangle {
                                             id: sliderFill
-                                            width: (model.concurrentTransfers - 1) / 9 * parent.width
+                                            width: (settings_model.concurrentTransfers - 1) / 9 * parent.width
                                             height: parent.height
                                             radius: 4
                                             color: primaryColor
@@ -1283,14 +1291,14 @@ ApplicationWindow {
                                             width: 30
                                             height: 40
                                             radius: 8
-                                            color: index < model.concurrentTransfers ? primaryColor : "#f1f5f9"
-                                            border.color: index < model.concurrentTransfers ? primaryLightColor : borderColor
+                                            color: index < settings_model.concurrentTransfers ? primaryColor : "#f1f5f9"
+                                            border.color: index < settings_model.concurrentTransfers ? primaryLightColor : borderColor
                                             border.width: 2
                                             
                                             Text {
                                                 text: index + 1
                                                 font.pixelSize: 14
-                                                color: index < model.concurrentTransfers ? "white" : textSecondary
+                                                color: index < settings_model.concurrentTransfers ? "white" : textSecondary
                                                 anchors.centerIn: parent
                                             }
                                             
@@ -1370,11 +1378,11 @@ ApplicationWindow {
                                         width: 60
                                         height: 30
                                         radius: 15
-                                        color: model.enableEncryption ? primaryColor : "#e2e8f0"
+                                        color: settings_model.enableEncryption ? primaryColor : "#e2e8f0"
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Rectangle {
-                                            x: model.enableEncryption ? parent.width - width - 3 : 3
+                                            x: settings_model.enableEncryption ? parent.width - width - 3 : 3
                                             y: 3
                                             width: 24
                                             height: 24
@@ -1389,7 +1397,7 @@ ApplicationWindow {
                                         MouseArea {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
-                                            onClicked: toggleEncryption(!enableEncryption)
+                                            onClicked: toggleEncryption(!settings_model.enableEncryption)
                                         }
                                     }
                                 }
@@ -1487,11 +1495,11 @@ ApplicationWindow {
                                         width: 60
                                         height: 30
                                         radius: 15
-                                        color: model.expandOnAction ? primaryColor : "#e2e8f0"
+                                        color: settings_model.expandOnAction ? primaryColor : "#e2e8f0"
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Rectangle {
-                                            x: model.expandOnAction ? parent.width - width - 3 : 3
+                                            x: settings_model.expandOnAction ? parent.width - width - 3 : 3
                                             y: 3
                                             width: 24
                                             height: 24
@@ -1506,7 +1514,7 @@ ApplicationWindow {
                                         MouseArea {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
-                                            onClicked: toggleExpandOnAction(!expandOnAction)
+                                            onClicked: toggleExpandOnAction(!settings_model.expandOnAction)
                                         }
                                     }
                                     
@@ -1609,7 +1617,7 @@ ApplicationWindow {
                                     }
                                     
                                     Text {
-                                        text: "版本号: " + model.appVersion
+                                        text: "版本号: " + settings_model.appVersion
                                         font.pixelSize: 14
                                         color: textSecondary
                                     }
@@ -1696,9 +1704,9 @@ ApplicationWindow {
                                     }
                                     
                                     Text {
-                                        text: model.isUpdateAvailable ? "发现新版本" : "当前已是最新版本"
+                                        text: settings_model.isUpdateAvailable ? "发现新版本" : "当前已是最新版本"
                                         font.pixelSize: 14
-                                        color: model.isUpdateAvailable ? accentOrange : accentGreen
+                                        color: settings_model.isUpdateAvailable ? accentOrange : accentGreen
                                         anchors.verticalCenter: parent.verticalCenter
                                     }
                                 }
@@ -1716,7 +1724,7 @@ ApplicationWindow {
                                         spacing: 8
                                         
                                         Text {
-                                            text: model.appVersion + " 更新内容"
+                                            text: settings_model.appVersion + " 更新内容"
                                             font.pixelSize: 14
                                             font.weight: Font.Bold
                                             color: textPrimary

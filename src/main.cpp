@@ -124,12 +124,14 @@ int main(int argc, char *argv[])
     auto net_list_model = ModelManager::getInstance().getNetworkInfoModel();
     auto device_list_model = ModelManager::getInstance().getDeviceModel();
     auto connection_manager = ModelManager::getInstance().getConnectionManager();
+    auto settings_model = ModelManager::getInstance().getSettingsModel();
 
     // 注册到 QML 上下文
     engine.rootContext()->setContextProperty("file_list_model", file_list_model.get());
     engine.rootContext()->setContextProperty("net_info_list_model", net_list_model.get());
     engine.rootContext()->setContextProperty("device_list_model", device_list_model.get());
     engine.rootContext()->setContextProperty("connection_manager", connection_manager.get());
+    engine.rootContext()->setContextProperty("settings_model", settings_model.get());
 
     // 加载 QML
     engine.load(QUrl("qrc:/qml/ui/MainWindow.qml"));

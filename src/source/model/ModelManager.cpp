@@ -4,7 +4,8 @@ ModelManager::ModelManager()
     : net_info_model(std::make_shared<NetworkInfoListModel>()),
       device_model(std::make_shared<DeviceListModel>()),
       file_list_model(std::make_shared<FileListModel>()),
-      connection_manager(std::make_shared<ConnectionManager>())
+      connection_manager(std::make_shared<ConnectionManager>()),
+      settings_model(std::make_shared<SettingsModel>())
 {
     connect(connection_manager.get(), &ConnectionManager::connectionClosed,
             file_list_model.get(), &FileListModel::onConnectionClosed);
@@ -20,3 +21,4 @@ std::shared_ptr<NetworkInfoListModel> ModelManager::getNetworkInfoModel() { retu
 std::shared_ptr<DeviceListModel> ModelManager::getDeviceModel() { return device_model; }
 std::shared_ptr<FileListModel> ModelManager::getFileListModel() { return file_list_model; }
 std::shared_ptr<ConnectionManager> ModelManager::getConnectionManager() { return connection_manager; }
+std::shared_ptr<SettingsModel> ModelManager::getSettingsModel() { return settings_model; }

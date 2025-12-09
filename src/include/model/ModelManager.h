@@ -8,6 +8,7 @@
 #include "model/FileListModel.h"
 #include "model/ConnectionManager.h"
 #include "model/NetworkInfoModel.h"
+#include "model/SettingsModel.h"
 
 class ModelManager : public QObject
 {
@@ -19,6 +20,7 @@ public:
     std::shared_ptr<DeviceListModel> getDeviceModel();
     std::shared_ptr<FileListModel> getFileListModel();
     std::shared_ptr<ConnectionManager> getConnectionManager();
+    std::shared_ptr<SettingsModel> getSettingsModel();
 
 private:
     ModelManager();
@@ -31,6 +33,7 @@ private:
     std::shared_ptr<DeviceListModel> device_model;
     std::shared_ptr<FileListModel> file_list_model;
     std::shared_ptr<ConnectionManager> connection_manager;
+    std::shared_ptr<SettingsModel> settings_model;
 };
 
 #endif

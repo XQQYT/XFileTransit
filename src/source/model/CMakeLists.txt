@@ -5,6 +5,7 @@ set(MODEL_SOURCES
     FileIconManager.cpp
     FileListModel.cpp
     ConnectionManager.cpp
+    SettingsModel.cpp
     ModelManager.cpp
 )
 
@@ -16,6 +17,7 @@ set(MODEL_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/model/FileListModel.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/model/ConnectionManager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/model/ModelManager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/model/SettingsModel.h
 )
 
 qt_add_library(model STATIC

@@ -180,6 +180,7 @@ ApplicationWindow  {
         source: "qrc:/qml/ui/SettingsWindow.qml"
         
         onLoaded: {
+            item.settings_model = settings_model
         }
     }
 
