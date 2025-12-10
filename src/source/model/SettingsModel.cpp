@@ -1,11 +1,17 @@
 #include "model/SettingsModel.h"
 #include <QtCore/QDebug>
 #include <QtCore/QStringList>
+#include <QtWidgets/QApplication>
 #include <algorithm>
 
 SettingsModel::SettingsModel(QObject *parent)
-    : QObject(parent)
+    : QObject(parent), translator(new QTranslator(this))
 {
+}
+
+void SettingsModel::setQmlEngine(QQmlEngine *engine)
+{
+    qml_engine = engine;
 }
 
 void SettingsModel::setCurrentTheme(int theme)
@@ -22,6 +28,29 @@ void SettingsModel::setCurrentLanguage(int language)
     if (current_language != language)
     {
         current_language = language;
+        QApplication::removeTranslator(translator);
+
+        if (language == 1)
+        {
+            if (translator->load(":/translations/en.qm"))
+            {
+                QApplication::installTranslator(translator);
+            }
+        }
+        else
+        {
+            if (translator->load(":/translations/zh_CN.qm"))
+            {
+                QApplication::installTranslator(translator);
+            }
+        }
+
+        if (qml_engine)
+        {
+            qDebug() << "retranslate";
+            qml_engine->retranslate();
+        }
+
         emit currentLanguageChanged(language);
     }
 }

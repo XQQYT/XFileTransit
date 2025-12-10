@@ -12,8 +12,8 @@ Popup {
     closePolicy: Popup.NoAutoClose
     
     // 公共接口
-    property string message: "加载中..."
-    property string buttonText: "取消"
+    property string message: qsTr("加载中...")
+    property string buttonText: qsTr("取消")
     property bool autoCenter: true
     
     // 信号
@@ -127,7 +127,7 @@ Popup {
             // 加载中动画文本
             Text {
                 id: loadingText
-                visible: loadingDialog.message === "加载中..."
+                visible: loadingDialog.message === qsTr("加载中...")
                 text: {
                     var dots = ""
                     var dotCount = (Math.floor(Date.now() / 500) % 4)

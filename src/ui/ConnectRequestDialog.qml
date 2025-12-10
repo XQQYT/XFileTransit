@@ -47,7 +47,7 @@ Window {
             
             // 标题
             Text {
-                text: "🔗 连接请求"
+                text: qsTr("连接请求")
                 font.pixelSize: 20
                 font.bold: true
                 font.family: "Microsoft YaHei UI"
@@ -66,7 +66,7 @@ Window {
                     spacing: 4
                     
                     Text {
-                        text: "IP地址"
+                        text: qsTr("IP地址")
                         font.pixelSize: 13
                         color: "#6b7280"
                         font.weight: Font.Medium
@@ -95,7 +95,7 @@ Window {
                     spacing: 4
                     
                     Text {
-                        text: "设备名称"
+                        text: qsTr("设备名称")
                         font.pixelSize: 13
                         color: "#6b7280"
                         font.weight: Font.Medium
@@ -122,7 +122,7 @@ Window {
             
             // 提示文字
             Text {
-                text: "是否允许此设备连接到您的计算机？"
+                text: qsTr("是否允许此设备连接到您的计算机？")
                 font.pixelSize: 13
                 color: "#9ca3af"
                 Layout.alignment: Qt.AlignHCenter
@@ -144,7 +144,7 @@ Window {
                     
                     Text {
                         anchors.centerIn: parent
-                        text: "拒绝"
+                        text: qsTr("拒绝")
                         font.pixelSize: 14
                         color: rejectMouse.containsMouse ? "#dc2626" : "#6b7280"
                         font.weight: Font.Medium
@@ -172,7 +172,7 @@ Window {
                     
                     Text {
                         anchors.centerIn: parent
-                        text: "接受"
+                        text: qsTr("接受")
                         font.pixelSize: 14
                         color: "white"
                         font.weight: Font.Medium

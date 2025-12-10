@@ -14,6 +14,73 @@ set(APP_SOURCES
     main.cpp
 )
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/translations)
+
+find_program(LUPDATE_EXECUTABLE 
+    NAMES 
+        lupdate
+    HINTS
+        ${Qt6_DIR}/../../../bin
+    REQUIRED
+)
+
+if(LUPDATE_EXECUTABLE)
+    message(STATUS "Found lupdate: ${LUPDATE_EXECUTABLE}")
+    
+    add_custom_target(update-translations
+        COMMAND ${LUPDATE_EXECUTABLE}
+            ui
+            -recursive
+            -extensions qml
+            -ts translations/zh_CN.ts
+                 translations/en.ts
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Extracting translatable strings..."
+    )
+endif()
+
+find_program(LRELEASE_EXECUTABLE lrelease)
+if(LRELEASE_EXECUTABLE)
+    add_custom_command(
+        OUTPUT 
+            res/translations/zh_CN.qm
+            res/translations/en.qm
+        COMMAND ${CMAKE_COMMAND} -E make_directory res/translations
+        COMMAND ${LRELEASE_EXECUTABLE}
+            translations/zh_CN.ts -qm res/translations/zh_CN.qm
+        COMMAND ${LRELEASE_EXECUTABLE}
+            translations/en.ts -qm res/translations/en.qm
+        DEPENDS 
+            translations/zh_CN.ts
+            translations/en.ts
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Compiling translation files"
+        VERBATIM
+    )
+    add_custom_target(compile-translations ALL
+    DEPENDS 
+        res/translations/zh_CN.qm
+        res/translations/en.qm
+    )
+endif()
+
+set(QML_FILES
+    ui/ConnectRequestDialog.qml
+    ui/DeviceListWindow.qml
+    ui/GeneralDialog.qml
+    ui/LoadingDialog.qml
+    ui/MainWindow.qml
+    ui/NetworkInfoDialog.qml
+    ui/SettingsWindow.qml
+)
+
+qt_add_translation(QM_FILES
+    ${QML_FILES}
+    TS_FILES 
+        translations/zh_CN.ts
+        translations/en.ts
+)
+
 qt6_add_resources(APP_RES
     ${CMAKE_CURRENT_SOURCE_DIR}/res/res.qrc
 )
@@ -30,6 +97,9 @@ add_executable(${PROJECT_NAME}
     ${APP_SOURCES}
     ${APP_RES}
 )
+if(LUPDATE_EXECUTABLE)
+    add_dependencies(${PROJECT_NAME} update-translations)
+endif()
 
 # Windows 特有的资源文件
 if(WIN32)

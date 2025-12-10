@@ -3,6 +3,8 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QString>
+#include <QtCore/QTranslator>
+#include <QtQml/QQmlApplicationEngine>
 #include <string>
 #include <cstdint>
 
@@ -46,6 +48,7 @@ public:
     void setExpandOnAction(bool expand);
     void setAppVersion(const QString &version);
     void setIsUpdateAvailable(bool available);
+    void setQmlEngine(QQmlEngine *engine);
 
 signals:
     void currentThemeChanged(int theme);
@@ -70,6 +73,9 @@ private:
     bool expand_on_action = true;
     QString app_version = "1.0.0";
     bool is_update_available = false;
+
+    QQmlEngine *qml_engine = nullptr;
+    QTranslator *translator;
 };
 
 #endif

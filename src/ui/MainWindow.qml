@@ -27,7 +27,7 @@ ApplicationWindow  {
     // 连接状态属性
     property string current_device: ""
     property bool isConnected: false
-    property string connectionStatus: isConnected ? current_device : "未连接"
+    property string connectionStatus: isConnected ? current_device : qsTr("未连接")
 
     property var currentAcceptHandler: null
     property var currentRejectHandler: null
@@ -150,7 +150,7 @@ ApplicationWindow  {
     
     Loader {
         id: deviceWindowLoader
-        source: "qrc:/qml/ui/DeviceListWindow.qml"
+        source: "qrc:/ui/DeviceListWindow.qml"
         
         onLoaded: {
             item.deviceModel = device_list_model
@@ -159,7 +159,7 @@ ApplicationWindow  {
     
     Loader {
         id: connectRequestLoader  
-        source: "qrc:/qml/ui/ConnectRequestDialog.qml"
+        source: "qrc:/ui/ConnectRequestDialog.qml"
         
         onLoaded: {
             item.connection_model = connection_manager
@@ -168,7 +168,7 @@ ApplicationWindow  {
 
     Loader {
         id: networkInfoDialogLoader  
-        source: "qrc:/qml/ui/NetworkInfoDialog.qml"
+        source: "qrc:/ui/NetworkInfoDialog.qml"
         
         onLoaded: {
             item.networkInfoModel = net_info_list_model
@@ -177,7 +177,7 @@ ApplicationWindow  {
 
     Loader {
         id: settingsWindowLoader  
-        source: "qrc:/qml/ui/SettingsWindow.qml"
+        source: "qrc:/ui/SettingsWindow.qml"
         
         onLoaded: {
             item.settings_model = settings_model
@@ -215,7 +215,7 @@ ApplicationWindow  {
         function onPeerClosed() {
             if (generalDialogLoader.status === Loader.Ready && isConnected) {
                 generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                generalDialogLoader.item.text = "对方断开连接"
+                generalDialogLoader.item.text = qsTr("对方断开连接")
                 generalDialogLoader.item.buttons = generalDialogLoader.item.ok
                 generalDialogLoader.item.show()
                 generalDialogLoader.item.requestActivate()
@@ -227,7 +227,7 @@ ApplicationWindow  {
 
     Loader {
         id: generalDialogLoader
-        source: "qrc:/qml/ui/GeneralDialog.qml"
+        source: "qrc:/ui/GeneralDialog.qml"
         onLoaded: {
             item.accepted.connect(function() {
                 if (currentAcceptHandler) {
@@ -251,7 +251,7 @@ ApplicationWindow  {
     SystemTrayIcon {
         id: trayIcon
         visible: true
-        icon.source: "qrc:/logo/logo/logo_small.ico"
+        icon.source: "qrc:/logo/logo_small.ico"
         tooltip: qsTr("Xqqyt - 点击显示主窗口")
 
         menu: Menu {
@@ -453,7 +453,7 @@ ApplicationWindow  {
                     Menu {
                         id: contextMenu
                         MenuItem {
-                            text: "打开文件"
+                            text: qsTr("打开文件")
                             enabled: model.fileStatus === 6 | !model.isRemote
                             onTriggered: {
                                 if (model.fileUrl) {
@@ -468,14 +468,14 @@ ApplicationWindow  {
                         MenuSeparator {}
                         
                         MenuItem {
-                            text: "复制文件名"
+                            text: qsTr("复制文件名")
                             onTriggered: {
                                 file_list_model.copyText(model.fileName)
                             }
                         }
                         
                         MenuItem {
-                            text: "复制文件路径"
+                            text: qsTr("复制文件路径")
                             enabled: !model.isRemote || model.fileStatus === 6
                             onTriggered: {
                                 if (model.filePath) {
@@ -487,7 +487,7 @@ ApplicationWindow  {
                         MenuSeparator {}
                         
                         MenuItem {
-                            text: "下载文件"
+                            text: qsTr("下载文件")
                             enabled: model.isRemote && model.fileStatus !== 4 &&  model.fileStatus !== 7
                             onTriggered: {
                                 file_list_model.downloadFile(index)
@@ -497,13 +497,13 @@ ApplicationWindow  {
                         MenuSeparator {}
                         
                         MenuItem {
-                            text: "删除"
+                            text: qsTr("删除")
                             onTriggered: {
                                 // 检查是否正在传输
                                 if (model.fileStatus === 3 || model.fileStatus === 4) {
                                     if (generalDialogLoader.status === Loader.Ready) {
                                         generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                                        generalDialogLoader.item.text = "文件正在传输中"
+                                        generalDialogLoader.item.text = qsTr("文件正在传输中")
                                         generalDialogLoader.item.buttons = generalDialogLoader.item.ok
                                         
                                         generalDialogLoader.item.show()
@@ -692,10 +692,10 @@ ApplicationWindow  {
                                         id: normalStatusText
                                         text: {
                                             switch(model.fileStatus) {
-                                                case 0: return "等待中"
-                                                case 5: return "上传完毕"
-                                                case 6: return "下载完成"
-                                                case 7: return "已失效"
+                                                case 0: return qsTr("等待中")
+                                                case 5: return qsTr("上传完毕")
+                                                case 6: return qsTr("下载完成")
+                                                case 7: return qsTr("已失效")
                                                 default: return ""
                                             }
                                         }
@@ -710,7 +710,7 @@ ApplicationWindow  {
                                 // 失效状态文本
                                 Text {
                                     id: expiredText
-                                    text: "已失效"
+                                    text: qsTr("已失效")
                                     font.pixelSize: 9
                                     font.bold: true
                                     color: dangerColor
@@ -847,7 +847,7 @@ ApplicationWindow  {
                                 if (model.fileStatus === 3 || model.fileStatus === 4) {
                                     if (generalDialogLoader.status === Loader.Ready) {
                                         generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                                        generalDialogLoader.item.text = "文件正在传输中"
+                                        generalDialogLoader.item.text = qsTr("文件正在传输中")
                                         generalDialogLoader.item.buttons = generalDialogLoader.item.ok
                                         
                                         generalDialogLoader.item.show()
@@ -872,7 +872,7 @@ ApplicationWindow  {
                 // 空列表提示
                 Text {
                     anchors.centerIn: parent
-                    text: "📁 暂无文件，拖放文件到此处"
+                    text: qsTr("📁 暂无文件，拖放文件到此处")
                     font.pixelSize: 14
                     color: "#7f8c8d"
                     visible: fileGridView.count === 0
@@ -897,7 +897,7 @@ ApplicationWindow  {
                 }
                 
                 Image {
-                    source: "qrc:/logo/logo/logo_small.png"
+                    source: "qrc:/logo/logo_small.png"
                     width: 18
                     height: 18
                     anchors.verticalCenter: parent.verticalCenter
@@ -906,7 +906,7 @@ ApplicationWindow  {
                 
                 Text {
                     id: titleText
-                    text: dragActive ? "释放以添加文件" : "XFileTransit"
+                    text: dragActive ? qsTr("释放以添加文件") : "XFileTransit"
                     font.pixelSize: 14
                     font.bold: true
                     color: textPrimary
@@ -959,7 +959,7 @@ ApplicationWindow  {
                     enabled: root.expanded 
                     
                     Text {
-                        text: isConnected ? "断开" : "连接"
+                        text: isConnected ? qsTr("断开") : qsTr("连接")
                         font.pixelSize: 11
                         font.bold: true
                         color: switchMouseArea.containsMouse ? "white" : textSecondary
@@ -981,7 +981,7 @@ ApplicationWindow  {
                             } else {
                                 if (generalDialogLoader.status === Loader.Ready) {
                                     generalDialogLoader.item.iconType = generalDialogLoader.item.info
-                                    generalDialogLoader.item.text = "确定断开连接？"
+                                    generalDialogLoader.item.text = qsTr("确定断开连接？")
                                     generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
                                     
                                     root.currentAcceptHandler = function() {
@@ -1016,7 +1016,7 @@ ApplicationWindow  {
 
                     Text {
                         anchors.centerIn: parent
-                        text: "IP信息"
+                        text: qsTr("IP信息")
                         font.pixelSize: 11
                         font.family: "Microsoft YaHei UI"
                         font.weight: Font.Medium
@@ -1058,7 +1058,7 @@ ApplicationWindow  {
 
                     Text {
                         anchors.centerIn: parent
-                        text: "设置"
+                        text: qsTr("设置")
                         font.pixelSize: 11
                         font.family: "Microsoft YaHei UI"
                         font.weight: Font.Medium
@@ -1106,7 +1106,7 @@ ApplicationWindow  {
                         connectRequestLoader.item.close()
                         if (generalDialogLoader.status === Loader.Ready) {
                             generalDialogLoader.item.iconType = generalDialogLoader.item.info
-                            generalDialogLoader.item.text = device_ip + "(" + device_name + ")"+"取消了连接"
+                            generalDialogLoader.item.text = device_ip + "(" + device_name + ")"+qsTr("取消了连接")
                             generalDialogLoader.item.buttons = generalDialogLoader.item.ok
                                     
                             generalDialogLoader.item.show()
@@ -1125,7 +1125,7 @@ ApplicationWindow  {
                         if(fileGridView.count){
                             if (generalDialogLoader.status === Loader.Ready) {
                                 generalDialogLoader.item.iconType = generalDialogLoader.item.info
-                                generalDialogLoader.item.text = "是否同步当前文件"
+                                generalDialogLoader.item.text = qsTr("是否同步当前文件")
                                 generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
                                     
                                 root.currentAcceptHandler = function() {
@@ -1153,7 +1153,7 @@ ApplicationWindow  {
                                 // 有文件时询问是否同步
                                 if (generalDialogLoader.status === Loader.Ready) {
                                     generalDialogLoader.item.iconType = generalDialogLoader.item.info
-                                    generalDialogLoader.item.text = "是否同步当前文件"
+                                    generalDialogLoader.item.text = qsTr("是否同步当前文件")
                                     generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
                                     
                                     root.currentAcceptHandler = function() {
@@ -1166,7 +1166,7 @@ ApplicationWindow  {
                                 // 没有文件时显示连接成功提示
                                 if (generalDialogLoader.status === Loader.Ready) {
                                     generalDialogLoader.item.iconType = generalDialogLoader.item.success
-                                    generalDialogLoader.item.text = "连接成功"
+                                    generalDialogLoader.item.text = qsTr("连接成功")
                                     generalDialogLoader.item.buttons = generalDialogLoader.item.ok
                                     
                                     root.currentAcceptHandler = null
@@ -1179,7 +1179,7 @@ ApplicationWindow  {
                         }else{
                             if (generalDialogLoader.status === Loader.Ready) {
                                 generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                                generalDialogLoader.item.text = "连接被拒绝"
+                                generalDialogLoader.item.text = qsTr("连接被拒绝")
                                 generalDialogLoader.item.buttons = generalDialogLoader.item.ok
                                     
                                 root.currentAcceptHandler = null
@@ -1211,7 +1211,7 @@ ApplicationWindow  {
                 enabled: root.expanded 
                 
                 Text {
-                    text: "清空"
+                    text: qsTr("清空")
                     font.pixelSize: 11
                     font.bold: true
                     color: clearMouseArea.containsMouse ? "white" : textSecondary
@@ -1268,7 +1268,7 @@ ApplicationWindow  {
                         if (file_list_model.isTransferring()) {
                             if (generalDialogLoader.status === Loader.Ready) {
                                 generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                                generalDialogLoader.item.text = "有文件正在传输中"
+                                generalDialogLoader.item.text = qsTr("有文件正在传输中")
                                 generalDialogLoader.item.buttons = generalDialogLoader.item.ok
                                 
                                 generalDialogLoader.item.show()
@@ -1277,7 +1277,7 @@ ApplicationWindow  {
                         } else {
                             if (generalDialogLoader.status === Loader.Ready) {
                                 generalDialogLoader.item.iconType = generalDialogLoader.item.warning
-                                generalDialogLoader.item.text = "确定退出吗？"
+                                generalDialogLoader.item.text = qsTr("确定退出吗？")
                                 generalDialogLoader.item.buttons = generalDialogLoader.item.closeWin | generalDialogLoader.item.hideWin
                                 
                                 root.currentAcceptHandler = function() {

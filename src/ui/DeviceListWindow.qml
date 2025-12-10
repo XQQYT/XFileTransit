@@ -23,7 +23,7 @@ Window {
 
     Loader {
         id: generalDialogLoader
-        source: "qrc:/qml/ui/GeneralDialog.qml"
+        source: "qrc:/ui/GeneralDialog.qml"
     }
     
     // 居中显示
@@ -72,14 +72,14 @@ Window {
                 if (generalDialogLoader.status === Loader.Ready) {
                     var deviceCount = deviceModel ? deviceListView.count : 0
                     var message = deviceCount > 0 ? 
-                        `扫描完成，发现 ${deviceCount} 个设备` : 
-                        "扫描完成，未发现设备"
+                        qsTr("扫描完成，发现 %1 个设备").arg(deviceCount) : 
+                        qsTr("扫描完成，未发现设备")
                     
                     var iconType = deviceCount > 0 ? 
                         generalDialogLoader.item.success : 
                         generalDialogLoader.item.info
                     
-                    generalDialogLoader.item.showDialog("扫描完成", message, iconType, generalDialogLoader.item.ok)
+                    generalDialogLoader.item.showDialog(qsTr("扫描完成"), message, iconType, generalDialogLoader.item.ok)
                 }
             })
         }
@@ -183,7 +183,7 @@ Window {
                     spacing: 2
                     
                     Text {
-                        text: "设备列表"
+                        text: qsTr("设备列表")
                         font.pixelSize: 20
                         font.bold: true
                         font.family: "Microsoft YaHei UI"
@@ -192,7 +192,7 @@ Window {
                     
                     Text {
                         id: subtitleText
-                        text: "局域网设备发现"
+                        text: qsTr("局域网设备发现")
                         font.pixelSize: 13
                         font.family: "Microsoft YaHei UI"
                         color: "#9ca3af"
@@ -211,7 +211,7 @@ Window {
                     
                     Text {
                         anchors.centerIn: parent
-                        text: deviceModel && deviceModel.scanning ? "停止" : "扫描"
+                        text: deviceModel && deviceModel.scanning ? qsTr("停止") : qsTr("扫描")
                         font.pixelSize: 14
                         font.family: "Microsoft YaHei UI"
                         font.weight: Font.Medium
@@ -309,7 +309,7 @@ Window {
                 // 标题
                 Text {
                     id: quickConnectTitle
-                    text: "快速连接"
+                    text: qsTr("快速连接")
                     font.pixelSize: 13
                     font.family: "Microsoft YaHei UI"
                     font.weight: Font.Medium
@@ -485,7 +485,7 @@ Window {
                         
                         Text {
                             anchors.centerIn: parent
-                            text: "连接"
+                            text: qsTr("连接")
                             font.pixelSize: 14
                             font.family: "Microsoft YaHei UI"
                             font.weight: Font.Medium
@@ -512,7 +512,7 @@ Window {
                                 {
                                     if (generalDialogLoader.status === Loader.Ready) {
                                         generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                                        generalDialogLoader.item.text = "该IP为本地地址"
+                                        generalDialogLoader.item.text = qsTr("该IP为本地地址")
                                         generalDialogLoader.item.buttons = generalDialogLoader.item.ok
                                         generalDialogLoader.item.show()
                                         generalDialogLoader.item.requestActivate()
@@ -533,13 +533,13 @@ Window {
                                 
                                 if (isValidIPv4(ip)) {
                                     deviceModel.connectToTarget(ip)
-                                    load_dialog.show("正在连接...", "取消")
+                                    load_dialog.show(qsTr("正在连接..."), qsTr("取消"))
                                     deviceModel.stopScan()
                                 } else {
                                     // 显示错误对话框
                                     if (generalDialogLoader.status === Loader.Ready) {
                                         generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                                        generalDialogLoader.item.text = "请输入有效的 IPv4 地址（如 192.168.1.100）"
+                                        generalDialogLoader.item.text = qsTr("请输入有效的 IPv4 地址（如 192.168.1.100)")
                                         generalDialogLoader.item.buttons = generalDialogLoader.item.ok
                                         generalDialogLoader.item.show()
                                         generalDialogLoader.item.requestActivate()
@@ -573,7 +573,7 @@ Window {
                     
                     Text {
                         id: titleText
-                        text: "可用设备"
+                        text: qsTr("可用设备")
                         font.pixelSize: 13
                         font.family: "Microsoft YaHei UI"
                         font.weight: Font.Medium
@@ -588,7 +588,7 @@ Window {
                     
                     Text {
                         id: availableDevicesText
-                        text: deviceModel ? `${deviceListView.count} 个设备` : "0 个设备"
+                        text: deviceModel ? qsTr("%1 个设备").arg(deviceListView.count) : "0 个设备"
                         font.pixelSize: 12
                         font.family: "Microsoft YaHei UI"
                         color: "#94a3b8"
@@ -612,7 +612,7 @@ Window {
                     // 空状态提示
                     Text {
                         anchors.centerIn: parent
-                        text: "未发现设备"
+                        text: qsTr("未发现设备")
                         color: "#94a3b8"
                         font.pixelSize: 14
                         visible: deviceListView.count === 0 && (!deviceModel || !deviceModel.scanning)
@@ -628,9 +628,9 @@ Window {
                         // anchors.horizontalCenter: parent.horizontalCenter
 
                         // 定义属性并添加默认值
-                        property string deviceName: model.deviceName || "未知设备"
-                        property string deviceIp: model.deviceIP || "IP未知"
-                        property string deviceType: model.deviceType || "未知"
+                        property string deviceName: model.deviceName || qsTr("未知设备")
+                        property string deviceIp: model.deviceIP || qsTr("IP未知")
+                        property string deviceType: model.deviceType || qsTr("未知")
 
                         RowLayout {
                             id: rowLayout
@@ -711,13 +711,13 @@ Window {
                                 radius: 6
                                 Layout.preferredWidth: typeTagText.implicitWidth + 16
                                 Layout.alignment: Qt.AlignVCenter
-                                color: deviceItem.containsMouse ? "#F0F9FF" : "#F1F5F9"  // 修改颜色使其可见
+                                color: deviceItem.containsMouse ? "#F0F9FF" : "#F1F5F9"
                                 border.color: deviceItem.containsMouse ? "#7DD3FC" : "#CBD5E1"
                                 border.width: 1
 
                                 Text {
                                     id: typeTagText
-                                    text: deviceItem.deviceType  // 使用属性而不是直接model访问
+                                    text: deviceItem.deviceType
                                     font.pixelSize: 12
                                     font.family: "Microsoft YaHei UI"
                                     anchors.centerIn: parent
@@ -726,7 +726,6 @@ Window {
                             }
                         }
 
-                        // 添加鼠标交互
                         MouseArea {
                             id: deviceMouse
                             anchors.fill: parent
@@ -747,7 +746,7 @@ Window {
                             onClicked: {
                                 if (deviceModel) {
                                     deviceModel.connectToTarget(index)
-                                    load_dialog.show("等待对方响应", "取消")
+                                    load_dialog.show(qsTr("等待对方响应"), qsTr("取消"))
                                     deviceModel.stopScan()
                                 }
                             }
@@ -799,7 +798,7 @@ Window {
                     }
                 }
                 
-                // 进度百分比 - 在进度条右边
+                // 进度百分比
                 Text {
                     id: progressText
                     anchors.left: progressBarContainer.visible ? progressBarContainer.right : parent.left
@@ -813,7 +812,7 @@ Window {
                     color: "#6366f1"
                 }
                 
-                // 状态文本 - 占中间空间
+                // 状态文本
                 Text {
                     id: statusText
                     anchors.left: progressText.visible ? progressText.right : parent.left
@@ -823,9 +822,9 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                     text: {
                         if (!deviceModel) return "模型未加载"
-                        if (deviceModel.scanning) return "正在扫描..."
-                        if (deviceListView.count === 0) return "未发现设备"
-                        return `发现 ${deviceListView.count} 个设备`
+                        if (deviceModel.scanning) return qsTr("正在扫描...")
+                        if (deviceListView.count === 0) return qsTr("未发现设备")
+                        return qsTr("发现 %1 个设备").arg(deviceListView.count)
                     }
                     font.pixelSize: 13
                     font.family: "Microsoft YaHei UI"
@@ -833,7 +832,7 @@ Window {
                     elide: Text.ElideRight
                 }
                 
-                // 状态指示器容器（加载指示器或完成状态）
+                // 状态指示器容器
                 Item {
                     id: statusIndicator
                     width: 24
@@ -841,7 +840,7 @@ Window {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     
-                    // 加载指示器 - 扫描时显示
+                    // 加载指示器
                     Item {
                         id: spinnerItem
                         anchors.fill: parent
@@ -895,7 +894,7 @@ Window {
                         }
                     }
                     
-                    // 完成状态 - 扫描完成时显示
+                    // 完成状态
                     Rectangle {
                         id: completeStatus
                         anchors.fill: parent

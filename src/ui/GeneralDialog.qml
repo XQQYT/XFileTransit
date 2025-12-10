@@ -11,7 +11,7 @@ Window {
     color: "transparent"
     visible: false
     
-    property string title: "提示"
+    property string title: qsTr("提示")
     property string text: ""
     property int buttons: root.ok
     property int iconType: root.info
@@ -89,7 +89,7 @@ Window {
     
     // 外部调用接口
     function showDialog(title, text, iconType, buttons) {
-        root.title = title || "提示"
+        root.title = title || qsTr("提示")
         root.text = text || ""
         root.iconType = iconType || root.info
         root.buttons = buttons || root.ok
@@ -178,7 +178,7 @@ Window {
                     
                     Text {
                         anchors.centerIn: parent
-                        text: (root.buttons & root.cancel) ? "取消" : "否"
+                        text: (root.buttons & root.cancel) ? qsTr("取消") : qsTr("否")
                         font.pixelSize: 13
                         color: "#374151"
                     }
@@ -205,7 +205,7 @@ Window {
                     
                     Text {
                         anchors.centerIn: parent
-                        text: (root.buttons & root.yes) ? "是" : "确定"
+                        text: (root.buttons & root.yes) ? qsTr("是") : qsTr("确定")
                         font.pixelSize: 13
                         color: "white"
                     }
@@ -231,7 +231,7 @@ Window {
                     
                     Text {
                         anchors.centerIn: parent
-                        text: "最小化到托盘"
+                        text: qsTr("最小化到托盘")
                         font.pixelSize: 13
                         color: "white"
                     }
@@ -257,7 +257,7 @@ Window {
                     
                     Text {
                         anchors.centerIn: parent
-                        text: "关闭"
+                        text: qsTr("关闭")
                         font.pixelSize: 13
                         color: "white"
                     }

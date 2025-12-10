@@ -3,7 +3,7 @@ import QtQuick.Layouts 1.15
 
 Window {
     id: ipInfoDialog
-    title: "网络信息"
+    title: qsTr("网络信息")
     width: 400
     height: 350
     minimumWidth: 300
@@ -32,7 +32,7 @@ Window {
     }
     
     onVisibleChanged: {
-        copyBtn.text = "复制全部信息"
+        copyBtn.text = qsTr("复制全部信息")
         if (visible) {
             centerOnScreen()
             requestActivate()
@@ -125,7 +125,7 @@ Window {
                     spacing: 2
                     
                     Text {
-                        text: "网络信息"
+                        text: qsTr("网络信息")
                         font.pixelSize: 20
                         font.bold: true
                         font.family: "Microsoft YaHei UI"
@@ -134,7 +134,7 @@ Window {
                     
                     Text {
                         id: subtitleText
-                        text: "IP地址和网段信息"
+                        text: qsTr("IP地址和网段信息")
                         font.pixelSize: 13
                         font.family: "Microsoft YaHei UI"
                         color: "#9ca3af"
@@ -203,7 +203,7 @@ Window {
 
                 Text {
                     id: titleText
-                    text: "网络信息列表"
+                    text: qsTr("网络信息列表")
                     font.pixelSize: 13
                     font.family: "Microsoft YaHei UI"
                     font.weight: Font.Medium
@@ -246,7 +246,7 @@ Window {
                 
                 Text {
                     id: listCountText
-                    text: networkListView.count + " 项"
+                    text: networkListView.count + qsTr(" 项")
                     font.pixelSize: 12
                     font.family: "Microsoft YaHei UI"
                     color: "#94a3b8"
@@ -286,7 +286,7 @@ Window {
                         // IP地址列标题
                         Text {
                             width: 150
-                            text: "IP地址"
+                            text: qsTr("IP地址")
                             font.pixelSize: 12
                             font.bold: true
                             font.family: "Microsoft YaHei UI"
@@ -304,7 +304,7 @@ Window {
                         // 网段列标题
                         Text {
                             width: parent.width - 150 - 8 - 1
-                            text: "网段（CIDR）"
+                            text: qsTr("网段(CIDR)")
                             font.pixelSize: 12
                             font.bold: true
                             font.family: "Microsoft YaHei UI"
@@ -329,7 +329,7 @@ Window {
                     // 空状态提示
                     Text {
                         anchors.centerIn: parent
-                        text: "暂无网络信息"
+                        text: qsTr("暂无网络信息")
                         color: "#94a3b8"
                         font.pixelSize: 14
                         visible: networkListView.count === 0
@@ -418,7 +418,7 @@ Window {
                     
                 Text {
                     id: copyBtn
-                    text: "复制全部信息"
+                    text: qsTr("复制全部信息")
                     font.pixelSize: 13
                     font.bold: true
                     font.family: "Microsoft YaHei UI"
@@ -434,7 +434,7 @@ Window {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         networkInfoModel.copyNetInfoText()
-                        copyBtn.text = "已复制到剪切板"
+                        copyBtn.text = qsTr("已复制到剪切板")
                     }
                 }
             }

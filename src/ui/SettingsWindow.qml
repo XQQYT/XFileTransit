@@ -126,8 +126,11 @@ ApplicationWindow {
         
         Rectangle {
             id: navDelegate
-            property string itemTitle: ""
-            property string itemSubtitle: ""
+            property string itemTitleKey: ""
+            property string itemSubtitleKey: ""
+
+            property string itemTitle: itemTitleKey ? qsTr(itemTitleKey) : ""
+            property string itemSubtitle: itemSubtitleKey ? qsTr(itemSubtitleKey) : ""
             property var pageComponent: null  // 对应的页面组件
             
             width: parent.width
@@ -261,7 +264,7 @@ ApplicationWindow {
                             }
                             
                             Text {
-                                text: "控制中心"
+                                text: qsTr("控制中心")
                                 font.pixelSize: 12
                                 color: textSecondary
                             }
@@ -282,8 +285,8 @@ ApplicationWindow {
                         sourceComponent: navItemComponent
                         
                         onLoaded: {
-                            item.itemTitle = "基础设置"
-                            item.itemSubtitle = "Basic Settings"
+                            item.itemTitleKey = "基础设置"
+                            item.itemSubtitleKey = "Basic Settings"
                             item.pageComponent = basicSettingsPage
                         }
                         
@@ -301,8 +304,8 @@ ApplicationWindow {
                         sourceComponent: navItemComponent
                         
                         onLoaded: {
-                            item.itemTitle = "文件设置"
-                            item.itemSubtitle = "File Settings"
+                            item.itemTitleKey = "文件设置"
+                            item.itemSubtitleKey = "File Settings"
                             item.pageComponent = fileSettingsPage
                         }
                     }
@@ -314,8 +317,8 @@ ApplicationWindow {
                         sourceComponent: navItemComponent
                         
                         onLoaded: {
-                            item.itemTitle = "传输设置"
-                            item.itemSubtitle = "Transfer Settings"
+                            item.itemTitleKey = "传输设置"
+                            item.itemSubtitleKey = "Transfer Settings"
                             item.pageComponent = transferSettingsPage
                         }
                     }
@@ -327,8 +330,8 @@ ApplicationWindow {
                         sourceComponent: navItemComponent
                         
                         onLoaded: {
-                            item.itemTitle = "通知与提醒"
-                            item.itemSubtitle = "Notifications"
+                            item.itemTitleKey = "通知与提醒"
+                            item.itemSubtitleKey = "Notifications"
                             item.pageComponent = notificationSettingsPage
                         }
                     }
@@ -340,8 +343,8 @@ ApplicationWindow {
                         sourceComponent: navItemComponent
                         
                         onLoaded: {
-                            item.itemTitle = "关于软件"
-                            item.itemSubtitle = "About"
+                            item.itemTitleKey = "关于软件"
+                            item.itemSubtitleKey = "About"
                             item.pageComponent = aboutSettingsPage
                         }
                     }
@@ -381,7 +384,7 @@ ApplicationWindow {
                             anchors.verticalCenter: parent.verticalCenter
                             
                             Text {
-                                text: "用户设置"
+                                text: qsTr("用户设置")
                                 font.pixelSize: 14
                                 color: textPrimary
                             }
@@ -437,7 +440,7 @@ ApplicationWindow {
                     spacing: 8
                     
                     Text {
-                        text: "基础设置"
+                        text: qsTr("基础设置")
                         font {
                             pixelSize: 28
                             weight: Font.Bold
@@ -484,7 +487,7 @@ ApplicationWindow {
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Text {
-                                            text: "主题切换"
+                                            text: qsTr("主题切换")
                                             font {
                                                 pixelSize: 18
                                                 weight: Font.Bold
@@ -493,7 +496,7 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: "切换应用的主题模式"
+                                            text: qsTr("切换应用的主题模式")
                                             font.pixelSize: 13
                                             color: textSecondary
                                         }
@@ -524,7 +527,7 @@ ApplicationWindow {
                                             }
                                             
                                             Text {
-                                                text: "浅色"
+                                                text: qsTr("浅色")
                                                 font.pixelSize: 14
                                                 font.weight: Font.Medium
                                                 color: settings_model.currentTheme === 0 ? "white" : textPrimary
@@ -567,7 +570,7 @@ ApplicationWindow {
                                             }
                                             
                                             Text {
-                                                text: "深色"
+                                                text: qsTr("深色")
                                                 font.pixelSize: 14
                                                 font.weight: Font.Medium
                                                 color: settings_model.currentTheme === 1 ? "white" : textPrimary
@@ -605,7 +608,7 @@ ApplicationWindow {
                                             
                                             
                                             Text {
-                                                text: "自动"
+                                                text: qsTr("自动")
                                                 font.pixelSize: 14
                                                 font.weight: Font.Medium
                                                 color: settings_model.currentTheme === 2 ? 1 : textPrimary
@@ -654,7 +657,7 @@ ApplicationWindow {
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Text {
-                                            text: "语言切换"
+                                            text: qsTr("语言切换")
                                             font {
                                                 pixelSize: 18
                                                 weight: Font.Bold
@@ -663,7 +666,7 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: "选择界面显示语言"
+                                            text: qsTr("选择界面显示语言")
                                             font.pixelSize: 13
                                             color: textSecondary
                                         }
@@ -727,7 +730,7 @@ ApplicationWindow {
                                 }
                                 
                                 Text {
-                                    text: "当前语言: " + (settings_model.currentLanguage === 0 ? "简体中文" : "English")
+                                    text: qsTr("当前语言: ") + (settings_model.currentLanguage === 0 ? "简体中文" : "English")
                                     font.pixelSize: 14
                                     color: textSecondary
                                 }
@@ -755,7 +758,7 @@ ApplicationWindow {
                     spacing: 8
                     
                     Text {
-                        text: "文件设置"
+                        text: qsTr("文件设置")
                         font {
                             pixelSize: 28
                             weight: Font.Bold
@@ -801,7 +804,7 @@ ApplicationWindow {
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Text {
-                                            text: "缓存目录"
+                                            text: qsTr("缓存目录")
                                             font {
                                                 pixelSize: 18
                                                 weight: Font.Bold
@@ -810,7 +813,7 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: "设置缓存文件的存储位置"
+                                            text: qsTr("设置缓存文件的存储位置")
                                             font.pixelSize: 13
                                             color: textSecondary
                                         }
@@ -845,7 +848,7 @@ ApplicationWindow {
                                             anchors.verticalCenter: parent.verticalCenter
                                             
                                             Text {
-                                                text: "更改"
+                                                text: qsTr("更改")
                                                 font.pixelSize: 14
                                                 color: "white"
                                                 anchors.centerIn: parent
@@ -871,7 +874,7 @@ ApplicationWindow {
                                         spacing: 4
                                         
                                         Text {
-                                            text: "已使用"
+                                            text: qsTr("已使用")
                                             font.pixelSize: 12
                                             color: textSecondary
                                             anchors.horizontalCenter: parent.horizontalCenter
@@ -892,7 +895,7 @@ ApplicationWindow {
                                         spacing: 4
                                         
                                         Text {
-                                            text: "可用"
+                                            text: qsTr("可用")
                                             font.pixelSize: 12
                                             color: textSecondary
                                             anchors.horizontalCenter: parent.horizontalCenter
@@ -913,7 +916,7 @@ ApplicationWindow {
                                         spacing: 4
                                         
                                         Text {
-                                            text: "总大小"
+                                            text: qsTr("总大小")
                                             font.pixelSize: 12
                                             color: textSecondary
                                             anchors.horizontalCenter: parent.horizontalCenter
@@ -956,7 +959,7 @@ ApplicationWindow {
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Text {
-                                            text: "清除缓存"
+                                            text: qsTr("清除缓存")
                                             font {
                                                 pixelSize: 18
                                                 weight: Font.Bold
@@ -965,7 +968,7 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: "清理临时文件释放存储空间"
+                                            text: qsTr("清理临时文件释放存储空间")
                                             font.pixelSize: 13
                                             color: textSecondary
                                         }
@@ -976,7 +979,7 @@ ApplicationWindow {
                                     spacing: 15
                                     
                                     Text {
-                                        text: "缓存大小: " + settings_model.cacheSize.toFixed(1) + " MB"
+                                        text: qsTr("缓存大小: ") + settings_model.cacheSize.toFixed(1) + " MB"
                                         font.pixelSize: 14
                                         color: textPrimary
                                         anchors.verticalCenter: parent.verticalCenter
@@ -991,7 +994,7 @@ ApplicationWindow {
                                         border.width: 2
                                         
                                         Text {
-                                            text: "立即清除"
+                                            text: qsTr("立即清除")
                                             font.pixelSize: 14
                                             color: accentRed
                                             anchors.centerIn: parent
@@ -1046,7 +1049,7 @@ ApplicationWindow {
                     spacing: 8
                     
                     Text {
-                        text: "传输设置"
+                        text: qsTr("传输设置")
                         font {
                             pixelSize: 28
                             weight: Font.Bold
@@ -1092,7 +1095,7 @@ ApplicationWindow {
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Text {
-                                            text: "文件自动下载"
+                                            text: qsTr("文件自动下载")
                                             font {
                                                 pixelSize: 18
                                                 weight: Font.Bold
@@ -1101,7 +1104,7 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: "接收文件时自动开始下载"
+                                            text: qsTr("接收文件时自动开始下载")
                                             font.pixelSize: 13
                                             color: textSecondary
                                         }
@@ -1113,7 +1116,7 @@ ApplicationWindow {
                                     width: parent.width
                                     
                                     Text {
-                                        text: "启用自动下载"
+                                        text: qsTr("启用自动下载")
                                         font.pixelSize: 16
                                         color: textPrimary
                                         anchors.verticalCenter: parent.verticalCenter
@@ -1175,7 +1178,7 @@ ApplicationWindow {
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Text {
-                                            text: "同时传输任务数"
+                                            text: qsTr("同时传输任务数")
                                             font {
                                                 pixelSize: 18
                                                 weight: Font.Bold
@@ -1184,7 +1187,7 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: "设置最大并行传输任务数量"
+                                            text: qsTr("设置最大并行传输任务数量")
                                             font.pixelSize: 13
                                             color: textSecondary
                                         }
@@ -1196,7 +1199,7 @@ ApplicationWindow {
                                     width: parent.width
                                     
                                     Text {
-                                        text: "最大任务数:"
+                                        text: qsTr("最大任务数:")
                                         font.pixelSize: 16
                                         color: textPrimary
                                         anchors.verticalCenter: parent.verticalCenter
@@ -1336,7 +1339,7 @@ ApplicationWindow {
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Text {
-                                            text: "是否开启加密"
+                                            text: qsTr("是否开启加密")
                                             font {
                                                 pixelSize: 18
                                                 weight: Font.Bold
@@ -1345,7 +1348,7 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: "传输过程中对文件进行加密保护"
+                                            text: qsTr("传输过程中对文件进行加密保护")
                                             font.pixelSize: 13
                                             color: textSecondary
                                         }
@@ -1361,13 +1364,13 @@ ApplicationWindow {
                                         width: parent.width - 100
                                         
                                         Text {
-                                            text: "启用传输加密"
+                                            text: qsTr("启用传输加密")
                                             font.pixelSize: 16
                                             color: textPrimary
                                         }
                                         
                                         Text {
-                                            text: "增强安全性，保护隐私"
+                                            text: qsTr("增强安全性，保护隐私")
                                             font.pixelSize: 13
                                             color: accentGreen
                                         }
@@ -1425,7 +1428,7 @@ ApplicationWindow {
                     spacing: 8
                     
                     Text {
-                        text: "通知与提醒"
+                        text: qsTr("通知与提醒")
                         font {
                             pixelSize: 28
                             weight: Font.Bold
@@ -1471,7 +1474,7 @@ ApplicationWindow {
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Text {
-                                            text: "有动作时展开"
+                                            text: qsTr("有动作时展开")
                                             font {
                                                 pixelSize: 18
                                                 weight: Font.Bold
@@ -1480,7 +1483,7 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: "检测到活动时自动显示通知"
+                                            text: qsTr("检测到活动时自动显示通知")
                                             font.pixelSize: 13
                                             color: textSecondary
                                         }
@@ -1519,7 +1522,7 @@ ApplicationWindow {
                                     }
                                     
                                     Text {
-                                        text: "启用智能展开"
+                                        text: qsTr("启用智能展开")
                                         font.pixelSize: 16
                                         color: textPrimary
                                         anchors.verticalCenter: parent.verticalCenter
@@ -1549,7 +1552,7 @@ ApplicationWindow {
                     spacing: 8
                     
                     Text {
-                        text: "关于软件"
+                        text: qsTr("关于软件")
                         font {
                             pixelSize: 28
                             weight: Font.Bold
@@ -1602,7 +1605,7 @@ ApplicationWindow {
                                     anchors.verticalCenter: parent.verticalCenter
                                     
                                     Text {
-                                        text: "快速传输"
+                                        text: qsTr("快速传输")
                                         font {
                                             pixelSize: 28
                                             weight: Font.Bold
@@ -1617,13 +1620,13 @@ ApplicationWindow {
                                     }
                                     
                                     Text {
-                                        text: "版本号: " + settings_model.appVersion
+                                        text: qsTr("版本号: ") + settings_model.appVersion
                                         font.pixelSize: 14
                                         color: textSecondary
                                     }
                                     
                                     Text {
-                                        text: "© 2024 快速传输团队 版权所有"
+                                        text: qsTr("© 2024 快速传输团队 版权所有")
                                         font.pixelSize: 12
                                         color: textSecondary
                                     }
@@ -1654,7 +1657,7 @@ ApplicationWindow {
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Text {
-                                            text: "检查更新"
+                                            text: qsTr("检查更新")
                                             font {
                                                 pixelSize: 18
                                                 weight: Font.Bold
@@ -1663,7 +1666,7 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: "检查软件最新版本"
+                                            text: qsTr("检查软件最新版本")
                                             font.pixelSize: 13
                                             color: textSecondary
                                         }
@@ -1685,7 +1688,7 @@ ApplicationWindow {
                                             
                                             
                                             Text {
-                                                text: "检查更新"
+                                                text: qsTr("检查更新")
                                                 font.pixelSize: 16
                                                 color: "white"
                                                 anchors.verticalCenter: parent.verticalCenter
@@ -1704,7 +1707,7 @@ ApplicationWindow {
                                     }
                                     
                                     Text {
-                                        text: settings_model.isUpdateAvailable ? "发现新版本" : "当前已是最新版本"
+                                        text: settings_model.isUpdateAvailable ? qsTr("发现新版本") : qsTr("当前已是最新版本")
                                         font.pixelSize: 14
                                         color: settings_model.isUpdateAvailable ? accentOrange : accentGreen
                                         anchors.verticalCenter: parent.verticalCenter
@@ -1724,14 +1727,14 @@ ApplicationWindow {
                                         spacing: 8
                                         
                                         Text {
-                                            text: settings_model.appVersion + " 更新内容"
+                                            text: settings_model.appVersion + qsTr(" 更新内容")
                                             font.pixelSize: 14
                                             font.weight: Font.Bold
                                             color: textPrimary
                                         }
                                         
                                         Text {
-                                            text: "• 新增主题切换功能\n• 优化传输性能\n• 修复已知问题"
+                                            text: qsTr("• 新增主题切换功能\n• 优化传输性能\n• 修复已知问题")
                                             font.pixelSize: 12
                                             color: textSecondary
                                         }
