@@ -39,7 +39,13 @@ if(LUPDATE_EXECUTABLE)
     )
 endif()
 
-find_program(LRELEASE_EXECUTABLE lrelease)
+find_program(LRELEASE_EXECUTABLE 
+    NAMES 
+        lrelease
+    HINTS
+        ${Qt6_DIR}/../../../bin
+    REQUIRED
+)
 if(LRELEASE_EXECUTABLE)
     add_custom_command(
         OUTPUT 
