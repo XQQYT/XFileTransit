@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-Qt6_PATH="/home/qyt/Qt6.8/6.8.3/gcc_64"
+Qt6_PATH="/home/xqqyt/Qt6.8/6.8.3/gcc_64"
 PROJECT_ROOT=$(pwd)
 
 # 检查Qt路径

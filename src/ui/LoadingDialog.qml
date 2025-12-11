@@ -16,6 +16,105 @@ Popup {
     property string buttonText: qsTr("取消")
     property bool autoCenter: true
     
+    property color windowBg: "#ffffff"
+    property color windowInnerBg: "#f9fafb"
+    property color windowBorder: "#e5e7eb"
+    property int windowRadius: 16
+    
+    property color topBarGradientStart: "#6366f1"
+    property color topBarGradientMiddle: "#8b5cf6"
+    property color topBarGradientEnd: "#a855f7"
+    
+    property color spinnerOuterBg: "#f5f3ff"
+    property color spinnerOuterBorder: "#ede9fe"
+    property color spinnerInnerBorder: "#6366f1"
+    property color spinnerCenter: "#6366f1"
+    property color spinnerGradientStart: "#6366f1"
+    property color spinnerGradientEnd: "#8b5cf6"
+    
+    property color textPrimary: "#1f2937"
+    property color textSecondary: "#6b7280"
+    property color textAccent: "#4f46e5"
+    property color textDisabled: "#9ca3af"
+    
+    property color buttonBg: "#ffffff"
+    property color buttonBgHover: "#f8fafc"
+    property color buttonBgPressed: "#f3f4f6"
+    property color buttonBorder: "#d1d5db"
+    property color buttonBorderHover: "#6366f1"
+    property color buttonTextColor: "#6b7280"
+    property color buttonTextHover: "#4f46e5"
+    property int buttonRadius: 18
+    
+    // 主题切换函数
+    function setTheme(theme_index) {
+        switch(theme_index)
+        {
+            case 0:
+                //浅色主题
+                windowBg = "#ffffff"
+                windowInnerBg = "#f9fafb"
+                windowBorder = "#e5e7eb"
+                
+                topBarGradientStart = "#6366f1"
+                topBarGradientMiddle = "#8b5cf6"
+                topBarGradientEnd = "#a855f7"
+                
+                spinnerOuterBg = "#f5f3ff"
+                spinnerOuterBorder = "#ede9fe"
+                spinnerInnerBorder = "#6366f1"
+                spinnerCenter = "#6366f1"
+                spinnerGradientStart = "#6366f1"
+                spinnerGradientEnd = "#8b5cf6"
+                
+                textPrimary = "#1f2937"
+                textSecondary = "#6b7280"
+                textAccent = "#4f46e5"
+                textDisabled = "#9ca3af"
+                
+                buttonBg = "#ffffff"
+                buttonBgHover = "#f8fafc"
+                buttonBgPressed = "#f3f4f6"
+                buttonBorder = "#d1d5db"
+                buttonBorderHover = "#6366f1"
+                buttonTextColor = "#6b7280"
+                buttonTextHover = "#4f46e5"
+                break
+            case 1:
+                //深色主题
+                windowBg = "#1f2937"
+                windowInnerBg = "#111827"
+                windowBorder = "#374151"
+                
+                topBarGradientStart = "#6366f1"
+                topBarGradientMiddle = "#8b5cf6"
+                topBarGradientEnd = "#a855f7"
+                
+                spinnerOuterBg = "#1e1b4b"
+                spinnerOuterBorder = "#312e81"
+                spinnerInnerBorder = "#6366f1"
+                spinnerCenter = "#6366f1"
+                spinnerGradientStart = "#6366f1"
+                spinnerGradientEnd = "#8b5cf6"
+                
+                textPrimary = "#f9fafb"
+                textSecondary = "#d1d5db"
+                textAccent = "#a78bfa"
+                textDisabled = "#6b7280"
+                
+                buttonBg = "#374151"
+                buttonBgHover = "#4b5563"
+                buttonBgPressed = "#6b7280"
+                buttonBorder = "#4b5563"
+                buttonBorderHover = "#6366f1"
+                buttonTextColor = "#d1d5db"
+                buttonTextHover = "#a78bfa"
+                break
+            default:
+                return
+        }
+    }
+    
     // 信号
     signal buttonClicked()
     
@@ -28,16 +127,16 @@ Popup {
     
     // 背景
     background: Rectangle {
-        color: "#ffffff"
-        radius: 16
-        border.color: "#e5e7eb"
+        color: windowBg
+        radius: windowRadius
+        border.color: windowBorder
         border.width: 1
         
         // 浅色背景
         Rectangle {
             anchors.fill: parent
             radius: parent.radius
-            color: "#f9fafb"
+            color: windowInnerBg
             opacity: 0.5
         }
         
@@ -48,9 +147,9 @@ Popup {
             radius: 2
             anchors.top: parent.top
             gradient: Gradient {
-                GradientStop { position: 0.0; color: "#6366f1" }
-                GradientStop { position: 0.5; color: "#8b5cf6" }
-                GradientStop { position: 1.0; color: "#a855f7" }
+                GradientStop { position: 0.0; color: topBarGradientStart }
+                GradientStop { position: 0.5; color: topBarGradientMiddle }
+                GradientStop { position: 1.0; color: topBarGradientEnd }
             }
         }
     }
@@ -65,9 +164,9 @@ Popup {
             width: 48
             height: 48
             radius: 24
-            color: "#f5f3ff"
+            color: spinnerOuterBg
             border.width: 3
-            border.color: "#ede9fe"
+            border.color: spinnerOuterBorder
             
             // 旋转部分
             Rectangle {
@@ -77,7 +176,7 @@ Popup {
                 radius: 16
                 color: "transparent"
                 border.width: 3
-                border.color: "#6366f1"
+                border.color: spinnerInnerBorder
                 
                 RotationAnimation on rotation {
                     from: 0
@@ -94,8 +193,8 @@ Popup {
                     anchors.centerIn: parent
                     rotation: 45
                     gradient: Gradient {
-                        GradientStop { position: 0.0; color: "#6366f1" }
-                        GradientStop { position: 1.0; color: "#8b5cf6" }
+                        GradientStop { position: 0.0; color: spinnerGradientStart }
+                        GradientStop { position: 1.0; color: spinnerGradientEnd }
                     }
                 }
             }
@@ -106,7 +205,7 @@ Popup {
                 width: 8
                 height: 8
                 radius: 4
-                color: "#6366f1"
+                color: spinnerCenter
             }
         }
         
@@ -120,7 +219,7 @@ Popup {
                 font.pixelSize: 16
                 font.family: "Microsoft YaHei UI"
                 font.weight: Font.Medium
-                color: "#1f2937"
+                color: textPrimary
                 horizontalAlignment: Text.AlignHCenter
             }
             
@@ -138,7 +237,7 @@ Popup {
                 }
                 font.pixelSize: 14
                 font.family: "Microsoft YaHei UI"
-                color: "#6b7280"
+                color: textSecondary
                 
                 Timer {
                     interval: 500
@@ -155,10 +254,10 @@ Popup {
             Layout.topMargin: 12
             width: 100
             height: 36
-            radius: 18
-            color: cancelMouse.containsPress ? "#f3f4f6" : 
-                   cancelMouse.containsMouse ? "#f8fafc" : "#ffffff"
-            border.color: cancelMouse.containsMouse ? "#6366f1" : "#d1d5db"
+            radius: buttonRadius
+            color: cancelMouse.pressed ? buttonBgPressed : 
+                   cancelMouse.containsMouse ? buttonBgHover : buttonBg
+            border.color: cancelMouse.containsMouse ? buttonBorderHover : buttonBorder
             border.width: 1.5
             
             Text {
@@ -167,7 +266,7 @@ Popup {
                 font.pixelSize: 14
                 font.family: "Microsoft YaHei UI"
                 font.weight: Font.Medium
-                color: cancelMouse.containsMouse ? "#4f46e5" : "#6b7280"
+                color: cancelMouse.containsMouse ? buttonTextHover : buttonTextColor
             }
             
             MouseArea {

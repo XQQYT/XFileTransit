@@ -16,7 +16,6 @@ Window {
     property int buttons: root.ok
     property int iconType: root.info
     
-    // 按钮类型枚举（修正：使用2的幂次方进行位运算）
     readonly property int ok: 0x0001        // 1
     readonly property int cancel: 0x0002    // 2
     readonly property int yes: 0x0004       // 4
@@ -30,6 +29,86 @@ Window {
     readonly property int success: 2
     readonly property int error: 3
     readonly property int warning: 4
+    
+    property color windowBg: "#ffffff"
+    property color windowBorder: "#e5e7eb"
+    property int windowRadius: 8
+    
+    property color textPrimary: "#111827"
+    property color textSecondary: "#6b7280"
+    property color textOnPrimary: "white"
+    
+    property color cancelButtonBg: "#f9fafb"
+    property color cancelButtonBgHover: "#f3f4f6"
+    property color cancelButtonBorder: "#d1d5db"
+    property color cancelButtonText: "#374151"
+    
+    property color closeButtonBg: "#6b7280"
+    property color closeButtonBgHover: "#4b5563"
+    property color closeButtonText: "white"
+    
+    property color successIcon: "#10b981"
+    property color errorIcon: "#ef4444"
+    property color warningIcon: "#f59e0b"
+    property color infoIcon: "#3b82f6"
+    property color defaultIcon: "#6b7280"
+    
+    property int buttonRadius: 4
+    
+    // 主题切换函数
+    function setTheme(theme_index) {
+        switch(theme_index)
+        {
+            case 0:
+                //浅色主题
+                windowBg = "#ffffff"
+                windowBorder = "#e5e7eb"
+                
+                textPrimary = "#111827"
+                textSecondary = "#6b7280"
+                
+                cancelButtonBg = "#f9fafb"
+                cancelButtonBgHover = "#f3f4f6"
+                cancelButtonBorder = "#d1d5db"
+                cancelButtonText = "#374151"
+                
+                closeButtonBg = "#6b7280"
+                closeButtonBgHover = "#4b5563"
+                closeButtonText = "white"
+                
+                successIcon = "#10b981"
+                errorIcon = "#ef4444"
+                warningIcon = "#f59e0b"
+                infoIcon = "#3b82f6"
+                defaultIcon = "#6b7280"
+                break
+            case 1:
+                //深色主题
+                windowBg = "#1f2937"
+                windowBorder = "#374151"
+                
+                textPrimary = "#f9fafb"
+                textSecondary = "#d1d5db"
+                
+                cancelButtonBg = "#374151"
+                cancelButtonBgHover = "#4b5563"
+                cancelButtonBorder = "#4b5563"
+                cancelButtonText = "#d1d5db"
+                
+                closeButtonBg = "#6b7280"
+                closeButtonBgHover = "#4b5563"
+                closeButtonText = "white"
+                
+                successIcon = "#10b981"
+                errorIcon = "#ef4444"
+                warningIcon = "#f59e0b"
+                infoIcon = "#3b82f6"
+                defaultIcon = "#6b7280"
+                break
+            default:
+                return
+        }
+    }
     
     // 信号
     signal accepted()
@@ -110,9 +189,9 @@ Window {
         anchors.centerIn: parent
         width: 360
         height: 160
-        radius: 8
-        color: "#ffffff"
-        border.color: "#e5e7eb"
+        radius: windowRadius
+        color: windowBg
+        border.color: windowBorder
         border.width: 1
         
         ColumnLayout {
@@ -135,7 +214,7 @@ Window {
                         anchors.centerIn: parent
                         text: getIconText()
                         font.pixelSize: 16
-                        color: "white"
+                        color: textOnPrimary
                         font.bold: true
                     }
                 }
@@ -145,7 +224,7 @@ Window {
                     text: root.title
                     font.pixelSize: 16
                     font.bold: true
-                    color: "#111827"
+                    color: textPrimary
                     Layout.fillWidth: true
                 }
             }
@@ -154,7 +233,7 @@ Window {
             Text {
                 text: root.text
                 font.pixelSize: 18
-                color: "#6b7280"
+                color: textSecondary
                 wrapMode: Text.Wrap
                 lineHeight: 1.4
                 Layout.fillWidth: true
@@ -170,9 +249,9 @@ Window {
                 Rectangle {
                     width: 72
                     height: 32
-                    radius: 4
-                    color: cancelArea.containsMouse ? "#f3f4f6" : "#f9fafb"
-                    border.color: "#d1d5db"
+                    radius: buttonRadius
+                    color: cancelArea.containsMouse ? cancelButtonBgHover : cancelButtonBg
+                    border.color: cancelButtonBorder
                     border.width: 1
                     visible: (root.buttons & root.cancel) || (root.buttons & root.no)
                     
@@ -180,7 +259,7 @@ Window {
                         anchors.centerIn: parent
                         text: (root.buttons & root.cancel) ? qsTr("取消") : qsTr("否")
                         font.pixelSize: 13
-                        color: "#374151"
+                        color: cancelButtonText
                     }
                     
                     MouseArea {
@@ -199,7 +278,7 @@ Window {
                 Rectangle {
                     width: 72
                     height: 32
-                    radius: 4
+                    radius: buttonRadius
                     color: okArea.containsMouse ? Qt.darker(getIconColor(), 1.1) : getIconColor()
                     visible: (root.buttons & root.yes) || (root.buttons & root.ok)
                     
@@ -207,7 +286,7 @@ Window {
                         anchors.centerIn: parent
                         text: (root.buttons & root.yes) ? qsTr("是") : qsTr("确定")
                         font.pixelSize: 13
-                        color: "white"
+                        color: textOnPrimary
                     }
                     
                     MouseArea {
@@ -221,19 +300,20 @@ Window {
                         }
                     }
                 }
+                
                 // 隐藏按钮
                 Rectangle {
                     width: 120
                     height: 32
-                    radius: 4
-                    color: closeArea.containsMouse ? Qt.darker(getIconColor(), 1.1) : getIconColor()
+                    radius: buttonRadius
+                    color: hideArea.containsMouse ? Qt.darker(getIconColor(), 1.1) : getIconColor()
                     visible: root.buttons & root.hideWin
                     
                     Text {
                         anchors.centerIn: parent
                         text: qsTr("最小化到托盘")
                         font.pixelSize: 13
-                        color: "white"
+                        color: textOnPrimary
                     }
                     
                     MouseArea {
@@ -247,19 +327,20 @@ Window {
                         }
                     }
                 }
+                
                 // 关闭按钮
                 Rectangle {
                     width: 72
                     height: 32
-                    radius: 4
-                    color: hideArea.containsMouse ? Qt.darker("#6b7280", 1.1) : "#6b7280"
+                    radius: buttonRadius
+                    color: closeArea.containsMouse ? closeButtonBgHover : closeButtonBg
                     visible: root.buttons & root.closeWin
                     
                     Text {
                         anchors.centerIn: parent
                         text: qsTr("关闭")
                         font.pixelSize: 13
-                        color: "white"
+                        color: closeButtonText
                     }
                     
                     MouseArea {
@@ -279,11 +360,11 @@ Window {
     
     function getIconColor() {
         switch(root.iconType) {
-            case root.success: return "#10b981"
-            case root.error: return "#ef4444"
-            case root.warning: return "#f59e0b"
-            case root.info: return "#3b82f6"
-            default: return "#6b7280"
+            case root.success: return successIcon
+            case root.error: return errorIcon
+            case root.warning: return warningIcon
+            case root.info: return infoIcon
+            default: return defaultIcon
         }
     }
     

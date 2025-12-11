@@ -20,10 +20,20 @@ ApplicationWindow {
     property color textSecondary: "#64748b"
     property color borderColor: "#e2e8f0"
     property color dividerColor: "#f1f5f9"
+    
     property color accentGreen: "#10b981"
     property color accentRed: "#dc2626"
     property color accentOrange: "#f59e0b"
-
+    
+    property color switchOffColor: "#e2e8f0"
+    property color switchHandleColor: "white"
+    property color clearCacheButtonBg: "#fee2e2"
+    property color clearCacheButtonBorder: "#fecaca"
+    property color sliderTrackColor: "#e2e8f0"
+    property color progressBarBg: "#e2e8f0"
+    property color updateInfoBg: "#f8fafc"
+    property color whiteColor: "white"
+    
     property var settings_model: null
     
     property var currentBtn: null
@@ -36,6 +46,7 @@ ApplicationWindow {
     // 主题切换处理
     function switchTheme(theme) {
         settings_model.currentTheme = theme
+        setTheme(theme)
         console.log("切换主题:", theme)
     }
     
@@ -120,6 +131,72 @@ ApplicationWindow {
         }
     }
     
+
+    // 主题切换函数
+    function setTheme(theme_index) {
+        switch (theme_index) 
+        {
+            case 0:
+                // 浅色主题
+                primaryColor = "#6366f1"
+                primaryLightColor = "#a5b4fc"
+                backgroundColor = "#f8fafc"
+                sidebarColor = "#ffffff"
+                cardColor = "#ffffff"
+                textPrimary = "#1e293b"
+                textSecondary = "#64748b"
+                borderColor = "#e2e8f0"
+                dividerColor = "#f1f5f9"
+                accentGreen = "#10b981"
+                accentRed = "#dc2626"
+                accentOrange = "#f59e0b"
+                switchOffColor = "#e2e8f0"
+                clearCacheButtonBg = "#fee2e2"
+                clearCacheButtonBorder = "#fecaca"
+                sliderTrackColor = "#e2e8f0"
+                progressBarBg = "#e2e8f0"
+                updateInfoBg = "#f8fafc"
+                break
+            case 1:
+                // 深色主题
+                primaryColor = "#6366f1"
+                primaryLightColor = "#4f46e5"
+                backgroundColor = "#0f172a"
+                sidebarColor = "#1e293b"
+                cardColor = "#1e293b"
+                textPrimary = "#f8fafc"
+                textSecondary = "#cbd5e1"
+                borderColor = "#334155"
+                dividerColor = "#334155"
+                accentGreen = "#10b981"
+                accentRed = "#dc2626"
+                accentOrange = "#f59e0b"
+                switchOffColor = "#4b5563"
+                clearCacheButtonBg = "#7f1d1d"
+                clearCacheButtonBorder = "#991b1b"
+                sliderTrackColor = "#4b5563"
+                progressBarBg = "#4b5563"
+                updateInfoBg = "#1f2937"
+                break
+            default:
+                return
+        }
+        
+        // 保存当前组件
+        var currentComp = currentPage
+        
+        // 强制重新加载当前页面
+        currentPage = null
+        Qt.callLater(function() {
+            currentPage = currentComp
+        })
+        
+        // 强制重绘当前选中按钮
+        if (currentBtn) {
+            currentBtn.color = primaryColor
+        }
+    }
+
     // 导航项组件
     Component {
         id: navItemComponent
@@ -152,7 +229,7 @@ ApplicationWindow {
                         text: itemTitle
                         font.pixelSize: 16
                         font.weight: currentBtn === navDelegate ? Font.Bold : Font.Normal
-                        color: currentBtn === navDelegate ? "white" : textPrimary
+                        color: currentBtn === navDelegate ? whiteColor : textPrimary
                     }
                     
                     Text {
@@ -168,7 +245,7 @@ ApplicationWindow {
                 width: 4
                 height: 20
                 radius: 2
-                color: "white"
+                color: whiteColor
                 anchors {
                     right: parent.right
                     rightMargin: 10
@@ -374,7 +451,7 @@ ApplicationWindow {
                                     pixelSize: 16
                                     weight: Font.Bold
                                 }
-                                color: "white"
+                                color: whiteColor
                                 anchors.centerIn: parent
                             }
                         }
@@ -423,7 +500,6 @@ ApplicationWindow {
         }
     }
     
-    // ============ 各个页面的组件 ============
     // 基础设置页面
     Component {
         id: basicSettingsPage
@@ -459,13 +535,16 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     
+                    contentWidth: parent.width
+
                     Column {
+                        id: contentColumn
                         width: parent.width
                         spacing: 20
                         
                         // 主题切换卡片
                         Rectangle {
-                            width: parent.width
+                            width: contentColumn.width
                             height: 240
                             radius: 16
                             color: cardColor
@@ -480,7 +559,6 @@ ApplicationWindow {
                                 Row {
                                     width: parent.width
                                     spacing: 12
-                                    
                                     
                                     Column {
                                         spacing: 2
@@ -505,14 +583,14 @@ ApplicationWindow {
                                 
                                 Row {
                                     spacing: 15
-                                    
+                                    width: parent.width
                                     // 浅色主题选项
                                     Rectangle {
                                         id: lightTheme
-                                        width: 100
+                                        width: parent.width / 3 - 15
                                         height: 120
                                         radius: 12
-                                        color: settings_model.currentTheme === 0 ? primaryColor : "#f8fafc"
+                                        color: settings_model.currentTheme === 0 ? primaryColor : cardColor
                                         border.color: settings_model.currentTheme === 0 ? primaryLightColor : borderColor
                                         border.width: settings_model.currentTheme === 0 ? 3 : 2
                                         
@@ -530,7 +608,7 @@ ApplicationWindow {
                                                 text: qsTr("浅色")
                                                 font.pixelSize: 14
                                                 font.weight: Font.Medium
-                                                color: settings_model.currentTheme === 0 ? "white" : textPrimary
+                                                color: settings_model.currentTheme === 0 ? whiteColor : textPrimary
                                                 anchors.horizontalCenter: parent.horizontalCenter
                                             }
                                             
@@ -552,10 +630,10 @@ ApplicationWindow {
                                     // 深色主题选项
                                     Rectangle {
                                         id: darkTheme
-                                        width: 100
+                                        width: parent.width / 3 - 15
                                         height: 120
                                         radius: 12
-                                        color: settings_model.currentTheme === 1 ? primaryColor : "#f8fafc"
+                                        color: settings_model.currentTheme === 1 ? primaryColor : cardColor
                                         border.color: settings_model.currentTheme === 1 ? primaryLightColor : borderColor
                                         border.width: settings_model.currentTheme === 1 ? 3 : 2
                                         
@@ -573,7 +651,7 @@ ApplicationWindow {
                                                 text: qsTr("深色")
                                                 font.pixelSize: 14
                                                 font.weight: Font.Medium
-                                                color: settings_model.currentTheme === 1 ? "white" : textPrimary
+                                                color: settings_model.currentTheme === 1 ? whiteColor : textPrimary
                                                 anchors.horizontalCenter: parent.horizontalCenter
                                             }
                                             
@@ -595,10 +673,10 @@ ApplicationWindow {
                                     // 自动主题选项
                                     Rectangle {
                                         id: autoTheme
-                                        width: 100
+                                        width: parent.width / 3 - 15
                                         height: 120
                                         radius: 12
-                                        color: settings_model.currentTheme === 2 ? primaryColor : "#f8fafc"
+                                        color: settings_model.currentTheme === 2 ? primaryColor : cardColor
                                         border.color: settings_model.currentTheme === 2 ? primaryLightColor : borderColor
                                         border.width: settings_model.currentTheme === 2 ? 3 : 2
                                         
@@ -611,7 +689,7 @@ ApplicationWindow {
                                                 text: qsTr("自动")
                                                 font.pixelSize: 14
                                                 font.weight: Font.Medium
-                                                color: settings_model.currentTheme === 2 ? 1 : textPrimary
+                                                color: settings_model.currentTheme === 2 ? whiteColor : textPrimary
                                                 anchors.horizontalCenter: parent.horizontalCenter
                                             }
                                             
@@ -677,6 +755,7 @@ ApplicationWindow {
                                     width: parent.width
                                     height: 50
                                     radius: 10
+                                    color: backgroundColor
                                     border.color: borderColor
                                     border.width: 2
                                     
@@ -694,7 +773,7 @@ ApplicationWindow {
                                                 text: "简体中文"
                                                 font.pixelSize: 16
                                                 font.weight: Font.Bold
-                                                color: settings_model.currentLanguage === 0 ? "white" : textPrimary
+                                                color: settings_model.currentLanguage === 0 ? whiteColor : textPrimary
                                                 anchors.centerIn: parent
                                             }
                                             
@@ -716,7 +795,7 @@ ApplicationWindow {
                                                 text: "English"
                                                 font.pixelSize: 16
                                                 font.weight: settings_model.currentLanguage === 1 ? Font.Bold : Font.Normal
-                                                color: settings_model.currentLanguage === 1 ? "white" : textPrimary
+                                                color: settings_model.currentLanguage === 1 ? whiteColor : textPrimary
                                                 anchors.centerIn: parent
                                             }
                                             
@@ -824,6 +903,7 @@ ApplicationWindow {
                                     width: parent.width
                                     height: 50
                                     radius: 10
+                                    color: backgroundColor
                                     border.color: borderColor
                                     border.width: 2
                                     
@@ -850,7 +930,7 @@ ApplicationWindow {
                                             Text {
                                                 text: qsTr("更改")
                                                 font.pixelSize: 14
-                                                color: "white"
+                                                color: whiteColor
                                                 anchors.centerIn: parent
                                             }
                                             
@@ -989,8 +1069,8 @@ ApplicationWindow {
                                         width: 120
                                         height: 40
                                         radius: 10
-                                        color: "#fee2e2"
-                                        border.color: "#fecaca"
+                                        color: clearCacheButtonBg
+                                        border.color: clearCacheButtonBorder
                                         border.width: 2
                                         
                                         Text {
@@ -1016,7 +1096,7 @@ ApplicationWindow {
                                     width: parent.width
                                     height: 8
                                     radius: 4
-                                    color: "#e2e8f0"
+                                    color: progressBarBg
                                     
                                     Rectangle {
                                         width: parent.width * (settings_model.cacheSize / (15.0 * 1024))
@@ -1129,7 +1209,7 @@ ApplicationWindow {
                                         width: 60
                                         height: 30
                                         radius: 15
-                                        color: settings_model.autoDownload ? primaryColor : "#e2e8f0"
+                                        color: settings_model.autoDownload ? primaryColor : switchOffColor
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Rectangle {
@@ -1138,7 +1218,7 @@ ApplicationWindow {
                                             width: 24
                                             height: 24
                                             radius: 12
-                                            color: "white"
+                                            color: switchHandleColor
                                             
                                             Behavior on x {
                                                 NumberAnimation { duration: 200 }
@@ -1157,7 +1237,7 @@ ApplicationWindow {
                         
                         Rectangle {
                             width: parent.width
-                            height: 200
+                            height: 150
                             radius: 16
                             color: cardColor
                             border.color: borderColor
@@ -1225,7 +1305,7 @@ ApplicationWindow {
                                         width: 200
                                         height: 8
                                         radius: 4
-                                        color: "#e2e8f0"
+                                        color: sliderTrackColor
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Rectangle {
@@ -1242,7 +1322,7 @@ ApplicationWindow {
                                             height: 20
                                             radius: 10
                                             color: primaryColor
-                                            border.color: "#ffffff"
+                                            border.color: whiteColor
                                             border.width: 2
                                             anchors.verticalCenter: parent.verticalCenter
                                             x: sliderFill.width - width/2
@@ -1279,36 +1359,6 @@ ApplicationWindow {
                                             
                                             onClicked: function(mouse) {
                                                 updateValue(mouse.x)
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                Row {
-                                    spacing: 10
-                                    
-                                    Repeater {
-                                        model: 10
-                                        
-                                        Rectangle {
-                                            width: 30
-                                            height: 40
-                                            radius: 8
-                                            color: index < settings_model.concurrentTransfers ? primaryColor : "#f1f5f9"
-                                            border.color: index < settings_model.concurrentTransfers ? primaryLightColor : borderColor
-                                            border.width: 2
-                                            
-                                            Text {
-                                                text: index + 1
-                                                font.pixelSize: 14
-                                                color: index < settings_model.concurrentTransfers ? "white" : textSecondary
-                                                anchors.centerIn: parent
-                                            }
-                                            
-                                            MouseArea {
-                                                anchors.fill: parent
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: setConcurrentTransfers(index + 1)
                                             }
                                         }
                                     }
@@ -1381,7 +1431,7 @@ ApplicationWindow {
                                         width: 60
                                         height: 30
                                         radius: 15
-                                        color: settings_model.enableEncryption ? primaryColor : "#e2e8f0"
+                                        color: settings_model.enableEncryption ? primaryColor : switchOffColor
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Rectangle {
@@ -1390,7 +1440,7 @@ ApplicationWindow {
                                             width: 24
                                             height: 24
                                             radius: 12
-                                            color: "white"
+                                            color: switchHandleColor
                                             
                                             Behavior on x {
                                                 NumberAnimation { duration: 200 }
@@ -1498,7 +1548,7 @@ ApplicationWindow {
                                         width: 60
                                         height: 30
                                         radius: 15
-                                        color: settings_model.expandOnAction ? primaryColor : "#e2e8f0"
+                                        color: settings_model.expandOnAction ? primaryColor : switchOffColor
                                         anchors.verticalCenter: parent.verticalCenter
                                         
                                         Rectangle {
@@ -1507,7 +1557,7 @@ ApplicationWindow {
                                             width: 24
                                             height: 24
                                             radius: 12
-                                            color: "white"
+                                            color: switchHandleColor
                                             
                                             Behavior on x {
                                                 NumberAnimation { duration: 200 }
@@ -1690,7 +1740,7 @@ ApplicationWindow {
                                             Text {
                                                 text: qsTr("检查更新")
                                                 font.pixelSize: 16
-                                                color: "white"
+                                                color: whiteColor
                                                 anchors.verticalCenter: parent.verticalCenter
                                             }
                                         }
@@ -1718,7 +1768,7 @@ ApplicationWindow {
                                     width: parent.width
                                     height: 100
                                     radius: 10
-                                    color: "#f8fafc"
+                                    color: updateInfoBg
                                     border.color: borderColor
                                     border.width: 1
                                     

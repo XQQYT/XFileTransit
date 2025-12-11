@@ -45,7 +45,51 @@ ApplicationWindow  {
     property color borderColor: "#E2E8F0"
     property color textPrimary: "#1E293B"
     property color textSecondary: "#64748B"
-    property color textLight: "#94A3B8"
+    property color textLight: '#d3d4d5'
+
+
+    // 主题切换函数
+    function setTheme(theme_index) {
+        switch(theme_index)
+        {
+            case 0:
+                //浅色主题
+                primaryColor = "#6366F1"
+                secondaryColor = "#8B5CF6"
+                accentColor = "#EC4899"
+                successColor = "#10B981"
+                warningColor = "#F59E0B"
+                dangerColor = "#EF4444"
+                infoColor = "#3B82F6"
+                
+                bgColor = "#FFFFFF"
+                cardColor = "#F8FAFC"
+                borderColor = "#E2E8F0"
+                textPrimary = "#1E293B"
+                textSecondary = "#64748B"
+                textLight = '#d3d4d5'
+                break
+            case 1:
+                //深色主题
+                primaryColor = "#6366F1"
+                secondaryColor = "#8B5CF6"
+                accentColor = "#EC4899"
+                successColor = "#10B981"
+                warningColor = "#F59E0B"
+                dangerColor = "#EF4444"
+                infoColor = "#3B82F6"
+                
+                bgColor = "#1F2937"
+                cardColor = "#374151"
+                borderColor = "#4B5563"
+                textPrimary = "#F9FAFB"
+                textSecondary = "#D1D5DB"
+                textLight = "#6B7280"
+                break
+            default:
+                return
+        }
+    }
 
     Behavior on height {
         NumberAnimation {
@@ -74,17 +118,6 @@ ApplicationWindow  {
             }
         }
         
-        Connections {
-            target: root
-            function onExpandedChanged() {
-                if (!root.expanded) {
-                    showBlueBarTimer.start()
-                } else {
-                    blueBarWindow.visible = false
-                    blueBarWindow.opacity = 0
-                }
-            }
-        }
         
         // 延迟显示蓝条（等待主窗口收缩完成
         Timer {
@@ -184,46 +217,6 @@ ApplicationWindow  {
         }
     }
 
-    Connections {
-        target: connection_manager
-        enabled: connectRequestLoader.status === Loader.Ready
-        
-        function onHaveConnectError(message) {
-            if (deviceWindowLoader.status === Loader.Ready) {
-                deviceWindowLoader.item.closeLoadingDialog()
-            }
-            if (generalDialogLoader.status === Loader.Ready) {
-                generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                generalDialogLoader.item.text = message
-                generalDialogLoader.item.buttons = generalDialogLoader.item.ok
-                generalDialogLoader.item.show()
-                generalDialogLoader.item.requestActivate()
-            }
-        }
-        
-        function onHaveRecvError(message) {
-            if (generalDialogLoader.status === Loader.Ready) {
-                generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                generalDialogLoader.item.text = message
-                generalDialogLoader.item.buttons = generalDialogLoader.item.ok
-                generalDialogLoader.item.show()
-                generalDialogLoader.item.requestActivate()
-                resetStatus()
-            }
-        }
-        
-        function onPeerClosed() {
-            if (generalDialogLoader.status === Loader.Ready && isConnected) {
-                generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                generalDialogLoader.item.text = qsTr("对方断开连接")
-                generalDialogLoader.item.buttons = generalDialogLoader.item.ok
-                generalDialogLoader.item.show()
-                generalDialogLoader.item.requestActivate()
-                resetStatus()
-            }
-            resetStatus()
-        }
-    }
 
     Loader {
         id: generalDialogLoader
@@ -316,13 +309,16 @@ ApplicationWindow  {
             id: mainBackground
             anchors.fill: parent
             radius: 20
-            color: dragActive ? "#E0E7FF" : bgColor
+            color: dragActive ? "transparent" : bgColor
             border.color: dragActive ? primaryColor : borderColor
             border.width: 1
-            
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: dragActive ? "#E0E7FF" : "#F8FAFC" }
-                GradientStop { position: 1.0; color: dragActive ? "#C7D2FE" : bgColor }
+
+            gradient: dragActive ? draggingGradient : null
+
+            Gradient {
+                id: draggingGradient
+                GradientStop { position: 0.0; color: bgColor }
+                GradientStop { position: 1.0; color: "#757373" }
             }
         }
 
@@ -434,8 +430,8 @@ ApplicationWindow  {
                         id: fileCard
                         anchors.fill: parent
                         radius: 12
-                        color: index % 2 === 0 ? Qt.lighter(primaryColor, 3.5) : cardColor
-                        border.color: index % 2 === 0 ? Qt.darker(primaryColor, 1.2) : borderColor
+                        color: index % 2 === 0 ? bgColor : cardColor
+                        border.color: borderColor
                         border.width: 1
                         
                         Rectangle {
@@ -454,7 +450,7 @@ ApplicationWindow  {
                         id: contextMenu
                         MenuItem {
                             text: qsTr("打开文件")
-                            enabled: model.fileStatus === 6 | !model.isRemote
+                            enabled: model.fileStatus === 6 || !model.isRemote
                             onTriggered: {
                                 if (model.fileUrl) {
                                     Qt.openUrlExternally(model.fileUrl)
@@ -575,9 +571,7 @@ ApplicationWindow  {
                             width: 42
                             height: 42
                             radius: 8
-                            color: index % 2 === 0 ? Qt.rgba(255, 255, 255, 0.9) : Qt.rgba(99, 102, 241, 0.1)
-                            border.color: index % 2 === 0 ? Qt.rgba(99, 102, 241, 0.3) : Qt.rgba(99, 102, 241, 0.2)
-                            border.width: 1
+                            color: index % 2 === 0 ? bgColor : cardColor
                             anchors.horizontalCenter: parent.horizontalCenter
                             anchors.topMargin: 4
 
@@ -951,7 +945,7 @@ ApplicationWindow  {
                     radius: 12
                     color: switchMouseArea.containsMouse ? 
                         (root.isConnected ? dangerColor : successColor) : 
-                        "#F1F5F9"
+                        bgColor
                     border.color: switchMouseArea.containsMouse ? 
                                 Qt.darker(root.isConnected ? dangerColor : successColor, 1.2) : 
                                 borderColor
@@ -960,7 +954,7 @@ ApplicationWindow  {
                     
                     Text {
                         text: isConnected ? qsTr("断开") : qsTr("连接")
-                        font.pixelSize: 11
+                        font.pixelSize: 12
                         font.bold: true
                         color: switchMouseArea.containsMouse ? "white" : textSecondary
                         anchors.centerIn: parent
@@ -1009,18 +1003,18 @@ ApplicationWindow  {
                     Layout.preferredHeight: 24
                     Layout.alignment: Qt.AlignVCenter
                     radius: 12
-                    color: ipInfoMouse.containsMouse ? "#f0f9ff" : "#f8fafc"
-                    border.color: ipInfoMouse.containsMouse ? "#7dd3fc" : "#e2e8f0"
+                    color: ipInfoMouse.containsMouse ? textLight : bgColor
+                    border.color: borderColor
                     border.width: 1.5
                     enabled: root.expanded 
 
                     Text {
                         anchors.centerIn: parent
                         text: qsTr("IP信息")
-                        font.pixelSize: 11
+                        font.pixelSize: 12
                         font.family: "Microsoft YaHei UI"
                         font.weight: Font.Medium
-                        color: "#0369a1"
+                        color: textSecondary
                     }
                         
                     MouseArea {
@@ -1051,18 +1045,18 @@ ApplicationWindow  {
                     Layout.preferredHeight: 24
                     Layout.alignment: Qt.AlignVCenter
                     radius: 12
-                    color: settingsMouse.containsMouse ? "#f0f9ff" : "#f8fafc"
-                    border.color: settingsMouse.containsMouse ? "#7dd3fc" : "#e2e8f0"
+                    color: settingsMouse.containsMouse ? textLight : bgColor
+                    border.color: borderColor
                     border.width: 1.5
                     enabled: root.expanded 
 
                     Text {
                         anchors.centerIn: parent
                         text: qsTr("设置")
-                        font.pixelSize: 11
+                        font.pixelSize: 12
                         font.family: "Microsoft YaHei UI"
                         font.weight: Font.Medium
-                        color: "#0369a1"
+                        color: textSecondary
                     }
                         
                     MouseArea {
@@ -1085,7 +1079,35 @@ ApplicationWindow  {
                         }
                     }
                 }
+                Connections {
+                    target: connection_manager
+                    enabled: connectRequestLoader.status === Loader.Ready
                     
+                    function onHaveConnectError(message) {
+                        if (deviceWindowLoader.status === Loader.Ready) {
+                            deviceWindowLoader.item.closeLoadingDialog()
+                        }
+                        if (generalDialogLoader.status === Loader.Ready) {
+                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                            generalDialogLoader.item.text = message
+                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
+                        }
+                    }
+                }
+
+                Connections {
+                    target: root
+                    function onExpandedChanged() {
+                        if (!root.expanded) {
+                            showBlueBarTimer.start()
+                        } else {
+                            blueBarWindow.visible = false
+                            blueBarWindow.opacity = 0
+                        }
+                    }
+                }
                 Connections {
                     target: connection_manager
                     function onHaveConRequest(device_ip, device_name) {
@@ -1114,7 +1136,18 @@ ApplicationWindow  {
                         }
                     }
                 }
-                
+                Connections{
+                    target: settings_model
+                    enabled: settingsWindowLoader.status === Loader.Ready
+                    function onCurrentThemeChanged(theme_index) {
+                        console.log("theme index ",theme_index)
+                        setTheme(theme_index)
+                        deviceWindowLoader.item.setTheme(theme_index)
+                        connectRequestLoader.item.setTheme(theme_index)
+                        networkInfoDialogLoader.item.setTheme(theme_index)
+                        generalDialogLoader.item.setTheme(theme_index)
+                    }
+                }
                 Connections {
                     target: connectRequestLoader.item
                     enabled: connectRequestLoader.status === Loader.Ready
@@ -1199,7 +1232,7 @@ ApplicationWindow  {
                 width: 55
                 height: 24
                 radius: 12
-                color: clearMouseArea.containsMouse ? dangerColor : "#F1F5F9"
+                color: clearMouseArea.containsMouse ? dangerColor : borderColor
                 border.color: clearMouseArea.containsMouse ? Qt.darker(dangerColor, 1.2) : borderColor
                 border.width: 1
                 visible: root.expanded && fileGridView.count > 0
@@ -1240,7 +1273,7 @@ ApplicationWindow  {
                 width: 24
                 height: 24
                 radius: 12
-                color: closeMouseArea.containsMouse ? dangerColor : "#F1F5F9"
+                color: closeMouseArea.containsMouse ? dangerColor : bgColor
                 border.color: closeMouseArea.containsMouse ? Qt.darker(dangerColor, 1.2) : borderColor
                 border.width: 1
                 visible: root.expanded

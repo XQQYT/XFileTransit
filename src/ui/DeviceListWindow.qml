@@ -13,6 +13,238 @@ Window {
     
     property var deviceModel: null
     
+    property color windowBg: "#ffffff"
+    property color windowBorder: "#f0f0f0"
+    property int windowRadius: 16
+    
+    property color textPrimary: "#1f2937"
+    property color textSecondary: "#6b7280"
+    property color textTertiary: "#9ca3af"
+    property color textDisabled: "#94a3b8"
+    property color textOnPrimary: "white"
+    property color textOnAccent: "#1d4ed8"
+    property color textError: "#dc2626"
+    property color textSuccess: "#065f46"
+    property color textInfo: "#0369a1"
+    property color textAccent: "#6366f1"
+    
+    property color cardBg: "#f8fafc"
+    property color cardBorder: "#e2e8f0"
+    property int cardRadius: 12
+    
+    property color buttonBg: "#f1f5f9"
+    property color buttonBgHover: "#dbeafe"
+    property color buttonBorder: "#3b82f6"
+    property color buttonText: "#1d4ed8"
+    
+    property color scanButtonBg: "#f8fafc"
+    property color scanButtonBgHover: "#f0f9ff"
+    property color scanButtonBgActive: "#fef2f2"
+    property color scanButtonBorder: "#e2e8f0"
+    property color scanButtonBorderHover: "#7dd3fc"
+    property color scanButtonBorderActive: "#fca5a5"
+    property color scanButtonText: "#0369a1"
+    property color scanButtonTextActive: "#dc2626"
+    
+    property color closeButtonBg: "transparent"
+    property color closeButtonBgHover: "#f3f4f6"
+    property color closeButtonText: "#9ca3af"
+    property color closeButtonTextHover: "#6b7280"
+    
+    property color titleIconGradientStart: "#6366f1"
+    property color titleIconGradientEnd: "#8b5cf6"
+    property color titleIconGlow: "#40ffffff"
+    
+    property color inputFieldBg: "transparent"
+    property color inputFieldBorderDefault: "#cbd5e1"
+    property color inputFieldBorderFocus: "#3b82f6"
+    property color inputFieldBorderError: "#ef4444"
+    property color inputFieldUnderline: "#cbd5e1"
+    
+    property color deviceItemBg1: "#FFFFFF"
+    property color deviceItemBg2: "#F8FAFC"
+    property color deviceIconBg: "#E0EAFF"
+    property color deviceIconInner: "#2196F3"
+    property color deviceIconInnerHover: "#1976D2"
+    property color deviceStatusOnline: "#4CAF50"
+    property color deviceStatusBorder: "white"
+    
+    property color tagBg: "#F1F5F9"
+    property color tagBgHover: "#F0F9FF"
+    property color tagBorder: "#CBD5E1"
+    property color tagBorderHover: "#7DD3FC"
+    property color tagText: "#475569"
+    property color tagTextHover: "#0369A1"
+    
+    property color progressBarBg: "#e2e8f0"
+    property color progressBarGradientStart: "#6366f1"
+    property color progressBarGradientEnd: "#8b5cf6"
+    
+    property color spinnerColor: "#6366f1"
+    property color completeStatusBg: "#d1fae5"
+    property color completeStatusText: "#065f46"
+    
+    property color listHeaderBg: "#f8fafc"
+    property color listHeaderText: "#64748b"
+    
+    // 主题切换函数
+    function setTheme(theme_index) {
+        load_dialog.setTheme(theme_index)
+        switch(theme_index)
+        {
+            case 0:
+                //浅色主题
+                windowBg = "#ffffff"
+                windowBorder = "#f0f0f0"
+                
+                textPrimary = "#1f2937"
+                textSecondary = "#6b7280"
+                textTertiary = "#9ca3af"
+                textDisabled = "#94a3b8"
+                textOnPrimary = "white"
+                textOnAccent = "#1d4ed8"
+                textError = "#dc2626"
+                textSuccess = "#065f46"
+                textInfo = "#0369a1"
+                textAccent = "#6366f1"
+                
+                cardBg = "#f8fafc"
+                cardBorder = "#e2e8f0"
+                
+                buttonBg = "#f1f5f9"
+                buttonBgHover = "#dbeafe"
+                buttonBorder = "#3b82f6"
+                buttonText = "#1d4ed8"
+                
+                scanButtonBg = "#f8fafc"
+                scanButtonBgHover = "#f0f9ff"
+                scanButtonBgActive = "#fef2f2"
+                scanButtonBorder = "#e2e8f0"
+                scanButtonBorderHover = "#7dd3fc"
+                scanButtonBorderActive = "#fca5a5"
+                scanButtonText = "#0369a1"
+                scanButtonTextActive = "#dc2626"
+                
+                closeButtonBg = "transparent"
+                closeButtonBgHover = "#f3f4f6"
+                closeButtonText = "#9ca3af"
+                closeButtonTextHover = "#6b7280"
+                
+                titleIconGradientStart = "#6366f1"
+                titleIconGradientEnd = "#8b5cf6"
+                titleIconGlow = "#40ffffff"
+                
+                inputFieldBg = "transparent"
+                inputFieldBorderDefault = "#cbd5e1"
+                inputFieldBorderFocus = "#3b82f6"
+                inputFieldBorderError = "#ef4444"
+                inputFieldUnderline = "#cbd5e1"
+                
+                deviceItemBg1 = "#FFFFFF"
+                deviceItemBg2 = "#F8FAFC"
+                deviceIconBg = "#E0EAFF"
+                deviceIconInner = "#2196F3"
+                deviceIconInnerHover = "#1976D2"
+                deviceStatusOnline = "#4CAF50"
+                deviceStatusBorder = "white"
+                
+                tagBg = "#F1F5F9"
+                tagBgHover = "#F0F9FF"
+                tagBorder = "#CBD5E1"
+                tagBorderHover = "#7DD3FC"
+                tagText = "#475569"
+                tagTextHover = "#0369A1"
+                
+                progressBarBg = "#e2e8f0"
+                progressBarGradientStart = "#6366f1"
+                progressBarGradientEnd = "#8b5cf6"
+                
+                spinnerColor = "#6366f1"
+                completeStatusBg = "#d1fae5"
+                completeStatusText = "#065f46"
+                
+                listHeaderBg = "#f8fafc"
+                listHeaderText = "#64748b"
+                break
+            case 1:
+                //深色主题
+                windowBg = "#1f2937"
+                windowBorder = "#374151"
+                
+                textPrimary = "#f9fafb"
+                textSecondary = "#d1d5db"
+                textTertiary = "#9ca3af"
+                textDisabled = "#6b7280"
+                textOnPrimary = "white"
+                textOnAccent = "#93c5fd"
+                textError = "#fca5a5"
+                textSuccess = "#86efac"
+                textInfo = "#7dd3fc"
+                textAccent = "#6366f1"
+                
+                cardBg = "#111827"
+                cardBorder = "#374151"
+                
+                buttonBg = "#374151"
+                buttonBgHover = "#1e40af"
+                buttonBorder = "#3b82f6"
+                buttonText = "#93c5fd"
+                
+                scanButtonBg = "#374151"
+                scanButtonBgHover = "#0c4a6e"
+                scanButtonBgActive = "#7f1d1d"
+                scanButtonBorder = "#4b5563"
+                scanButtonBorderHover = "#0369a1"
+                scanButtonBorderActive = "#991b1b"
+                scanButtonText = "#7dd3fc"
+                scanButtonTextActive = "#fca5a5"
+                
+                closeButtonBg = "transparent"
+                closeButtonBgHover = "#4b5563"
+                closeButtonText = "#9ca3af"
+                closeButtonTextHover = "#d1d5db"
+                
+                titleIconGradientStart = "#6366f1"
+                titleIconGradientEnd = "#8b5cf6"
+                titleIconGlow = "#20ffffff"
+                
+                inputFieldBg = "transparent"
+                inputFieldBorderDefault = "#4b5563"
+                inputFieldBorderFocus = "#3b82f6"
+                inputFieldBorderError = "#ef4444"
+                inputFieldUnderline = "#4b5563"
+                
+                deviceItemBg1 = "#111827"
+                deviceItemBg2 = "#1f2937"
+                deviceIconBg = "#1e40af"
+                deviceIconInner = "#3b82f6"
+                deviceIconInnerHover = "#1d4ed8"
+                deviceStatusOnline = "#10b981"
+                deviceStatusBorder = "#1f2937"
+                
+                tagBg = "#374151"
+                tagBgHover = "#0c4a6e"
+                tagBorder = "#4b5563"
+                tagBorderHover = "#0369a1"
+                tagText = "#d1d5db"
+                tagTextHover = "#7dd3fc"
+                
+                progressBarBg = "#374151"
+                progressBarGradientStart = "#6366f1"
+                progressBarGradientEnd = "#8b5cf6"
+                
+                spinnerColor = "#6366f1"
+                completeStatusBg = "#064e3b"
+                completeStatusText = "#86efac"
+                
+                listHeaderBg = "#111827"
+                listHeaderText = "#9ca3af"
+                break
+            default:
+                return
+        }
+    }
+    
     LoadingDialog {
         id: load_dialog
         onButtonClicked: {
@@ -97,14 +329,14 @@ Window {
     // 窗口主体
     Rectangle {
         anchors.fill: parent
-        radius: 16
-        color: "#ffffff"
+        radius: windowRadius
+        color: windowBg
         
         Rectangle {
             anchors.fill: parent
             radius: parent.radius
             color: "transparent"
-            border.color: "#f0f0f0"
+            border.color: windowBorder
             border.width: 1
             // 鼠标区域用于拖动
              MouseArea {
@@ -155,8 +387,8 @@ Window {
                     height: 44
                     radius: 12
                     gradient: Gradient {
-                        GradientStop { position: 0.0; color: "#6366f1" }
-                        GradientStop { position: 1.0; color: "#8b5cf6" }
+                        GradientStop { position: 0.0; color: titleIconGradientStart }
+                        GradientStop { position: 1.0; color: titleIconGradientEnd }
                     }
                     
                     Text {
@@ -171,7 +403,7 @@ Window {
                         width: parent.width
                         height: parent.height * 0.3
                         radius: 6
-                        color: "#40ffffff"
+                        color: titleIconGlow
                         anchors.top: parent.top
                     }
                 }
@@ -187,7 +419,7 @@ Window {
                         font.pixelSize: 20
                         font.bold: true
                         font.family: "Microsoft YaHei UI"
-                        color: "#1f2937"
+                        color: textPrimary
                     }
                     
                     Text {
@@ -195,7 +427,7 @@ Window {
                         text: qsTr("局域网设备发现")
                         font.pixelSize: 13
                         font.family: "Microsoft YaHei UI"
-                        color: "#9ca3af"
+                        color: textTertiary
                     }
                 }
                 
@@ -205,8 +437,8 @@ Window {
                     width: 80
                     height: 36
                     radius: 8
-                    color: scanMouse.containsMouse ? (deviceModel && deviceModel.scanning ? "#fef2f2" : "#f0f9ff") : "#f8fafc"
-                    border.color: scanMouse.containsMouse ? (deviceModel && deviceModel.scanning ? "#fca5a5" : "#7dd3fc") : "#e2e8f0"
+                    color: scanMouse.containsMouse ? (deviceModel && deviceModel.scanning ? scanButtonBgActive : scanButtonBgHover) : scanButtonBg
+                    border.color: scanMouse.containsMouse ? (deviceModel && deviceModel.scanning ? scanButtonBorderActive : scanButtonBorderHover) : scanButtonBorder
                     border.width: 1.5
                     
                     Text {
@@ -215,7 +447,7 @@ Window {
                         font.pixelSize: 14
                         font.family: "Microsoft YaHei UI"
                         font.weight: Font.Medium
-                        color: deviceModel && deviceModel.scanning ? "#dc2626" : "#0369a1"
+                        color: deviceModel && deviceModel.scanning ? scanButtonTextActive : scanButtonText
                     }
                     
                     MouseArea {
@@ -247,13 +479,13 @@ Window {
                     width: 28
                     height: 28
                     radius: 14
-                    color: minimizeMouse.containsMouse ? "#f3f4f6" : "transparent"
+                    color: minimizeMouse.containsMouse ? closeButtonBgHover : closeButtonBg
                     
                     Text {
                         anchors.centerIn: parent
                         text: "−"
                         font.pixelSize: 20
-                        color: minimizeMouse.containsMouse ? "#6b7280" : "#9ca3af"
+                        color: minimizeMouse.containsMouse ? closeButtonTextHover : closeButtonText
                     }
                     
                     MouseArea {
@@ -273,13 +505,13 @@ Window {
                     width: 28
                     height: 28
                     radius: 14
-                    color: closeMouse.containsMouse ? "#f3f4f6" : "transparent"
+                    color: closeMouse.containsMouse ? closeButtonBgHover : closeButtonBg
                     
                     Text {
                         anchors.centerIn: parent
                         text: "×"
                         font.pixelSize: 20
-                        color: closeMouse.containsMouse ? "#6b7280" : "#9ca3af"
+                        color: closeMouse.containsMouse ? closeButtonTextHover : closeButtonText
                     }
                     
                     MouseArea {
@@ -298,9 +530,9 @@ Window {
                 id: quickConnectCard
                 width: parent.width
                 height: 80
-                radius: 12
-                color: "#f8fafc"
-                border.color: "#e2e8f0"
+                radius: cardRadius
+                color: cardBg
+                border.color: cardBorder
                 border.width: 1
                 anchors.top: titleRow.bottom
                 anchors.topMargin: 16
@@ -313,7 +545,7 @@ Window {
                     font.pixelSize: 13
                     font.family: "Microsoft YaHei UI"
                     font.weight: Font.Medium
-                    color: "#64748b"
+                    color: listHeaderText
                     anchors.left: parent.left
                     anchors.leftMargin: 16
                     anchors.top: parent.top
@@ -363,8 +595,8 @@ Window {
                                     }
                                                 
                                     background: Rectangle {
-                                        color: "transparent"
-                                        border.color: "#cbd5e1"
+                                        color: inputFieldBg
+                                        border.color: inputFieldBorderDefault
                                         border.width: 0
                                         Rectangle {
                                             anchors.left: parent.left
@@ -373,11 +605,11 @@ Window {
                                             height: 2
                                             color: {
                                                 if (!ipField.isValidSegment) {
-                                                    return "#ef4444" // 红色，表示无效
+                                                    return inputFieldBorderError
                                                 } else if (ipField.activeFocus) {
-                                                    return "#3b82f6" // 蓝色，表示聚焦
+                                                    return inputFieldBorderFocus
                                                 } else {
-                                                    return "#cbd5e1" // 灰色，默认
+                                                    return inputFieldUnderline
                                                 }
                                             }
                                         }
@@ -465,7 +697,7 @@ Window {
                                     visible: index < 3
                                     text: "."
                                     font.pixelSize: 16
-                                    color: "#64748b"
+                                    color: textDisabled
                                     Layout.alignment: Qt.AlignVCenter
                                     Layout.leftMargin: 4
                                 }
@@ -479,8 +711,8 @@ Window {
                         Layout.preferredWidth: 80
                         Layout.preferredHeight: 42
                         radius: 6
-                        color: connectMouseArea.containsMouse ? "#dbeafe" : "#f1f5f9"
-                        border.color: "#3b82f6"
+                        color: connectMouseArea.containsMouse ? buttonBgHover : buttonBg
+                        border.color: buttonBorder
                         border.width: 1.5
                         
                         Text {
@@ -489,7 +721,7 @@ Window {
                             font.pixelSize: 14
                             font.family: "Microsoft YaHei UI"
                             font.weight: Font.Medium
-                            color: "#1d4ed8"
+                            color: buttonText
                         }
                         
                         MouseArea {
@@ -557,9 +789,9 @@ Window {
                 height: parent.height - titleRow.height - quickConnectCard.height - statusRow.height - 40
                 anchors.top: quickConnectCard.bottom
                 anchors.topMargin: 16
-                radius: 12
-                color: "#f8fafc"
-                border.color: "#e2e8f0"
+                radius: cardRadius
+                color: cardBg
+                border.color: cardBorder
                 border.width: 1
                 
                 // 列表标题
@@ -577,7 +809,7 @@ Window {
                         font.pixelSize: 13
                         font.family: "Microsoft YaHei UI"
                         font.weight: Font.Medium
-                        color: "#64748b"
+                        color: listHeaderText
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     
@@ -591,7 +823,7 @@ Window {
                         text: deviceModel ? qsTr("%1 个设备").arg(deviceListView.count) : "0 个设备"
                         font.pixelSize: 12
                         font.family: "Microsoft YaHei UI"
-                        color: "#94a3b8"
+                        color: textDisabled
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
@@ -613,7 +845,7 @@ Window {
                     Text {
                         anchors.centerIn: parent
                         text: qsTr("未发现设备")
-                        color: "#94a3b8"
+                        color: textDisabled
                         font.pixelSize: 14
                         visible: deviceListView.count === 0 && (!deviceModel || !deviceModel.scanning)
                     }
@@ -623,7 +855,7 @@ Window {
                         id: deviceItem
                         width: deviceListView.width - 2
                         height: 72
-                        color: index % 2 === 0 ? "#FFFFFF" : "#F8FAFC"
+                        color: index % 2 === 0 ? deviceItemBg1 : deviceItemBg2
                         radius: 8
                         // anchors.horizontalCenter: parent.horizontalCenter
 
@@ -644,7 +876,7 @@ Window {
                                 width: 48
                                 height: 48
                                 radius: 8
-                                color: "#E0EAFF"
+                                color: deviceIconBg
                                 Layout.preferredWidth: 48
                                 Layout.preferredHeight: 48
 
@@ -654,7 +886,7 @@ Window {
                                     height: 40
                                     radius: 20
                                     anchors.centerIn: parent
-                                    color: deviceItem.containsMouse ? "#1976D2" : "#2196F3"
+                                    color: deviceItem.containsMouse ? deviceIconInnerHover : deviceIconInner
                                     
                                     Behavior on color {
                                         ColorAnimation { duration: 150 }
@@ -663,7 +895,7 @@ Window {
                                     Text {
                                         anchors.centerIn: parent
                                         text: deviceItem.deviceName ? deviceItem.deviceName.charAt(0) : "?"
-                                        color: "white"
+                                        color: textOnPrimary
                                         font.bold: true
                                         font.pixelSize: 16
                                     }
@@ -673,9 +905,9 @@ Window {
                                         width: 12
                                         height: 12
                                         radius: 6
-                                        color: "#4CAF50"
+                                        color: deviceStatusOnline
                                         border.width: 2
-                                        border.color: "white"
+                                        border.color: deviceStatusBorder
                                         anchors.right: parent.right
                                         anchors.bottom: parent.bottom
                                     }
@@ -692,14 +924,14 @@ Window {
                                     text: deviceItem.deviceName  // 使用属性而不是直接model访问
                                     font.pixelSize: 16
                                     font.bold: true
-                                    color: "#1E293B"
+                                    color: textPrimary
                                     elide: Text.ElideRight
                                 }
 
                                 Text {
                                     text: deviceItem.deviceIp  // 使用属性而不是直接model访问
                                     font.pixelSize: 13
-                                    color: "#64748B"
+                                    color: textSecondary
                                     elide: Text.ElideRight
                                 }
                             }
@@ -711,8 +943,8 @@ Window {
                                 radius: 6
                                 Layout.preferredWidth: typeTagText.implicitWidth + 16
                                 Layout.alignment: Qt.AlignVCenter
-                                color: deviceItem.containsMouse ? "#F0F9FF" : "#F1F5F9"
-                                border.color: deviceItem.containsMouse ? "#7DD3FC" : "#CBD5E1"
+                                color: deviceItem.containsMouse ? tagBgHover : tagBg
+                                border.color: deviceItem.containsMouse ? tagBorderHover : tagBorder
                                 border.width: 1
 
                                 Text {
@@ -721,7 +953,7 @@ Window {
                                     font.pixelSize: 12
                                     font.family: "Microsoft YaHei UI"
                                     anchors.centerIn: parent
-                                    color: deviceItem.containsMouse ? "#0369A1" : "#475569"
+                                    color: deviceItem.containsMouse ? tagTextHover : tagText
                                 }
                             }
                         }
@@ -778,7 +1010,7 @@ Window {
                         width: parent.width
                         height: 6
                         radius: 3
-                        color: "#e2e8f0"
+                        color: progressBarBg
                         
                         // 进度填充
                         Rectangle {
@@ -787,8 +1019,8 @@ Window {
                             height: parent.height
                             radius: 3
                             gradient: Gradient {
-                                GradientStop { position: 0.0; color: "#6366f1" }
-                                GradientStop { position: 1.0; color: "#8b5cf6" }
+                                GradientStop { position: 0.0; color: progressBarGradientStart }
+                                GradientStop { position: 1.0; color: progressBarGradientEnd }
                             }
                             
                             Behavior on width {
@@ -809,7 +1041,7 @@ Window {
                     font.pixelSize: 12
                     font.family: "Microsoft YaHei UI"
                     font.weight: Font.Medium
-                    color: "#6366f1"
+                    color: textAccent
                 }
                 
                 // 状态文本
@@ -828,7 +1060,7 @@ Window {
                     }
                     font.pixelSize: 13
                     font.family: "Microsoft YaHei UI"
-                    color: "#64748b"
+                    color: textSecondary
                     elide: Text.ElideRight
                 }
                 
@@ -875,7 +1107,7 @@ Window {
                                             rotationAngle * Math.PI / 180, 
                                             rotationAngle * Math.PI / 180 + Math.PI * 0.75)
                                     ctx.lineWidth = 2
-                                    ctx.strokeStyle = "#6366f1"
+                                    ctx.strokeStyle = spinnerColor
                                     ctx.stroke()
                                 }
                                 
@@ -899,14 +1131,14 @@ Window {
                         id: completeStatus
                         anchors.fill: parent
                         radius: 12
-                        color: "#d1fae5"
+                        color: completeStatusBg
                         visible: deviceModel && !deviceModel.scanning
                         
                         Text {
                             anchors.centerIn: parent
                             text: "✓"
                             font.pixelSize: 14
-                            color: "#065f46"
+                            color: completeStatusText
                             font.bold: true
                         }
                     }
