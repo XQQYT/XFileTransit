@@ -2,7 +2,7 @@
 
 XFileTransit 是一款基于 C++ 和 Qt 开发的 Windows 局域网文件传输工具。支持文件拖拽，无需配置，局域网内高效安全共享文件。
 
-[点此进入官网](https://xqqyt.top/)
+[点此进入官网](https://xqqyt.top/) | [版本发布视频](https://www.bilibili.com/video/BV13R2XBJEgG/?share_source=copy_web)
 
 ## 功能特点
 
@@ -15,14 +15,33 @@ XFileTransit 是一款基于 C++ 和 Qt 开发的 Windows 局域网文件传输�
 
 ## 安装与运行
 
-1. 环境依赖：**Qt 6.8.2**，**OpenSSL**，**CMake**
-2. 下载源码并编译：  
+1. 环境依赖：**Qt 6.8.3**，**OpenSSL**，**CMake**， **C++17**
+2. 下载源码：  
    ```bash
    git clone https://github.com/XQQYT/XFileTransit.git
    cd XFileTransit
-   .\build.bat
    ```
-3. 启动方式：运行 `XFileTransit.exe`，将文件拖入窗口即可共享。
+### 平台特定配置
+
+3. ##### Linux
+   ```
+   # 编辑 buildLinux.sh，将 Qt6_PATH 设置为你的 Qt 安装路径
+   # 运行构建脚本
+   bash buildLinux.sh
+   ```
+4. ##### Windows
+   ```
+   编辑 mingw-toolchain.cmake，参考源码填写路径
+   编辑 src/source/driver/CMakeLists.txt，设置 OPENSSL_ROOT_DIR 为你的 OpenSSL 路径
+   运行构建脚本：
+   buildWindow.bat
+   ```
+5. 输出：
+   ```
+   Debug版本带控制台输出
+   Release版本没有控制台输出
+   可执行程序位于build-xxx-xxx/src下
+   ```
    
 ## 使用说明
 
@@ -30,12 +49,6 @@ XFileTransit 是一款基于 C++ 和 Qt 开发的 Windows 局域网文件传输�
 2. 其他同一局域网内的用户可在窗口直接拖出或选择文件进行下载；
 3. 支持任意文件格式，自动显示文件名称与图标。
 
-## 技术细节
-
-- C++ 主体架构，QML 实现 UI
-- 网络通信采用 TCP/TLS，自动生成临时证书
-- 消息协议统一解析与组包，支持扩展
-- 多线程任务队列，异步无阻塞
 
 ## 参与开发
 
