@@ -2,7 +2,6 @@
 #include "model/ModelManager.h"
 #include "control/EventBusManager.h"
 #include "control/GlobalStatusManager.h"
-#include "driver/impl/FileUtility.h"
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
 #include <QtCore/QUrl>
@@ -468,6 +467,7 @@ void FileListModel::cleanTmpFiles()
     }
 
     dir.removeRecursively();
+    QDir().mkpath(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir));
 }
 
 bool FileListModel::isTransferring()

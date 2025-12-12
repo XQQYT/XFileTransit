@@ -1,8 +1,12 @@
 #include "model/SettingsModel.h"
+#include "driver/impl/FileUtility.h"
+#include "control/GlobalStatusManager.h"
 #include <QtCore/QDebug>
 #include <QtCore/QStringList>
 #include <QtWidgets/QApplication>
 #include <algorithm>
+#include <QtCore/QFileInfo>
+#include <QtCore/QThread>
 
 SettingsModel::SettingsModel(QObject *parent)
     : QObject(parent), translator(new QTranslator(this))
@@ -55,21 +59,28 @@ void SettingsModel::setCurrentLanguage(int language)
     }
 }
 
-void SettingsModel::setCachePath(const QString &path)
+void SettingsModel::setCachePath(const QUrl &url)
 {
-    if (cache_path != path)
+    if (cache_url != url)
     {
-        cache_path = path;
-        emit cachePathChanged(path);
-    }
-}
-
-void SettingsModel::setCacheSize(quint64 size)
-{
-    if (cache_size != size)
-    {
-        cache_size = size;
-        emit cacheSizeChanged(size);
+        cache_url = url;
+        cache_path = url.toLocalFile();
+        emit cachePathChanged(cache_path);
+        QThread::create([this]()
+                        {
+                        auto [total, free_size] = FileSystemUtils::getDiskSpaceForFolder(cache_path.toStdString()); 
+                        emit cacheInfoDone(QString::fromStdString(FileSystemUtils::formatFileSize(total-free_size)),
+                         QString::fromStdString(FileSystemUtils::formatFileSize(free_size)),
+                        QString::fromStdString(FileSystemUtils::formatFileSize(total))); })
+            ->start();
+        QThread::create([this]()
+                        {
+                        auto old_tmp_path = GlobalStatusManager::absolute_tmp_dir;
+                        FileSystemUtils::copyDirectory(GlobalStatusManager::absolute_tmp_dir, cache_path.toStdString());
+                        GlobalStatusManager::absolute_tmp_dir = cache_path.toStdString();
+                        FileSystemUtils::removeFileOrDirectory(old_tmp_path, false);
+                        emit cacheMoveDone(); })
+            ->start();
     }
 }
 

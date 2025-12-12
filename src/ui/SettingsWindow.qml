@@ -193,14 +193,20 @@ ApplicationWindow {
         }
     }
 
+    LoadingDialog {
+        id: load_dialog
+        onButtonClicked: {
+            load_dialog.close()
+        }
+    }
     FolderDialog {
         id: folderDialog
         title: "选择目录"
         options: FolderDialog.ShowDirsOnly
 
         onAccepted: {
-            console.log(folder)
-            console.log(currentFolder)
+            settings_model.cachePath = folder
+            load_dialog.show(qsTr("迁移中"), qsTr("取消"))
         }
     }
 
@@ -968,7 +974,8 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: settings_model.cacheSize.toFixed(1) + " MB"
+                                            id: used_size
+                                            text: "---"
                                             font {
                                                 pixelSize: 16
                                                 weight: Font.Bold
@@ -989,7 +996,8 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: "12.4 GB"
+                                            id: free_size
+                                            text: "---"
                                             font {
                                                 pixelSize: 16
                                                 weight: Font.Bold
@@ -1010,7 +1018,8 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: "15.0 GB"
+                                            id: total_size
+                                            text: "---"
                                             font {
                                                 pixelSize: 16
                                                 weight: Font.Bold
@@ -1019,6 +1028,24 @@ ApplicationWindow {
                                             anchors.horizontalCenter: parent.horizontalCenter
                                         }
                                     }
+
+                                    Connections{
+                                        target: settings_model
+                                        function onCacheInfoDone(used,free,total) {
+                                            used_size.text = used
+                                            free_size.text = free
+                                            total_size.text = total
+                                        }
+                                    }
+
+                                    Connections{
+                                        target: settings_model
+                                        function onCacheMoveDone() {
+                                            Qt.callLater(function() {
+                                                load_dialog.close()
+                                            })
+                                        }
+                                    }  
                                 }
                             }
                         }

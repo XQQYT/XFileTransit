@@ -7,7 +7,7 @@
 class GlobalStatusManager
 {
 public:
-    inline static const std::string absolute_tmp_dir = FileSystemUtils::getExecutableDirectory() + "XFiletransitTmp/";
+    inline static std::string absolute_tmp_dir = FileSystemUtils::getExecutableDirectory() + "XFiletransitTmp/";
 
     enum class idType
     {
@@ -108,6 +108,10 @@ public:
     }
 
 private:
+    GlobalStatusManager()
+    {
+        FileSystemUtils::createDirectoryRecursive(absolute_tmp_dir);
+    }
     std::string current_target_device_name;
     std::string current_target_device_ip;
 

@@ -16,7 +16,6 @@ class SettingsModel : public QObject
     Q_PROPERTY(int currentTheme READ currentTheme WRITE setCurrentTheme NOTIFY currentThemeChanged)
     Q_PROPERTY(int currentLanguage READ currentLanguage WRITE setCurrentLanguage NOTIFY currentLanguageChanged)
     Q_PROPERTY(QString cachePath READ cachePath WRITE setCachePath NOTIFY cachePathChanged)
-    Q_PROPERTY(quint64 cacheSize READ cacheSize WRITE setCacheSize NOTIFY cacheSizeChanged)
     Q_PROPERTY(bool autoDownload READ autoDownload WRITE setAutoDownload NOTIFY autoDownloadChanged)
     Q_PROPERTY(int concurrentTransfers READ concurrentTransfers WRITE setConcurrentTransfers NOTIFY concurrentTransfersChanged)
     Q_PROPERTY(bool enableEncryption READ enableEncryption WRITE setEnableEncryption NOTIFY enableEncryptionChanged)
@@ -30,7 +29,6 @@ public:
     int currentTheme() const { return current_theme; }
     int currentLanguage() const { return current_language; }
     QString cachePath() const { return cache_path; }
-    quint64 cacheSize() const { return cache_size; }
     bool autoDownload() const { return auto_download; }
     int concurrentTransfers() const { return concurrent_transfers; }
     bool enableEncryption() const { return enable_encryption; }
@@ -40,8 +38,7 @@ public:
 
     void setCurrentTheme(int theme);
     void setCurrentLanguage(int language);
-    void setCachePath(const QString &path);
-    void setCacheSize(quint64 size);
+    void setCachePath(const QUrl &url);
     void setAutoDownload(bool enable);
     void setConcurrentTransfers(int transfers);
     void setEnableEncryption(bool enable);
@@ -54,19 +51,20 @@ signals:
     void currentThemeChanged(int theme);
     void currentLanguageChanged(int language);
     void cachePathChanged(const QString &path);
-    void cacheSizeChanged(quint64 size);
     void autoDownloadChanged(bool enable);
     void concurrentTransfersChanged(int transfers);
     void enableEncryptionChanged(bool enable);
     void expandOnActionChanged(bool expand);
     void appVersionChanged(const QString &version);
     void isUpdateAvailableChanged(bool available);
+    void cacheInfoDone(QString used, QString free_size, QString total);
+    void cacheMoveDone();
 
 private:
     int current_theme = 0;    // 0: light, 1: dark
     int current_language = 0; // 0: English, 1: Chinese
+    QUrl cache_url;
     QString cache_path = "";
-    quint64 cache_size = 100; // 默认100MB
     bool auto_download = false;
     int concurrent_transfers = 3;
     bool enable_encryption = true;

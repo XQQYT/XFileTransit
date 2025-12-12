@@ -7,6 +7,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QDirIterator>
 #include "model/FileIconManager.h"
+#include "driver/impl/FileUtility.h"
 #include "control/GlobalStatusManager.h"
 
 #include <iostream>
@@ -122,59 +123,6 @@ public:
     return file_url;
   }
 
-  static quint64 getFileSize(const QString &file_url)
-  {
-    QString file_path = getFilePath(file_url);
-    QFile file(file_path);
-    if (!file.exists())
-    {
-      qDebug() << "文件不存在:" << file_path;
-      return 0;
-    }
-    return file.size();
-  }
-
-  // TODO
-  // 改为生产消费模型 ，防止大文件卡死
-  static quint64 getFolderSize(const QString &folderPath)
-  {
-    quint64 totalSize = 0;
-
-    // 递归遍历所有文件和目录
-    QDirIterator it(folderPath, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
-
-    while (it.hasNext())
-    {
-      it.next();
-      totalSize += it.fileInfo().size();
-    }
-
-    return totalSize;
-  }
-
-  static QString formatFileSize(quint64 bytes)
-  {
-    const char *suffixes[] = {"B", "KB", "MB", "GB", "TB", "PB"};
-    double size = static_cast<double>(bytes);
-    int i = 0;
-
-    while (size >= 1024 && i < 5)
-    {
-      size /= 1024;
-      ++i;
-    }
-
-    // 保留两位小数（当数值大于1KB时）
-    if (i == 0)
-      return QString::number(static_cast<qulonglong>(size)) + " " + suffixes[i];
-    else
-      return QString("%1 %2").arg(QString::number(size, 'f', 2)).arg(suffixes[i]);
-  }
-  static bool isDirectoryWithQDir(const QString &filePath)
-  {
-    QFileInfo fileInfo(filePath);
-    return fileInfo.exists() && fileInfo.isDir();
-  }
   static QString getFileSuffix(const QString &fileName)
   {
     int last_dot = fileName.lastIndexOf('.');
@@ -197,17 +145,17 @@ public:
     id = GlobalStatusManager::getInstance().getFileId();
     file_name = getFileName(url);
     source_path = getFilePath(url);
-    is_folder = isDirectoryWithQDir(source_path);
+    is_folder = FileSystemUtils::isDirectory(source_path.toStdString());
     file_url = url;
     if (is_folder)
     {
-      file_size = getFolderSize(source_path);
+      file_size = FileSystemUtils::calculateFolderSize(source_path.toStdString());
     }
     else
     {
-      file_size = getFileSize(url);
+      file_size = FileSystemUtils::getFileSize(source_path.toStdString());
     }
-    format_file_size = formatFileSize(file_size);
+    format_file_size = QString::fromStdString(FileSystemUtils::formatFileSize(file_size));
     icon = FileIconManager::getInstance().getFileIcon(url, is_folder);
     progress = 0;
   }
@@ -224,7 +172,7 @@ public:
     file_url = QUrl::fromLocalFile(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir) + file_name);
     source_path = QString::fromStdString(GlobalStatusManager::absolute_tmp_dir) + file_name;
     icon = FileIconManager::getInstance().getFileIconBySuffix(getFileSuffix(file_name), is_folder);
-    format_file_size = formatFileSize(file_size);
+    format_file_size = QString::fromStdString(FileSystemUtils::formatFileSize(file_size));
     progress = 0;
   }
 };
