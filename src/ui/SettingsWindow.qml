@@ -1,6 +1,7 @@
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.15
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import Qt.labs.platform
 
 ApplicationWindow {
     id: window
@@ -59,12 +60,7 @@ ApplicationWindow {
     // 选择缓存目录
     function chooseCachePath() {
         console.log("选择缓存目录")
-    }
-    
-    // 清除缓存
-    function clearCache() {
-        settings_model.cacheSize = 0
-        console.log("清除缓存")
+        folderDialog.open()
     }
     
     // 切换自动下载
@@ -194,6 +190,17 @@ ApplicationWindow {
         // 强制重绘当前选中按钮
         if (currentBtn) {
             currentBtn.color = primaryColor
+        }
+    }
+
+    FolderDialog {
+        id: folderDialog
+        title: "选择目录"
+        options: FolderDialog.ShowDirsOnly
+
+        onAccepted: {
+            console.log(folder)
+            console.log(currentFolder)
         }
     }
 
@@ -1011,98 +1018,6 @@ ApplicationWindow {
                                             color: textSecondary
                                             anchors.horizontalCenter: parent.horizontalCenter
                                         }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        Rectangle {
-                            width: parent.width
-                            height: 180
-                            radius: 16
-                            color: cardColor
-                            border.color: borderColor
-                            border.width: 2
-                            
-                            Column {
-                                anchors.fill: parent
-                                anchors.margins: 20
-                                spacing: 15
-                                
-                                Row {
-                                    width: parent.width
-                                    spacing: 12
-                                    
-                                    
-                                    Column {
-                                        spacing: 2
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        
-                                        Text {
-                                            text: qsTr("清除缓存")
-                                            font {
-                                                pixelSize: 18
-                                                weight: Font.Bold
-                                            }
-                                            color: textPrimary
-                                        }
-                                        
-                                        Text {
-                                            text: qsTr("清理临时文件释放存储空间")
-                                            font.pixelSize: 13
-                                            color: textSecondary
-                                        }
-                                    }
-                                }
-                                
-                                Row {
-                                    spacing: 15
-                                    
-                                    Text {
-                                        text: qsTr("缓存大小: ") + settings_model.cacheSize.toFixed(1) + " MB"
-                                        font.pixelSize: 14
-                                        color: textPrimary
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                    
-                                    Rectangle {
-                                        width: 120
-                                        height: 40
-                                        radius: 10
-                                        color: clearCacheButtonBg
-                                        border.color: clearCacheButtonBorder
-                                        border.width: 2
-                                        
-                                        Text {
-                                            text: qsTr("立即清除")
-                                            font.pixelSize: 14
-                                            color: accentRed
-                                            anchors.centerIn: parent
-                                        }
-                                        
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            cursorShape: Qt.PointingHandCursor
-                                            hoverEnabled: true
-                                            onClicked: clearCache()
-                                            
-                                            onEntered: parent.opacity = 0.8
-                                            onExited: parent.opacity = 1
-                                        }
-                                    }
-                                }
-                                
-                                Rectangle {
-                                    width: parent.width
-                                    height: 8
-                                    radius: 4
-                                    color: progressBarBg
-                                    
-                                    Rectangle {
-                                        width: parent.width * (settings_model.cacheSize / (15.0 * 1024))
-                                        height: parent.height
-                                        radius: 4
-                                        color: accentOrange
                                     }
                                 }
                             }
