@@ -47,6 +47,8 @@ public:
     void setIsUpdateAvailable(bool available);
     void setQmlEngine(QQmlEngine *engine);
 
+    Q_INVOKABLE void cancelMoveCache();
+
 signals:
     void currentThemeChanged(int theme);
     void currentLanguageChanged(int language);

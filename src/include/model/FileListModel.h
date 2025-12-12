@@ -63,6 +63,7 @@ public:
   Q_INVOKABLE void downloadFile(int index);
   Q_INVOKABLE void cleanTmpFiles();
   Q_INVOKABLE bool isTransferring();
+  Q_INVOKABLE void updateFilePath(QString new_path);
   void addRemoteFiles(std::vector<std::vector<std::string>> files);
   void haveDownLoadRequest(std::vector<std::string> file_ids);
 public slots:

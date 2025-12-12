@@ -39,11 +39,17 @@ ApplicationWindow {
     
     property var currentBtn: null
     property var currentPage: basicSettingsPage  // 当前页面组件
+
+    property string usedSize: "---"
+    property string freeSize: "---"
+    property string totalSize: "---"
     
     property bool isDragging: false
     property int dragStartX: 0
     property int dragStartY: 0
     
+    signal cachePathChanged(string new_path)
+
     // 主题切换处理
     function switchTheme(theme) {
         settings_model.currentTheme = theme
@@ -195,9 +201,7 @@ ApplicationWindow {
 
     LoadingDialog {
         id: load_dialog
-        onButtonClicked: {
-            load_dialog.close()
-        }
+        enableBtn: false
     }
     FolderDialog {
         id: folderDialog
@@ -974,8 +978,7 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            id: used_size
-                                            text: "---"
+                                            text: usedSize
                                             font {
                                                 pixelSize: 16
                                                 weight: Font.Bold
@@ -996,8 +999,7 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            id: free_size
-                                            text: "---"
+                                            text: freeSize
                                             font {
                                                 pixelSize: 16
                                                 weight: Font.Bold
@@ -1018,8 +1020,7 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            id: total_size
-                                            text: "---"
+                                            text: totalSize
                                             font {
                                                 pixelSize: 16
                                                 weight: Font.Bold
@@ -1032,9 +1033,9 @@ ApplicationWindow {
                                     Connections{
                                         target: settings_model
                                         function onCacheInfoDone(used,free,total) {
-                                            used_size.text = used
-                                            free_size.text = free
-                                            total_size.text = total
+                                            usedSize = used
+                                            freeSize = free
+                                            totalSize = total
                                         }
                                     }
 
@@ -1042,6 +1043,7 @@ ApplicationWindow {
                                         target: settings_model
                                         function onCacheMoveDone() {
                                             Qt.callLater(function() {
+                                                cachePathChanged(settings_model.cachePath)
                                                 load_dialog.close()
                                             })
                                         }

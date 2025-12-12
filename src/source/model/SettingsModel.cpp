@@ -64,24 +64,32 @@ void SettingsModel::setCachePath(const QUrl &url)
     if (cache_url != url)
     {
         cache_url = url;
-        cache_path = url.toLocalFile();
+        cache_path = url.toLocalFile() + "/";
+        // 先设置新临时目录，使迁移中也可以传输文件
+        auto old_tmp_path = GlobalStatusManager::absolute_tmp_dir;
+        GlobalStatusManager::absolute_tmp_dir = cache_path.toStdString();
+        FileSystemUtils::createDirectoryRecursive(GlobalStatusManager::absolute_tmp_dir);
         emit cachePathChanged(cache_path);
+        // 获取当前所在分区的信息
         QThread::create([this]()
                         {
                         auto [total, free_size] = FileSystemUtils::getDiskSpaceForFolder(cache_path.toStdString()); 
                         emit cacheInfoDone(QString::fromStdString(FileSystemUtils::formatFileSize(total-free_size)),
-                         QString::fromStdString(FileSystemUtils::formatFileSize(free_size)),
+                        QString::fromStdString(FileSystemUtils::formatFileSize(free_size)),
                         QString::fromStdString(FileSystemUtils::formatFileSize(total))); })
             ->start();
-        QThread::create([this]()
+        // 迁移文件
+        QThread::create([this, old_tmp_path]()
                         {
-                        auto old_tmp_path = GlobalStatusManager::absolute_tmp_dir;
-                        FileSystemUtils::copyDirectory(GlobalStatusManager::absolute_tmp_dir, cache_path.toStdString());
-                        GlobalStatusManager::absolute_tmp_dir = cache_path.toStdString();
+                        FileSystemUtils::copyDirectory(old_tmp_path, cache_path.toStdString());
                         FileSystemUtils::removeFileOrDirectory(old_tmp_path, false);
                         emit cacheMoveDone(); })
             ->start();
     }
+}
+
+void SettingsModel::cancelMoveCache()
+{
 }
 
 void SettingsModel::setAutoDownload(bool enable)

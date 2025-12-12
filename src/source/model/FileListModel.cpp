@@ -481,3 +481,15 @@ bool FileListModel::isTransferring()
     }
     return false;
 }
+
+void FileListModel::updateFilePath(QString new_path)
+{
+    for (auto &i : file_list)
+    {
+        if (i.is_remote_file)
+        {
+            i.source_path = new_path + i.file_name;
+            i.file_url = QUrl::fromLocalFile(i.source_path);
+        }
+    }
+}

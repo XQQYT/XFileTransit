@@ -11,6 +11,7 @@ Popup {
     focus: false
     closePolicy: Popup.NoAutoClose
     
+    property bool enableBtn: true
     // 公共接口
     property string message: qsTr("加载中...")
     property string buttonText: qsTr("取消")
@@ -259,6 +260,7 @@ Popup {
                    cancelMouse.containsMouse ? buttonBgHover : buttonBg
             border.color: cancelMouse.containsMouse ? buttonBorderHover : buttonBorder
             border.width: 1.5
+            visible: enableBtn
             
             Text {
                 anchors.centerIn: parent

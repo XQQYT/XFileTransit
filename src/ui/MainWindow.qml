@@ -1224,6 +1224,13 @@ ApplicationWindow  {
                         }
                     }
                 }
+
+                Connections{
+                    target: settingsWindowLoader.item
+                    function onCachePathChanged(new_path){
+                        file_list_model.updateFilePath(new_path)
+                    }
+                }
             }        
 
             // 清空按钮
