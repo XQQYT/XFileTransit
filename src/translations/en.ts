@@ -322,32 +322,32 @@
     </message>
     <message>
         <location filename="../ui/MainWindow.qml" line="1161"/>
-        <location filename="../ui/MainWindow.qml" line="1189"/>
+        <location filename="../ui/MainWindow.qml" line="1230"/>
         <source>是否同步当前文件</source>
         <translation>Synchronize current files?</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1202"/>
+        <location filename="../ui/MainWindow.qml" line="1243"/>
         <source>连接成功</source>
         <translation>Connection successful</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1215"/>
+        <location filename="../ui/MainWindow.qml" line="1256"/>
         <source>连接被拒绝</source>
         <translation>Connection refused</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1254"/>
+        <location filename="../ui/MainWindow.qml" line="1295"/>
         <source>清空</source>
         <translation>Clear</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1311"/>
+        <location filename="../ui/MainWindow.qml" line="1352"/>
         <source>有文件正在传输中</source>
         <translation>Files are being transferred</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1320"/>
+        <location filename="../ui/MainWindow.qml" line="1361"/>
         <source>确定退出吗？</source>
         <translation>Confirm exit?</translation>
     </message>

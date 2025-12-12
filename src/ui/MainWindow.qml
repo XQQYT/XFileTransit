@@ -571,7 +571,7 @@ ApplicationWindow  {
                             width: 42
                             height: 42
                             radius: 8
-                            color: index % 2 === 0 ? bgColor : cardColor
+                            color: "transparent"
                             anchors.horizontalCenter: parent.horizontalCenter
                             anchors.topMargin: 4
 
@@ -1171,6 +1171,47 @@ ApplicationWindow  {
                     }
                     
                     function onRejected(ip, name) {
+                    }
+                }
+
+                Connections {
+                    target: connection_manager
+                    enabled: connectRequestLoader.status === Loader.Ready
+                    
+                    function onHaveConnectError(message) {
+                        if (deviceWindowLoader.status === Loader.Ready) {
+                            deviceWindowLoader.item.closeLoadingDialog()
+                        }
+                        if (generalDialogLoader.status === Loader.Ready) {
+                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                            generalDialogLoader.item.text = message
+                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
+                        }
+                    }
+                    
+                    function onHaveRecvError(message) {
+                        if (generalDialogLoader.status === Loader.Ready) {
+                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                            generalDialogLoader.item.text = message
+                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
+                            resetStatus()
+                        }
+                    }
+                    
+                    function onPeerClosed() {
+                        if (generalDialogLoader.status === Loader.Ready && isConnected) {
+                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                            generalDialogLoader.item.text = "对方断开连接"
+                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
+                            resetStatus()
+                        }
+                        resetStatus()
                     }
                 }
                 
