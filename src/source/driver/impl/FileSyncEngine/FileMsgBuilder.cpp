@@ -59,7 +59,14 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildHeader()
                        std::back_inserter(*result),
                        [](char c)
                        { return static_cast<uint8_t>(c); });
-        file_state = State::Block;
+        if (file_total_size <= 0)
+        {
+            file_state = State::End;
+        }
+        else
+        {
+            file_state = State::Block;
+        }
         return result;
     }
     else if (is_folder && file_state == State::Header) // 是文件夹且需要发送Header，则发送文件项的元信息
@@ -98,7 +105,14 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildHeader()
                        std::back_inserter(*result),
                        [](char c)
                        { return static_cast<uint8_t>(c); });
-        file_state = State::Block;
+        if (file_total_size <= 0)
+        {
+            file_state = State::End;
+        }
+        else
+        {
+            file_state = State::Block;
+        }
         return result;
     }
     return nullptr;

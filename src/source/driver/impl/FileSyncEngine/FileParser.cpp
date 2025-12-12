@@ -125,7 +125,11 @@ void FileParser::onDirHeader(std::unique_ptr<Json::Parser> content_parser)
         auto tmp = i->getArrayItems();
         for (auto &a : tmp)
         {
+#ifdef __linux__
+            std::replace(a.begin(), a.end(), '\\', '/');
+#endif
             std::string path_str = FileStreamHelper::wstringToLocalPath(dir_path + FileSystemUtils::utf8ToWide(a));
+
             FileSystemUtils::createDirectoryRecursive(path_str);
         }
     }
@@ -137,7 +141,11 @@ void FileParser::onDirHeader(std::unique_ptr<Json::Parser> content_parser)
 
 void FileParser::onDirItemHeader(std::unique_ptr<Json::Parser> content_parser)
 {
-    std::wstring file_relative_path = FileSystemUtils::utf8ToWide(content_parser->getValue("path"));
+    std::string arg_path = content_parser->getValue("path");
+#ifdef __linux__
+    std::replace(arg_path.begin(), arg_path.end(), '\\', '/');
+#endif
+    std::wstring file_relative_path = FileSystemUtils::utf8ToWide(arg_path);
     std::wstring full_path = dir_path + file_relative_path;
 
     file_stream = FileStreamHelper::createOutputFileStream(full_path);
@@ -147,6 +155,13 @@ void FileParser::onDirItemHeader(std::unique_ptr<Json::Parser> content_parser)
         LOG_ERROR("Failed to open: " << FileStreamHelper::wstringToLocalPath(full_path));
     }
 
+    uint64_t item_size = std::stoull(content_parser->getValue("total_size"));
+    if (item_size <= 0)
+    {
+        file_stream->flush();
+        file_stream.reset();
+        return;
+    }
     file_name = content_parser->getValue("path");
 }
 
