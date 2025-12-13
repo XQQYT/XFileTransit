@@ -64,6 +64,7 @@ public:
   Q_INVOKABLE void cleanTmpFiles();
   Q_INVOKABLE bool isTransferring();
   Q_INVOKABLE void updateFilePath(QString new_path);
+  Q_INVOKABLE void setAutoDownload(bool enable);
   void addRemoteFiles(std::vector<std::vector<std::string>> files);
   void haveDownLoadRequest(std::vector<std::string> file_ids);
 public slots:
@@ -82,6 +83,7 @@ private:
 private:
   QList<FileInfo> file_list;
   QHash<uint32_t, QVector<uint32_t>> speed_history;
+  bool auto_download{true};
 };
 
 struct FileInfo

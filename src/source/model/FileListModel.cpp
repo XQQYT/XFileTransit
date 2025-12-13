@@ -175,11 +175,14 @@ void FileListModel::addRemoteFiles(std::vector<std::vector<std::string>> files)
         file_list.append(remote_files);
         endInsertRows();
     }
-    for (int i = 0; i < file_list.size(); ++i)
+    if (auto_download)
     {
-        if (file_list[i].file_size <= auto_download_file_size && file_list[i].file_status == StatusRemoteDefault)
+        for (int i = 0; i < file_list.size(); ++i)
         {
-            downloadFile(i);
+            if (file_list[i].file_size <= auto_download_file_size && file_list[i].file_status == StatusRemoteDefault)
+            {
+                downloadFile(i);
+            }
         }
     }
 }
@@ -492,4 +495,9 @@ void FileListModel::updateFilePath(QString new_path)
             i.file_url = QUrl::fromLocalFile(i.source_path);
         }
     }
+}
+
+void FileListModel::setAutoDownload(bool enable)
+{
+    auto_download = enable;
 }

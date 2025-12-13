@@ -1272,6 +1272,14 @@ ApplicationWindow  {
                         file_list_model.updateFilePath(new_path)
                     }
                 }
+
+                Connections{
+                    target: settingsWindowLoader.item
+                    function onAutoDownloadChanged(enable){
+                        file_list_model.setAutoDownload(enable)
+                    }
+                }
+                
             }        
 
             // 清空按钮
