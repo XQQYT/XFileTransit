@@ -2,15 +2,15 @@
 #include "driver/impl/FileUtility.h"
 #include <iostream>
 
-void NlohmannJsonParser::loadJson(const std::string& msg)
+void NlohmannJsonParser::loadJson(const std::string &msg)
 {
     msg_json = json::parse(msg);
 }
-std::string NlohmannJsonParser::getValue(const std::string&& key)
+std::string NlohmannJsonParser::getValue(const std::string &&key)
 {
     if (msg_json.empty())
     {
-        return  "";
+        return "";
     }
     if (msg_json[key].is_string())
     {
@@ -18,19 +18,21 @@ std::string NlohmannJsonParser::getValue(const std::string&& key)
     }
     return "";
 }
-std::optional<bool> NlohmannJsonParser::getBool(const std::string&& key)
+std::optional<bool> NlohmannJsonParser::getBool(const std::string &&key)
 {
-    if (msg_json.empty() || !msg_json.contains(key)) {
+    if (msg_json.empty() || !msg_json.contains(key))
+    {
         return std::nullopt;
     }
 
-    if (msg_json[key].is_boolean()) {
+    if (msg_json[key].is_boolean())
+    {
         return msg_json[key].get<bool>();
     }
 
     return std::nullopt;
 }
-std::unique_ptr<Json::Parser> NlohmannJsonParser::getObj(const std::string&& key)
+std::unique_ptr<Json::Parser> NlohmannJsonParser::getObj(const std::string &&key)
 {
     if (msg_json.empty())
     {
@@ -42,11 +44,11 @@ std::unique_ptr<Json::Parser> NlohmannJsonParser::getObj(const std::string&& key
     }
     return nullptr;
 }
-bool NlohmannJsonParser::contain(const std::string&& key)
+bool NlohmannJsonParser::contain(const std::string &&key)
 {
     return msg_json.contains(key);
 }
-std::vector<std::unique_ptr<Json::Parser>> NlohmannJsonParser::getArray(const std::string&& key)
+std::vector<std::unique_ptr<Json::Parser>> NlohmannJsonParser::getArray(const std::string &&key)
 {
     if (msg_json.empty())
     {
@@ -56,7 +58,7 @@ std::vector<std::unique_ptr<Json::Parser>> NlohmannJsonParser::getArray(const st
 
     if (msg_json.contains(key) && msg_json[key].is_array())
     {
-        for (const auto& item : msg_json[key])
+        for (const auto &item : msg_json[key])
         {
             result.push_back(std::make_unique<NlohmannJsonParser>(item));
         }
@@ -71,7 +73,7 @@ std::vector<std::string> NlohmannJsonParser::getArrayItems()
         return {};
     }
     std::vector<std::string> items;
-    for (const auto& item : msg_json)
+    for (const auto &item : msg_json)
     {
         if (item.is_string())
         {
@@ -102,25 +104,29 @@ std::unique_ptr<Json::JsonBuilder> NlohmannJson::getBuilder(const Json::BuilderT
         return std::make_unique<SyncJsonMsgBuilder>();
     case Json::BuilderType::File:
         return std::make_unique<FileJsonMsgBuilder>();
+    case Json::BuilderType::Settings:
+        return std::make_unique<SettingsJsonMsgBuilder>();
     default:
         return nullptr;
     }
 }
 
-std::string UserJsonMsgBuilder::buildUserMsg(Json::MessageType::User::Type type, std::map<std::string, std::string>&& args)
+std::string UserJsonMsgBuilder::buildUserMsg(Json::MessageType::User::Type type, std::map<std::string, std::string> &&args)
 {
-    if (!registry.validateFields(type, args)) {
+    if (!registry.validateFields(type, args))
+    {
         throw std::invalid_argument("Missing required fields for message type");
     }
 
-    const auto& schema = registry.getSchema(type);
+    const auto &schema = registry.getSchema(type);
 
     json result_json;
     json content_json;
 
     result_json["type"] = schema.type_name;
 
-    for (auto&& [key, value] : args) {
+    for (auto &&[key, value] : args)
+    {
         content_json[std::forward<decltype(key)>(key)] = std::forward<decltype(value)>(value);
     }
 
@@ -129,25 +135,29 @@ std::string UserJsonMsgBuilder::buildUserMsg(Json::MessageType::User::Type type,
     return result_json.dump();
 }
 
-std::string SyncJsonMsgBuilder::buildSyncMsg(Json::MessageType::Sync::Type type, std::vector<std::string>&& args, uint8_t stride)
+std::string SyncJsonMsgBuilder::buildSyncMsg(Json::MessageType::Sync::Type type, std::vector<std::string> &&args, uint8_t stride)
 {
     json result_json;
     result_json["type"] = Json::MessageType::Sync::toString(type);
 
     json content_json = json::object();
 
-    if (type == Json::MessageType::Sync::Type::RemoveFile) {
+    if (type == Json::MessageType::Sync::Type::RemoveFile)
+    {
         // removeFiles 使用简单数组结构: {"files":["2","3","5"]}
         content_json["files"] = args;
     }
-    else {
+    else
+    {
         // 其他类型使用原来的嵌套数组结构
         json files_array = json::array();
 
         // 按步长处理参数
-        for (size_t i = 0; i < args.size(); i += stride) {
+        for (size_t i = 0; i < args.size(); i += stride)
+        {
             json group = json::array();
-            for (size_t j = 0; j < stride && (i + j) < args.size(); ++j) {
+            for (size_t j = 0; j < stride && (i + j) < args.size(); ++j)
+            {
                 group.push_back(args[i + j]);
             }
             files_array.push_back(group);
@@ -160,9 +170,10 @@ std::string SyncJsonMsgBuilder::buildSyncMsg(Json::MessageType::Sync::Type type,
     return result_json.dump();
 }
 
-void FileJsonMsgBuilder::buildFileHeader(json& result, Json::MessageType::File::Type type, const std::map<std::string, std::string>& args)
+void FileJsonMsgBuilder::buildFileHeader(json &result, Json::MessageType::File::Type type, const std::map<std::string, std::string> &args)
 {
-    try {
+    try
+    {
         json content;
         result["type"] = Json::MessageType::File::toString(type);
 
@@ -172,14 +183,16 @@ void FileJsonMsgBuilder::buildFileHeader(json& result, Json::MessageType::File::
 
         result["content"] = content;
     }
-    catch (const std::out_of_range& e) {
+    catch (const std::out_of_range &e)
+    {
         throw std::runtime_error("Missing required field in file header");
     }
 }
 
-void FileJsonMsgBuilder::buildDirHeader(json& result, Json::MessageType::File::Type type, const std::map<std::string, std::string>& args)
+void FileJsonMsgBuilder::buildDirHeader(json &result, Json::MessageType::File::Type type, const std::map<std::string, std::string> &args)
 {
-    try {
+    try
+    {
         json content;
         result["type"] = Json::MessageType::File::toString(type);
         content["id"] = args.at("id");
@@ -189,14 +202,16 @@ void FileJsonMsgBuilder::buildDirHeader(json& result, Json::MessageType::File::T
 
         result["content"] = content;
     }
-    catch (const std::out_of_range& e) {
+    catch (const std::out_of_range &e)
+    {
         throw std::runtime_error("Missing required field in file header");
     }
 }
 
-void FileJsonMsgBuilder::buildDirItemHeader(json& result, Json::MessageType::File::Type type, const std::map<std::string, std::string>& args)
+void FileJsonMsgBuilder::buildDirItemHeader(json &result, Json::MessageType::File::Type type, const std::map<std::string, std::string> &args)
 {
-    try {
+    try
+    {
         json content;
         result["type"] = Json::MessageType::File::toString(type);
 
@@ -207,7 +222,8 @@ void FileJsonMsgBuilder::buildDirItemHeader(json& result, Json::MessageType::Fil
 
         result["content"] = content;
     }
-    catch (const std::out_of_range& e) {
+    catch (const std::out_of_range &e)
+    {
         throw std::runtime_error("Missing required field in file header");
     }
 }
@@ -235,4 +251,25 @@ std::string FileJsonMsgBuilder::buildFileMsg(Json::MessageType::File::Type type,
         break;
     }
     return result.dump();
+}
+
+std::string SettingsJsonMsgBuilder::buildSettingsMsg(Json::MessageType::Settings::Type type, std::map<std::string, std::string> args)
+{
+    json result_json;
+    json content_json;
+
+    result_json["type"] = Json::MessageType::Settings::toString(type);
+
+    switch (type)
+    {
+    case Json::MessageType::Settings::ConcurrentTask:
+        content_json["concurrent"] = args["concurrent"];
+        break;
+    default:
+        break;
+    }
+
+    result_json["content"] = std::move(content_json);
+
+    return result_json.dump();
 }

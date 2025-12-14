@@ -48,9 +48,6 @@ ApplicationWindow {
     property int dragStartX: 0
     property int dragStartY: 0
     
-    signal cachePathChanged(string new_path)
-    signal autoDownloadChanged(bool enable)
-
     // 主题切换处理
     function switchTheme(theme) {
         settings_model.currentTheme = theme
@@ -73,7 +70,6 @@ ApplicationWindow {
     // 切换自动下载
     function toggleAutoDownload(enabled) {
         settings_model.autoDownload = enabled
-        autoDownloadChanged(enabled)
         console.log("自动下载:", enabled ? "启用" : "禁用")
     }
     
@@ -1045,7 +1041,6 @@ ApplicationWindow {
                                         target: settings_model
                                         function onCacheMoveDone() {
                                             Qt.callLater(function() {
-                                                cachePathChanged(settings_model.cachePath)
                                                 load_dialog.close()
                                             })
                                         }

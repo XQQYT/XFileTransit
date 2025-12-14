@@ -50,11 +50,12 @@ void NetworkController::initSubscribe()
                                           std::bind(&NetworkController::onSendGetFile,
                                                     this,
                                                     std::placeholders::_1));
+    EventBusManager::instance().subscribe("/settings/send_concurrent_changed",
+                                          std::bind(&NetworkController::onConcurrentChanged,
+                                                    this,
+                                                    std::placeholders::_1));
     // 设置错误处理回调函数
-    control_msg_network_driver->setDealConnectErrorCb(std::bind(
-        &NetworkController::onConnectError,
-        this,
-        std::placeholders::_1));
+    control_msg_network_driver->setDealConnectErrorCb(std::bind(&NetworkController::onConnectError, this, std::placeholders::_1));
     control_msg_network_driver->setDealRecvErrorCb(std::bind(
         &NetworkController::onRecvError,
         this,
@@ -251,4 +252,11 @@ void NetworkController::onSendGetFile(uint32_t id)
     auto sync_builder = json_builder->getBuilder(Json::BuilderType::Sync);
     control_msg_network_driver->sendMsg(
         sync_builder->buildSyncMsg(Json::MessageType::Sync::DownloadFile, {std::to_string(id)}, 1));
+}
+
+void NetworkController::onConcurrentChanged(uint8_t num)
+{
+    auto settings_builder = json_builder->getBuilder(Json::BuilderType::Settings);
+    control_msg_network_driver->sendMsg(
+        settings_builder->buildSettingsMsg(Json::MessageType::Settings::ConcurrentTask, {{"concurrent", std::to_string(num)}}));
 }

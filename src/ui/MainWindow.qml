@@ -1137,9 +1137,8 @@ ApplicationWindow  {
                     }
                 }
                 Connections{
-                    target: settings_model
-                    enabled: settingsWindowLoader.status === Loader.Ready
-                    function onCurrentThemeChanged(theme_index) {
+                    target: file_list_model
+                    function onThemeChanged(theme_index) {
                         console.log("theme index ",theme_index)
                         setTheme(theme_index)
                         deviceWindowLoader.item.setTheme(theme_index)
@@ -1264,22 +1263,7 @@ ApplicationWindow  {
                             }
                         }
                     }
-                }
-
-                Connections{
-                    target: settingsWindowLoader.item
-                    function onCachePathChanged(new_path){
-                        file_list_model.updateFilePath(new_path)
-                    }
-                }
-
-                Connections{
-                    target: settingsWindowLoader.item
-                    function onAutoDownloadChanged(enable){
-                        file_list_model.setAutoDownload(enable)
-                    }
-                }
-                
+                }          
             }        
 
             // 清空按钮

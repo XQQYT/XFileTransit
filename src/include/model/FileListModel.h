@@ -63,12 +63,15 @@ public:
   Q_INVOKABLE void downloadFile(int index);
   Q_INVOKABLE void cleanTmpFiles();
   Q_INVOKABLE bool isTransferring();
-  Q_INVOKABLE void updateFilePath(QString new_path);
-  Q_INVOKABLE void setAutoDownload(bool enable);
+  void updateFilePath(QString new_path);
+  void setAutoDownload(bool enable);
   void addRemoteFiles(std::vector<std::vector<std::string>> files);
   void haveDownLoadRequest(std::vector<std::string> file_ids);
+signals:
+  void themeChanged(int theme);
 public slots:
   void onConnectionClosed();
+  void onSettingsChanged(Settings::Item item, QVariant value);
 
 private:
   bool isFileExists(const QString &filePath);

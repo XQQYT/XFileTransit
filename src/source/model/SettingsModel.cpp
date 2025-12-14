@@ -1,6 +1,7 @@
 #include "model/SettingsModel.h"
 #include "driver/impl/FileUtility.h"
-#include "control/GlobalStatusManager.h"
+#include "control/EventBusManager.h"
+
 #include <QtCore/QDebug>
 #include <QtCore/QStringList>
 #include <QtWidgets/QApplication>
@@ -23,7 +24,8 @@ void SettingsModel::setCurrentTheme(int theme)
     if (current_theme != theme)
     {
         current_theme = theme;
-        emit currentThemeChanged(theme);
+        emit currentThemeChanged(theme);                    // qml
+        emit settingsChanged(Settings::Item::Theme, theme); // model
     }
 }
 
@@ -56,6 +58,7 @@ void SettingsModel::setCurrentLanguage(int language)
         }
 
         emit currentLanguageChanged(language);
+        emit settingsChanged(Settings::Item::Language, language);
     }
 }
 
@@ -83,13 +86,10 @@ void SettingsModel::setCachePath(const QUrl &url)
                         {
                         FileSystemUtils::copyDirectory(old_tmp_path, cache_path.toStdString());
                         FileSystemUtils::removeFileOrDirectory(old_tmp_path, false);
-                        emit cacheMoveDone(); })
+                        emit cacheMoveDone();
+                        emit settingsChanged(Settings::Item::CachePath, cache_path); })
             ->start();
     }
-}
-
-void SettingsModel::cancelMoveCache()
-{
 }
 
 void SettingsModel::setAutoDownload(bool enable)
@@ -98,6 +98,7 @@ void SettingsModel::setAutoDownload(bool enable)
     {
         auto_download = enable;
         emit autoDownloadChanged(enable);
+        emit settingsChanged(Settings::Item::AutoDownload, enable);
     }
 }
 
@@ -107,6 +108,8 @@ void SettingsModel::setConcurrentTransfers(int transfers)
     {
         concurrent_transfers = transfers;
         emit concurrentTransfersChanged(transfers);
+        emit settingsChanged(Settings::Item::ConcurrentTransfers, transfers);
+        EventBusManager::instance().publish("/settings/send_concurrent_changed", static_cast<uint8_t>(transfers));
     }
 }
 
@@ -125,6 +128,7 @@ void SettingsModel::setExpandOnAction(bool expand)
     {
         expand_on_action = expand;
         emit expandOnActionChanged(expand);
+        emit settingsChanged(Settings::Item::ExpandOnAction, expand);
     }
 }
 
@@ -134,6 +138,7 @@ void SettingsModel::setAppVersion(const QString &version)
     {
         app_version = version;
         emit appVersionChanged(version);
+        emit settingsChanged(Settings::Item::AppVersion, version);
     }
 }
 
@@ -143,5 +148,6 @@ void SettingsModel::setIsUpdateAvailable(bool available)
     {
         is_update_available = available;
         emit isUpdateAvailableChanged(available);
+        emit settingsChanged(Settings::Item::IsUpdateAvailable, available);
     }
 }

@@ -501,3 +501,20 @@ void FileListModel::setAutoDownload(bool enable)
 {
     auto_download = enable;
 }
+
+void FileListModel::onSettingsChanged(Settings::Item item, QVariant value)
+{
+    switch (item)
+    {
+    case Settings::Item::Theme:
+        emit themeChanged(value.toInt());
+        break;
+    case Settings::Item::CachePath:
+        updateFilePath(value.toString());
+        break;
+    case Settings::Item::AutoDownload:
+        setAutoDownload(value.toBool());
+    default:
+        return;
+    }
+}

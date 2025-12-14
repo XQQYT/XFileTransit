@@ -123,4 +123,20 @@ private:
     std::unordered_map<uint32_t, std::string> id_filename;
 };
 
+namespace Settings
+{
+    enum class Item
+    {
+        Theme,
+        Language,
+        CachePath,
+        AutoDownload,
+        ConcurrentTransfers,
+        EnableEncryption,
+        ExpandOnAction,
+        AppVersion,
+        IsUpdateAvailable
+    };
+};
+
 #endif

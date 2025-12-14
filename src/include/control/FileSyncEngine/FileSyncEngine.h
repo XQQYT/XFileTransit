@@ -23,6 +23,7 @@ public:
     std::optional<std::pair<uint32_t, std::string>> getPendingFile();
     void haveFileConnection(UnifiedSocket socket);
     void haveFileMsg(UnifiedSocket socket, std::unique_ptr<NetworkInterface::UserMsg> msg);
+    void setConcurrentTask(uint8_t num);
     ~FileSyncEngine();
 
 private:
@@ -32,8 +33,13 @@ private:
     std::shared_ptr<std::condition_variable> cv;
     std::mutex mtx;
 
+    std::string address;
+    std::string recv_port;
+    std::shared_ptr<SecurityInterface> instance;
+
 private:
-    std::queue<std::pair<uint32_t, std::string>> pending_send_files;
+    std::queue<std::pair<uint32_t, std::string>>
+        pending_send_files;
     bool is_start{false};
 };
 

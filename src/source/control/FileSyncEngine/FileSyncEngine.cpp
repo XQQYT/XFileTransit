@@ -23,6 +23,16 @@ FileSyncEngine::FileSyncEngine()
                                                                          this,
                                                                          std::placeholders::_1,
                                                                          std::placeholders::_2));
+    // 被动修改方
+    EventBusManager::instance().subscribe("/settings/have_concurrent_changed", std::bind(
+                                                                                   &FileSyncEngine::setConcurrentTask,
+                                                                                   this,
+                                                                                   std::placeholders::_1));
+    // 修改方
+    EventBusManager::instance().subscribe("/settings/send_concurrent_changed", std::bind(
+                                                                                   &FileSyncEngine::setConcurrentTask,
+                                                                                   this,
+                                                                                   std::placeholders::_1));
 }
 
 void FileSyncEngine::onHaveFileToSend(uint32_t id, std::string path)
@@ -60,10 +70,14 @@ void FileSyncEngine::haveFileMsg(UnifiedSocket socket, std::unique_ptr<NetworkIn
 void FileSyncEngine::start(std::string address, std::string recv_port,
                            std::shared_ptr<SecurityInterface> instance)
 {
+    this->address = address;
+    this->recv_port = recv_port;
+    this->instance = instance;
+
     LOG_INFO("FileSyncCore start");
 
     // 初始化receiver
-    file_receiver = std::make_unique<FileReceiver>("0.0.0.0", recv_port, instance);
+    file_receiver = std::make_unique<FileReceiver>("0.0.0.0", this->recv_port, this->instance);
     cv = std::make_shared<std::condition_variable>();
 
     if (file_receiver->initialize())
@@ -76,7 +90,7 @@ void FileSyncEngine::start(std::string address, std::string recv_port,
     std::vector<std::shared_ptr<FileSender>> initialized_senders;
     for (int i = 0; i < sender_num; ++i)
     {
-        auto sender = std::make_shared<FileSender>(address, recv_port, instance);
+        auto sender = std::make_shared<FileSender>(this->address, this->recv_port, this->instance);
         if (sender->initialize())
         {
             sender->setCondition(this->cv);
@@ -95,6 +109,48 @@ void FileSyncEngine::start(std::string address, std::string recv_port,
         file_senders.push_back(sender);
     }
     is_start = true;
+}
+
+void FileSyncEngine::setConcurrentTask(uint8_t num)
+{
+    LOG_DEBUG("new concurrent nums is " << static_cast<int>(num));
+    int16_t need_to_close = num - file_senders.size();
+    // 增加并行数
+    if (need_to_close >= 0)
+    {
+        std::vector<std::shared_ptr<FileSender>> initialized_senders;
+        for (uint8_t i = 0; i < need_to_close; ++i)
+        {
+            LOG_DEBUG("add one sender");
+            auto sender = std::make_shared<FileSender>(this->address, this->recv_port, this->instance);
+            if (sender->initialize())
+            {
+                sender->setCondition(this->cv);
+                sender->setCheckQueue([this]() -> bool
+                                      {
+                    std::lock_guard<std::mutex> lock(mtx);
+                    bool is_empty = pending_send_files.empty();
+                    return !is_empty; });
+                initialized_senders.push_back(sender);
+            }
+        }
+        for (auto &sender : initialized_senders)
+        {
+            sender->start(std::bind(&FileSyncEngine::getPendingFile, this));
+            file_senders.push_back(sender);
+        }
+    }
+    else // 减少并行数
+    {
+        need_to_close = std::abs(need_to_close);
+        for (uint8_t i = 0; i < need_to_close; ++i)
+        {
+            LOG_DEBUG("remove one sender");
+            auto sender = file_senders.back();
+            sender->stop();
+            file_senders.pop_back();
+        }
+    }
 }
 
 void FileSyncEngine::stop()

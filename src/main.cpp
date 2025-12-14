@@ -65,6 +65,10 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/file/upload_progress");
     // 下载进度更新
     EventBusManager::instance().registerEvent("/file/download_progress");
+
+    EventBusManager::instance().registerEvent("/settings/send_concurrent_changed");
+
+    EventBusManager::instance().registerEvent("/settings/have_concurrent_changed");
 }
 
 int main(int argc, char *argv[])

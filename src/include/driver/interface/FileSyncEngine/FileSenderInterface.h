@@ -12,8 +12,8 @@
 class FileSenderInterface
 {
 public:
-    FileSenderInterface(const std::string& addr, const std::string& p, std::shared_ptr<SecurityInterface> inst) :
-        address(addr), port(p), security_instance(inst) {
+    FileSenderInterface(const std::string &addr, const std::string &p, std::shared_ptr<SecurityInterface> inst) : address(addr), port(p), security_instance(inst)
+    {
     }
     virtual ~FileSenderInterface() = default;
     virtual bool initialize() = 0;
@@ -21,8 +21,10 @@ public:
     virtual void stop() = 0;
     virtual void setCondition(std::shared_ptr<std::condition_variable> queue_cv) { cv = queue_cv; }
     virtual void setCheckQueue(std::function<bool()> check_cb) { check_queue_cb = check_cb; }
+
 protected:
-    static OuterMsgBuilderInterface& getOuterMsgBuilder() {
+    static OuterMsgBuilderInterface &getOuterMsgBuilder()
+    {
         static OuterMsgBuilder instance;
         return instance;
     }
@@ -31,7 +33,7 @@ protected:
     std::string port;
     std::shared_ptr<std::condition_variable> cv;
     std::function<bool()> check_queue_cb;
-    bool running{ false };
+    bool running{false};
 };
 
 #endif

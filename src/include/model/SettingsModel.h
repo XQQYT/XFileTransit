@@ -8,6 +8,8 @@
 #include <string>
 #include <cstdint>
 
+#include "control/GlobalStatusManager.h"
+
 class SettingsModel : public QObject
 {
     Q_OBJECT
@@ -47,8 +49,6 @@ public:
     void setIsUpdateAvailable(bool available);
     void setQmlEngine(QQmlEngine *engine);
 
-    Q_INVOKABLE void cancelMoveCache();
-
 signals:
     void currentThemeChanged(int theme);
     void currentLanguageChanged(int language);
@@ -61,6 +61,7 @@ signals:
     void isUpdateAvailableChanged(bool available);
     void cacheInfoDone(QString used, QString free_size, QString total);
     void cacheMoveDone();
+    void settingsChanged(Settings::Item item, QVariant value);
 
 private:
     int current_theme = 0;    // 0: light, 1: dark

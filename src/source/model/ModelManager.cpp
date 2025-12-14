@@ -9,6 +9,8 @@ ModelManager::ModelManager()
 {
     connect(connection_manager.get(), &ConnectionManager::connectionClosed,
             file_list_model.get(), &FileListModel::onConnectionClosed);
+    connect(settings_model.get(), &SettingsModel::settingsChanged,
+            file_list_model.get(), &FileListModel::onSettingsChanged);
 }
 
 ModelManager &ModelManager::getInstance()
