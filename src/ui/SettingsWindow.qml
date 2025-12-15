@@ -79,12 +79,6 @@ ApplicationWindow {
         console.log("设置并发传输数:", count)
     }
     
-    // 切换加密
-    function toggleEncryption(enabled) {
-        settings_model.enableEncryption = enabled
-        console.log("传输加密:", enabled ? "启用" : "禁用")
-    }
-    
     // 切换智能展开
     function toggleExpandOnAction(enabled) {
         settings_model.expandOnAction = enabled
@@ -1301,97 +1295,6 @@ ApplicationWindow {
                                             onClicked: function(mouse) {
                                                 updateValue(mouse.x)
                                             }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        Rectangle {
-                            width: parent.width
-                            height: 160
-                            radius: 16
-                            color: cardColor
-                            border.color: borderColor
-                            border.width: 2
-                            
-                            Column {
-                                anchors.fill: parent
-                                anchors.margins: 20
-                                spacing: 15
-                                
-                                Row {
-                                    width: parent.width
-                                    spacing: 12
-                                    
-                                    
-                                    Column {
-                                        spacing: 2
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        
-                                        Text {
-                                            text: qsTr("是否开启加密")
-                                            font {
-                                                pixelSize: 18
-                                                weight: Font.Bold
-                                            }
-                                            color: textPrimary
-                                        }
-                                        
-                                        Text {
-                                            text: qsTr("传输过程中对文件进行加密保护")
-                                            font.pixelSize: 13
-                                            color: textSecondary
-                                        }
-                                    }
-                                }
-                                
-                                Row {
-                                    spacing: 20
-                                    width: parent.width
-                                    
-                                    Column {
-                                        spacing: 5
-                                        width: parent.width - 100
-                                        
-                                        Text {
-                                            text: qsTr("启用传输加密")
-                                            font.pixelSize: 16
-                                            color: textPrimary
-                                        }
-                                        
-                                        Text {
-                                            text: qsTr("增强安全性，保护隐私")
-                                            font.pixelSize: 13
-                                            color: accentGreen
-                                        }
-                                    }
-                                    
-                                    Rectangle {
-                                        id: encryptionSwitch
-                                        width: 60
-                                        height: 30
-                                        radius: 15
-                                        color: settings_model.enableEncryption ? primaryColor : switchOffColor
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        
-                                        Rectangle {
-                                            x: settings_model.enableEncryption ? parent.width - width - 3 : 3
-                                            y: 3
-                                            width: 24
-                                            height: 24
-                                            radius: 12
-                                            color: switchHandleColor
-                                            
-                                            Behavior on x {
-                                                NumberAnimation { duration: 200 }
-                                            }
-                                        }
-                                        
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: toggleEncryption(!settings_model.enableEncryption)
                                         }
                                     }
                                 }

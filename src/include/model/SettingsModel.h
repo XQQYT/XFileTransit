@@ -20,7 +20,6 @@ class SettingsModel : public QObject
     Q_PROPERTY(QString cachePath READ cachePath WRITE setCachePath NOTIFY cachePathChanged)
     Q_PROPERTY(bool autoDownload READ autoDownload WRITE setAutoDownload NOTIFY autoDownloadChanged)
     Q_PROPERTY(int concurrentTransfers READ concurrentTransfers WRITE setConcurrentTransfers NOTIFY concurrentTransfersChanged)
-    Q_PROPERTY(bool enableEncryption READ enableEncryption WRITE setEnableEncryption NOTIFY enableEncryptionChanged)
     Q_PROPERTY(bool expandOnAction READ expandOnAction WRITE setExpandOnAction NOTIFY expandOnActionChanged)
     Q_PROPERTY(QString appVersion READ appVersion WRITE setAppVersion NOTIFY appVersionChanged)
     Q_PROPERTY(bool isUpdateAvailable READ isUpdateAvailable WRITE setIsUpdateAvailable NOTIFY isUpdateAvailableChanged)
@@ -33,7 +32,6 @@ public:
     QString cachePath() const { return cache_path; }
     bool autoDownload() const { return auto_download; }
     int concurrentTransfers() const { return concurrent_transfers; }
-    bool enableEncryption() const { return enable_encryption; }
     bool expandOnAction() const { return expand_on_action; }
     QString appVersion() const { return app_version; }
     bool isUpdateAvailable() const { return is_update_available; }
@@ -43,7 +41,6 @@ public:
     void setCachePath(const QUrl &url);
     void setAutoDownload(bool enable);
     void setConcurrentTransfers(int transfers);
-    void setEnableEncryption(bool enable);
     void setExpandOnAction(bool expand);
     void setAppVersion(const QString &version);
     void setIsUpdateAvailable(bool available);
@@ -55,7 +52,6 @@ signals:
     void cachePathChanged(const QString &path);
     void autoDownloadChanged(bool enable);
     void concurrentTransfersChanged(int transfers);
-    void enableEncryptionChanged(bool enable);
     void expandOnActionChanged(bool expand);
     void appVersionChanged(const QString &version);
     void isUpdateAvailableChanged(bool available);
@@ -70,7 +66,6 @@ private:
     QString cache_path = "";
     bool auto_download = false;
     int concurrent_transfers = 3;
-    bool enable_encryption = true;
     bool expand_on_action = true;
     QString app_version = "1.0.0";
     bool is_update_available = false;

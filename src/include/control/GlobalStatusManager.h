@@ -132,7 +132,6 @@ namespace Settings
         CachePath,
         AutoDownload,
         ConcurrentTransfers,
-        EnableEncryption,
         ExpandOnAction,
         AppVersion,
         IsUpdateAvailable

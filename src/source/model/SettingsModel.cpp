@@ -113,15 +113,6 @@ void SettingsModel::setConcurrentTransfers(int transfers)
     }
 }
 
-void SettingsModel::setEnableEncryption(bool enable)
-{
-    if (enable_encryption != enable)
-    {
-        enable_encryption = enable;
-        emit enableEncryptionChanged(enable);
-    }
-}
-
 void SettingsModel::setExpandOnAction(bool expand)
 {
     if (expand_on_action != expand)
