@@ -12,6 +12,7 @@
 SettingsModel::SettingsModel(QObject *parent)
     : QObject(parent), translator(new QTranslator(this))
 {
+    app_version = AppVersion::string;
 }
 
 void SettingsModel::setQmlEngine(QQmlEngine *engine)

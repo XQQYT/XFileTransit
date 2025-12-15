@@ -138,4 +138,15 @@ namespace Settings
     };
 };
 
+inline namespace AppVersion
+{
+    inline constexpr int Major = 1;
+    inline constexpr int Minor = 0;
+    inline constexpr int Patch = 0;
+    inline constexpr int Build = 20241128;
+
+    inline constexpr const char *string = "1.1.0";
+    inline constexpr const char *string_full = "1.0.0.20251228";
+}
+
 #endif

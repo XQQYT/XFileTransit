@@ -1482,15 +1482,17 @@ ApplicationWindow {
                                 spacing: 30
                                 
                                 Rectangle {
-                                    width: 100
-                                    height: 100
-                                    radius: 20
-                                    color: primaryColor
+                                    width: 80
+                                    height: 80
+                                    radius: 10
+                                    color: dividerColor
                                     
-                                    Text {
-                                        text: "⚡"
-                                        font.pixelSize: 40
+                                    Image {
+                                        source: "qrc:/logo/logo_small.png"
+                                        width: 60
+                                        height: 60
                                         anchors.centerIn: parent
+                                        fillMode: Image.PreserveAspectFit
                                     }
                                 }
                                 
@@ -1499,7 +1501,7 @@ ApplicationWindow {
                                     anchors.verticalCenter: parent.verticalCenter
                                     
                                     Text {
-                                        text: qsTr("快速传输")
+                                        text: qsTr("文件中转站")
                                         font {
                                             pixelSize: 28
                                             weight: Font.Bold
@@ -1508,7 +1510,7 @@ ApplicationWindow {
                                     }
                                     
                                     Text {
-                                        text: "Fast Transfer Pro"
+                                        text: "XFileTransit"
                                         font.pixelSize: 16
                                         color: textSecondary
                                     }
@@ -1520,7 +1522,7 @@ ApplicationWindow {
                                     }
                                     
                                     Text {
-                                        text: qsTr("© 2024 快速传输团队 版权所有")
+                                        text: qsTr("https://github.com/XQQYT/XFileTransit")
                                         font.pixelSize: 12
                                         color: textSecondary
                                     }
