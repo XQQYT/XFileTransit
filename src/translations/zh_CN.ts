@@ -317,33 +317,33 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1160"/>
-        <location filename="../ui/MainWindow.qml" line="1229"/>
+        <location filename="../ui/MainWindow.qml" line="1169"/>
+        <location filename="../ui/MainWindow.qml" line="1238"/>
         <source>是否同步当前文件</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1242"/>
+        <location filename="../ui/MainWindow.qml" line="1251"/>
         <source>连接成功</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1255"/>
+        <location filename="../ui/MainWindow.qml" line="1264"/>
         <source>连接被拒绝</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1287"/>
+        <location filename="../ui/MainWindow.qml" line="1296"/>
         <source>清空</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1344"/>
+        <location filename="../ui/MainWindow.qml" line="1353"/>
         <source>有文件正在传输中</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1353"/>
+        <location filename="../ui/MainWindow.qml" line="1362"/>
         <source>确定退出吗？</source>
         <translation type="unfinished"></translation>
     </message>

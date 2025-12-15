@@ -1147,6 +1147,15 @@ ApplicationWindow  {
                         generalDialogLoader.item.setTheme(theme_index)
                     }
                 }
+                Connections{
+                    target: file_list_model
+                    function onMainWinExpand() {
+                        if(!root.expanded){
+                            collapseTimer.stop()
+                            root.expanded = true
+                        }
+                    }
+                }
                 Connections {
                     target: connectRequestLoader.item
                     enabled: connectRequestLoader.status === Loader.Ready

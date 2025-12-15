@@ -69,6 +69,7 @@ public:
   void haveDownLoadRequest(std::vector<std::string> file_ids);
 signals:
   void themeChanged(int theme);
+  void mainWinExpand();
 public slots:
   void onConnectionClosed();
   void onSettingsChanged(Settings::Item item, QVariant value);
@@ -82,6 +83,7 @@ private:
   void onUploadFileProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end);
   void onDownLoadProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end);
   std::pair<int, FileInfo &> findFileInfoById(uint32_t id);
+  bool auto_expand;
 
 private:
   QList<FileInfo> file_list;

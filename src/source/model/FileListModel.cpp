@@ -150,6 +150,10 @@ void FileListModel::addFiles(const QList<QString> &files, bool is_remote_file)
         beginInsertRows(QModelIndex(), file_list.size(), file_list.size() + unique_files.size() - 1);
         file_list.append(unique_files);
         endInsertRows();
+        if (auto_expand)
+        {
+            emit mainWinExpand();
+        }
     }
 
     if (GlobalStatusManager::getInstance().getConnectStatus() && !files_to_send.empty())
@@ -174,6 +178,10 @@ void FileListModel::addRemoteFiles(std::vector<std::vector<std::string>> files)
         beginInsertRows(QModelIndex(), file_list.size(), file_list.size() + remote_files.size() - 1);
         file_list.append(remote_files);
         endInsertRows();
+        if (auto_expand)
+        {
+            emit mainWinExpand();
+        }
     }
     if (auto_download)
     {
@@ -340,6 +348,10 @@ void FileListModel::removeFileById(std::vector<std::string> id)
             endRemoveRows();
         }
     }
+    if (auto_expand)
+    {
+        emit mainWinExpand();
+    }
 }
 void FileListModel::downloadFile(int i)
 {
@@ -389,6 +401,10 @@ void FileListModel::onUploadFileProgress(uint32_t id, uint8_t progress, uint32_t
     // 更新状态和进度
     target_file.second.file_status = is_end ? FileStatus::StatusUploadCompleted : FileStatus::StatusUploading;
     target_file.second.progress = static_cast<quint8>(progress);
+    if (auto_expand && is_end)
+    {
+        emit mainWinExpand();
+    }
 
     // 使用移动平均计算速度
     if (!is_end)
@@ -431,7 +447,10 @@ void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, uint32_t s
     auto target_file = findFileInfoById(id);
     target_file.second.file_status = is_end ? FileStatus::StatusDownloadCompleted : FileStatus::StatusDownloading;
     target_file.second.progress = static_cast<int>(progress);
-
+    if (auto_expand && is_end)
+    {
+        emit mainWinExpand();
+    }
     // 使用移动平均计算速度
     if (!is_end)
     {
@@ -522,6 +541,9 @@ void FileListModel::onSettingsChanged(Settings::Item item, QVariant value)
         break;
     case Settings::Item::AutoDownload:
         setAutoDownload(value.toBool());
+    case Settings::Item::ExpandOnAction:
+        auto_expand = value.toBool();
+        break;
     default:
         return;
     }
