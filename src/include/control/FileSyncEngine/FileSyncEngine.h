@@ -6,7 +6,7 @@
 #include "driver/interface/FileSyncEngine/FileSenderInterface.h"
 #include "driver/interface/FileSyncEngine/FileReceiverInterface.h"
 #include "driver/interface/FileSyncEngine/FileParserInterface.h"
-#include <queue>
+#include <deque>
 #include <condition_variable>
 #include <mutex>
 #include <utility>
@@ -20,6 +20,7 @@ public:
     void start(std::string address, std::string recv_port, std::shared_ptr<SecurityInterface> instance);
     void stop();
     void onHaveFileToSend(uint32_t id, std::string path);
+    void onCancelSendFile(uint32_t id);
     std::optional<std::pair<uint32_t, std::string>> getPendingFile();
     void haveFileConnection(UnifiedSocket socket);
     void haveFileMsg(UnifiedSocket socket, std::unique_ptr<NetworkInterface::UserMsg> msg);
@@ -38,7 +39,7 @@ private:
     std::shared_ptr<SecurityInterface> instance;
 
 private:
-    std::queue<std::pair<uint32_t, std::string>>
+    std::deque<std::pair<uint32_t, std::string>>
         pending_send_files;
     bool is_start{false};
 };

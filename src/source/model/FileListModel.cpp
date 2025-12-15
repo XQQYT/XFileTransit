@@ -286,6 +286,10 @@ void FileListModel::deleteFile(int index)
 {
     quint32 file_id = file_list[index].id;
     EventBusManager::instance().publish("/sync/send_deletefiles", static_cast<uint32_t>(file_id));
+    if (file_list[index].file_status == FileStatus::StatusPending)
+    {
+        EventBusManager::instance().publish("/file/cancel_file_send", static_cast<uint32_t>(file_id));
+    }
 }
 
 void FileListModel::onHaveExpiredFile(std::vector<std::string> id)
@@ -315,6 +319,11 @@ void FileListModel::removeFileById(std::vector<std::string> id)
             if (file_list[i].id == target_id)
             {
                 indicesToRemove.push_back(i);
+                GlobalStatusManager::getInstance().removeFile(target_id);
+                if (file_list[i].file_status == FileStatus::StatusPending)
+                {
+                    EventBusManager::instance().publish("/file/cancel_file_send", static_cast<uint32_t>(file_list[i].id));
+                }
                 break;
             }
         }
@@ -326,7 +335,6 @@ void FileListModel::removeFileById(std::vector<std::string> id)
     {
         if (index >= 0 && index < file_list.size())
         {
-            deleteFile(index);
             beginRemoveRows(QModelIndex(), index, index);
             file_list.removeAt(index);
             endRemoveRows();

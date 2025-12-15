@@ -23,6 +23,10 @@ FileSyncEngine::FileSyncEngine()
                                                                          this,
                                                                          std::placeholders::_1,
                                                                          std::placeholders::_2));
+    EventBusManager::instance().subscribe("/file/cancel_file_send", std::bind(
+                                                                        &FileSyncEngine::onCancelSendFile,
+                                                                        this,
+                                                                        std::placeholders::_1));
     // 被动修改方
     EventBusManager::instance().subscribe("/settings/have_concurrent_changed", std::bind(
                                                                                    &FileSyncEngine::setConcurrentTask,
@@ -38,8 +42,21 @@ FileSyncEngine::FileSyncEngine()
 void FileSyncEngine::onHaveFileToSend(uint32_t id, std::string path)
 {
     std::lock_guard<std::mutex> lock(mtx);
-    pending_send_files.push({id, std::move(path)});
+    pending_send_files.push_back({id, std::move(path)});
     cv->notify_one();
+}
+
+void FileSyncEngine::onCancelSendFile(uint32_t id)
+{
+    std::lock_guard<std::mutex> lock(mtx);
+
+    auto new_end = std::remove_if(pending_send_files.begin(),
+                                  pending_send_files.end(),
+                                  [id](const std::pair<uint32_t, std::string> &element)
+                                  {
+                                      return id == element.first;
+                                  });
+    pending_send_files.erase(new_end, pending_send_files.end());
 }
 
 std::optional<std::pair<uint32_t, std::string>> FileSyncEngine::getPendingFile()
@@ -50,7 +67,7 @@ std::optional<std::pair<uint32_t, std::string>> FileSyncEngine::getPendingFile()
         return std::nullopt;
     }
     auto file = pending_send_files.front();
-    pending_send_files.pop();
+    pending_send_files.pop_front();
     return file;
 }
 
