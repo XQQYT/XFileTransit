@@ -36,6 +36,7 @@ ApplicationWindow {
     property color whiteColor: "white"
     
     property var settings_model: null
+    property bool initialized: false
     
     property var currentBtn: null
     property var currentPage: basicSettingsPage  // 当前页面组件
@@ -125,6 +126,12 @@ ApplicationWindow {
         }
     }
     
+    onSettings_modelChanged: {
+        if (settings_model && !initialized) {
+            settings_model.initSettings()
+            initialized = true
+        }
+    }
 
     // 主题切换函数
     function setTheme(theme_index) {
@@ -1021,7 +1028,13 @@ ApplicationWindow {
                                             anchors.horizontalCenter: parent.horizontalCenter
                                         }
                                     }
-
+                                    Connections {
+                                        target: settings_model
+                                        enabled: true
+                                        function onCurrentThemeChanged(theme) {
+                                            console.log("theme changed:")
+                                        }
+                                    }
                                     Connections{
                                         target: settings_model
                                         function onCacheInfoDone(used,free,total) {
@@ -1642,5 +1655,8 @@ ApplicationWindow {
                 }
             }
         }
+    }
+    Component.onCompleted:{
+        console.log("completed")
     }
 }

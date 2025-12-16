@@ -1139,7 +1139,6 @@ ApplicationWindow  {
                 Connections{
                     target: file_list_model
                     function onThemeChanged(theme_index) {
-                        console.log("theme index ",theme_index)
                         setTheme(theme_index)
                         deviceWindowLoader.item.setTheme(theme_index)
                         connectRequestLoader.item.setTheme(theme_index)

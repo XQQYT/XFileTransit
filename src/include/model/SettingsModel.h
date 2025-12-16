@@ -26,7 +26,6 @@ class SettingsModel : public QObject
 
 public:
     explicit SettingsModel(QObject *parent = nullptr);
-
     int currentTheme() const { return current_theme; }
     int currentLanguage() const { return current_language; }
     QString cachePath() const { return cache_path; }
@@ -46,6 +45,8 @@ public:
     void setIsUpdateAvailable(bool available);
     void setQmlEngine(QQmlEngine *engine);
 
+    Q_INVOKABLE void initSettings();
+
 signals:
     void currentThemeChanged(int theme);
     void currentLanguageChanged(int language);
@@ -60,15 +61,23 @@ signals:
     void settingsChanged(Settings::Item item, QVariant value);
 
 private:
-    int current_theme = 0;    // 0: light, 1: dark
-    int current_language = 0; // 0: English, 1: Chinese
+    void onConfigResult(uint8_t group, std::shared_ptr<std::unordered_map<std::string, std::string>> config);
+    void setGeneralConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config);
+    void setFileConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config);
+    void setTransitConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config);
+    void setNotificationConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config);
+    void setAboutConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config);
+
+private:
+    int current_theme;    // 0: light, 1: dark
+    int current_language; // 0: English, 1: Chinese
     QUrl cache_url;
-    QString cache_path = "";
-    bool auto_download = false;
-    int concurrent_transfers = 3;
-    bool expand_on_action = true;
-    QString app_version = "1.0.0";
-    bool is_update_available = false;
+    QString cache_path;
+    bool auto_download;
+    int concurrent_transfers;
+    bool expand_on_action;
+    QString app_version;
+    bool is_update_available;
 
     QQmlEngine *qml_engine = nullptr;
     QTranslator *translator;

@@ -1,5 +1,6 @@
 set(DRIVER_SOURCES
     impl/Nlohmann.cpp
+    impl/SettingsFile.cpp
     impl/TcpDriver.cpp
     impl/OuterMsgBuilder.cpp
     impl/OpensslDriver.cpp
@@ -8,18 +9,6 @@ set(DRIVER_SOURCES
     impl/FileSyncEngine/FileSender.cpp
     impl/FileSyncEngine/FileParser.cpp
     impl/FileSyncEngine/FileMsgBuilder.cpp
-)
-
-set(DRIVER_HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/impl/Nlohmann.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/JsonFactoryInterface.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/OuterMsgBuilderInterface.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/NetworkInterface.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/SecurityInterface.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/FileSyncEngine/FileMsgBuilderInterface.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/FileSyncEngine/FileParserInterface.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/FileSyncEngine/FileReceiverInterface.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/driver/interface/FileSyncEngine/FileSenderInterface.h
 )
 
 # Windows 特定的 OpenSSL 设置
@@ -47,7 +36,6 @@ endif()
 
 add_library(driver STATIC
     ${DRIVER_SOURCES}
-    ${DRIVER_HEADERS}
 )
 
 target_include_directories(driver PUBLIC

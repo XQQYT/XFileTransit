@@ -76,12 +76,12 @@ public:
     }
 
 public:
-    NetworkInterface(){};
+    NetworkInterface() {};
     NetworkInterface(const NetworkInterface &obj) = delete;
     NetworkInterface(NetworkInterface &&obj) = delete;
     NetworkInterface &operator=(NetworkInterface &other) = delete;
     NetworkInterface &operator=(NetworkInterface &&other) = delete;
-    virtual ~NetworkInterface(){};
+    virtual ~NetworkInterface() = default;
     virtual void initTlsSocket(const std::string &address, const std::string &tls_port) = 0;
     virtual void initTcpSocket(const std::string &address, const std::string &tcp_port) = 0;
     virtual void connectTo(std::function<void(bool)> callback = nullptr) = 0;

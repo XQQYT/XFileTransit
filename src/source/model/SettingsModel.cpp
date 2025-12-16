@@ -13,6 +13,24 @@ SettingsModel::SettingsModel(QObject *parent)
     : QObject(parent), translator(new QTranslator(this))
 {
     app_version = AppVersion::string;
+    EventBusManager::instance().subscribe("/settings/item_config_reslut", std::bind(
+                                                                              &SettingsModel::onConfigResult,
+                                                                              this,
+                                                                              std::placeholders::_1,
+                                                                              std::placeholders::_2));
+}
+
+void SettingsModel::initSettings()
+{
+    std::vector<uint8_t> groups = {
+        static_cast<uint8_t>(Settings::SettingsGroup::General),
+        static_cast<uint8_t>(Settings::SettingsGroup::File),
+        static_cast<uint8_t>(Settings::SettingsGroup::Transfer),
+        static_cast<uint8_t>(Settings::SettingsGroup::Notification),
+        static_cast<uint8_t>(Settings::SettingsGroup::About),
+    };
+    EventBusManager::instance().publish("/settings/get_item_config", groups);
+    qDebug() << "init settings";
 }
 
 void SettingsModel::setQmlEngine(QQmlEngine *engine)
@@ -27,6 +45,8 @@ void SettingsModel::setCurrentTheme(int theme)
         current_theme = theme;
         emit currentThemeChanged(theme);                    // qml
         emit settingsChanged(Settings::Item::Theme, theme); // model
+        EventBusManager::instance().publish("/settings/update_settings_value",
+                                            static_cast<uint8_t>(Settings::SettingsGroup::General), std::string("theme"), std::to_string(theme));
     }
 }
 
@@ -110,7 +130,10 @@ void SettingsModel::setConcurrentTransfers(int transfers)
         concurrent_transfers = transfers;
         emit concurrentTransfersChanged(transfers);
         emit settingsChanged(Settings::Item::ConcurrentTransfers, transfers);
-        EventBusManager::instance().publish("/settings/send_concurrent_changed", static_cast<uint8_t>(transfers));
+        if (GlobalStatusManager::getInstance().getConnectStatus())
+        {
+            EventBusManager::instance().publish("/settings/send_concurrent_changed", static_cast<uint8_t>(transfers));
+        }
     }
 }
 
@@ -142,4 +165,62 @@ void SettingsModel::setIsUpdateAvailable(bool available)
         emit isUpdateAvailableChanged(available);
         emit settingsChanged(Settings::Item::IsUpdateAvailable, available);
     }
+}
+
+void SettingsModel::onConfigResult(uint8_t group, std::shared_ptr<std::unordered_map<std::string, std::string>> config)
+{
+
+    QMetaObject::invokeMethod(this, [=]()
+                              {
+    Settings::SettingsGroup g = static_cast<Settings::SettingsGroup>(group);
+        switch (g)
+        {
+        case Settings::SettingsGroup::General:
+            setGeneralConfig(config);
+            break;
+        case Settings::SettingsGroup::File:
+            setFileConfig(config);
+            break;
+        case Settings::SettingsGroup::Transfer:
+            setTransitConfig(config);
+            break;
+        case Settings::SettingsGroup::Notification:
+            setNotificationConfig(config);
+            break;
+        case Settings::SettingsGroup::About:
+            setAboutConfig(config);
+            break;
+        default:
+            break;
+    } });
+}
+
+void SettingsModel::setGeneralConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
+{
+    setCurrentLanguage(std::stoi((*config)["language"]));
+    setCurrentTheme(std::stoi((*config)["theme"]));
+}
+
+void SettingsModel::setFileConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
+{
+    setCachePath(QString::fromStdString((*config)["default_save_path"]));
+    emit cacheInfoDone(QString::fromStdString((*config)["used_size"]),
+                       QString::fromStdString((*config)["free_size"]),
+                       QString::fromStdString((*config)["total_size"]));
+}
+
+void SettingsModel::setTransitConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
+{
+    setAutoDownload(std::stoi((*config)["auto_download"]));
+    setConcurrentTransfers(std::stoi((*config)["concurrent_task"]));
+}
+
+void SettingsModel::setNotificationConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
+{
+    setExpandOnAction(std::stoi((*config)["auto_expand"]));
+}
+
+void SettingsModel::setAboutConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
+{
+    setIsUpdateAvailable(std::stoi((*config)["update_is_avaible"]));
 }

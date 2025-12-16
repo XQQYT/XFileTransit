@@ -136,6 +136,35 @@ namespace Settings
         AppVersion,
         IsUpdateAvailable
     };
+
+    enum class SettingsGroup
+    {
+        General,
+        File,
+        Transfer,
+        Notification,
+        About
+    };
+    constexpr const char *toString(SettingsGroup item)
+    {
+        switch (item)
+        {
+        case SettingsGroup::General:
+            return "General";
+        case SettingsGroup::File:
+            return "File";
+        case SettingsGroup::Transfer:
+            return "Transfer";
+        case SettingsGroup::Notification:
+            return "Notification";
+        case SettingsGroup::About:
+            return "About";
+        default:
+            return "unknown";
+        }
+    }
+
+    inline constexpr const char *config_file = "./settings.json";
 };
 
 inline namespace AppVersion

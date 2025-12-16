@@ -12,6 +12,7 @@
 #include "control/EventBusManager.h"
 #include "control/NetworkController.h"
 #include "control/FileSyncEngine/FileSyncEngine.h"
+#include "control/SettingsController.h"
 // common
 #include "common/DebugOutputer.h"
 
@@ -71,6 +72,12 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/settings/send_concurrent_changed");
 
     EventBusManager::instance().registerEvent("/settings/have_concurrent_changed");
+
+    EventBusManager::instance().registerEvent("/settings/get_item_config");
+
+    EventBusManager::instance().registerEvent("/settings/item_config_reslut");
+
+    EventBusManager::instance().registerEvent("/settings/update_settings_value");
 }
 
 int main(int argc, char *argv[])
@@ -124,6 +131,7 @@ int main(int argc, char *argv[])
 
     NetworkController network_controller;
     FileSyncEngine file_sync_engine;
+    SettingsController settings_controller;
 
     // 创建模型实例
     auto file_list_model = ModelManager::getInstance().getFileListModel();

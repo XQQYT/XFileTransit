@@ -1,0 +1,24 @@
+{
+  "General": {
+    "language": "0",
+    "theme": "0"
+  },
+  "File": {
+    "default_save_path": "",
+    "used_size":"",
+    "free_size":"",
+    "total_size":""
+  },
+  "Transfer": {
+    "auto_download": "1",
+    "concurrent_task": "4"
+  },
+  "Notification": {
+    "auto_expand": "1"
+  },
+  "About": {
+    "last_check_date":"",
+    "update_is_avaible":"0",
+    "change_log":""
+  }
+}

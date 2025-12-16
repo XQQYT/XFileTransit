@@ -51,14 +51,16 @@ class FileSyncEngineInterface
 {
 public:
   inline static const uint32_t file_block_size = 128 * 1024;
-public:
-  struct FileBlock {
-    uint32_t id;           // 与头部id对应
-    uint32_t index;        // 块索引 (0-based)
-    uint32_t data_size;    // 当前块实际数据大小
-    uint8_t* data;        // 可变长度数据
-  };
 
+public:
+  struct FileBlock
+  {
+    uint32_t id;        // 与头部id对应
+    uint32_t index;     // 块索引 (0-based)
+    uint32_t data_size; // 当前块实际数据大小
+    uint8_t *data;      // 可变长度数据
+  };
+  virtual ~FileSyncEngineInterface() = default;
 };
 
 #endif
