@@ -303,7 +303,7 @@ Window {
                 
                 // 隐藏按钮
                 Rectangle {
-                    width: 120
+                    width: 72
                     height: 32
                     radius: buttonRadius
                     color: hideArea.containsMouse ? Qt.darker(getIconColor(), 1.1) : getIconColor()
@@ -311,7 +311,7 @@ Window {
                     
                     Text {
                         anchors.centerIn: parent
-                        text: qsTr("最小化到托盘")
+                        text: qsTr("最小化")
                         font.pixelSize: 13
                         color: textOnPrimary
                     }

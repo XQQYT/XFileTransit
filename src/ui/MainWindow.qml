@@ -1331,14 +1331,23 @@ ApplicationWindow  {
                             if (generalDialogLoader.status === Loader.Ready) {
                                 generalDialogLoader.item.iconType = generalDialogLoader.item.warning
                                 generalDialogLoader.item.text = qsTr("确定退出吗？")
-                                generalDialogLoader.item.buttons = generalDialogLoader.item.closeWin | generalDialogLoader.item.hideWin
+                                generalDialogLoader.item.buttons = generalDialogLoader.item.cancel | generalDialogLoader.item.closeWin | generalDialogLoader.item.hideWin
                                 
-                                root.currentAcceptHandler = function() {
-                                    Qt.quit()
-                                }
-                                root.currentRejectHandler = function() {
-                                    root.hide()
-                                }
+                                generalDialogLoader.item.onClicked.connect(function(btn){
+                                    switch(btn){
+                                        case generalDialogLoader.item.cancel:
+                                            generalDialogLoader.item.close()
+                                            break
+                                        case generalDialogLoader.item.closeWin:
+                                            Qt.quit()
+                                            break
+                                        case generalDialogLoader.item.hideWin:
+                                            root.hide()
+                                            break
+                                        default:
+                                            braek
+                                    }
+                                });
 
                                 generalDialogLoader.item.show()
                                 generalDialogLoader.item.requestActivate()

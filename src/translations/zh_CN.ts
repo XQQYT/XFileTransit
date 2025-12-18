@@ -179,7 +179,7 @@
     </message>
     <message>
         <location filename="../ui/GeneralDialog.qml" line="314"/>
-        <source>最小化到托盘</source>
+        <source>最小化</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

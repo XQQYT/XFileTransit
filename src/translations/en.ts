@@ -179,8 +179,12 @@
     </message>
     <message>
         <location filename="../ui/GeneralDialog.qml" line="314"/>
+        <source>最小化</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>最小化到托盘</source>
-        <translation>Minimize to Tray</translation>
+        <translation type="vanished">Minimize to Tray</translation>
     </message>
     <message>
         <location filename="../ui/GeneralDialog.qml" line="341"/>
