@@ -11,7 +11,6 @@ void SettingsFile::load(const std::string &path)
         in.close();
     }
     full_config = json::parse(in);
-    out = std::make_unique<std::ofstream>(path);
     writeFullJson();
 }
 
@@ -29,11 +28,15 @@ std::unordered_map<std::string, std::string> SettingsFile::getConfig(const Setti
 
 void SettingsFile::writeFullJson()
 {
-    out->close();
-    out = std::make_unique<std::ofstream>(config_path);
+    std::ofstream out(config_path, std::ios::trunc);
+    if (!out.is_open())
+    {
+        LOG_ERROR("Cannot open config file for writing: " << config_path);
+        return;
+    }
     std::string full_json_str = full_config.dump();
-    out->write(full_json_str.data(), full_json_str.size());
-    out->flush();
+    out << full_json_str;
+    out.close();
 }
 void SettingsFile::updateConfig(const Settings::SettingsGroup config_name, const std::unordered_map<std::string, std::string> config)
 {

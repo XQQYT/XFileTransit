@@ -84,6 +84,7 @@ private:
   void onDownLoadProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end);
   std::pair<int, FileInfo &> findFileInfoById(uint32_t id);
   bool auto_expand;
+  bool auto_clear_cache;
 
 private:
   QList<FileInfo> file_list;

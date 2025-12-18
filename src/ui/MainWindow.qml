@@ -1413,7 +1413,7 @@ ApplicationWindow  {
         collapseTimer.start()
     }
     Component.onDestruction: {
-        // file_list_model.cleanTmpFiles()
+        file_list_model.cleanTmpFiles()
     }
 
     function resetStatus() {

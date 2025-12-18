@@ -130,6 +130,7 @@ namespace Settings
         Theme,
         Language,
         CachePath,
+        AutoClearCache,
         AutoDownload,
         ConcurrentTransfers,
         ExpandOnAction,

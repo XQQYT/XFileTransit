@@ -5,6 +5,7 @@
 #include <QtCore/QString>
 #include <QtCore/QTranslator>
 #include <QtQml/QQmlApplicationEngine>
+#include <QtCore/QTimer>
 #include <string>
 #include <cstdint>
 
@@ -18,6 +19,8 @@ class SettingsModel : public QObject
     Q_PROPERTY(int currentTheme READ currentTheme WRITE setCurrentTheme NOTIFY currentThemeChanged)
     Q_PROPERTY(int currentLanguage READ currentLanguage WRITE setCurrentLanguage NOTIFY currentLanguageChanged)
     Q_PROPERTY(QString cachePath READ cachePath WRITE setCachePath NOTIFY cachePathChanged)
+    Q_PROPERTY(bool autoClearCache READ autoClearCache WRITE setAutoClearCache NOTIFY autoClearCacheChanged)
+    Q_PROPERTY(QString cacheSize READ cacheSize WRITE setCacheSize NOTIFY cacheSizeChanged)
     Q_PROPERTY(bool autoDownload READ autoDownload WRITE setAutoDownload NOTIFY autoDownloadChanged)
     Q_PROPERTY(int concurrentTransfers READ concurrentTransfers WRITE setConcurrentTransfers NOTIFY concurrentTransfersChanged)
     Q_PROPERTY(bool expandOnAction READ expandOnAction WRITE setExpandOnAction NOTIFY expandOnActionChanged)
@@ -29,6 +32,8 @@ public:
     int currentTheme() const { return current_theme; }
     int currentLanguage() const { return current_language; }
     QString cachePath() const { return cache_path; }
+    QString cacheSize() const { return cache_size; }
+    bool autoClearCache() const { return auto_clear_cache; }
     bool autoDownload() const { return auto_download; }
     int concurrentTransfers() const { return concurrent_transfers; }
     bool expandOnAction() const { return expand_on_action; }
@@ -38,6 +43,8 @@ public:
     void setCurrentTheme(int theme);
     void setCurrentLanguage(int language);
     void setCachePath(const QUrl &url);
+    void setCacheSize(const QString &size);
+    void setAutoClearCache(bool enable);
     void setAutoDownload(bool enable);
     void setConcurrentTransfers(int transfers);
     void setExpandOnAction(bool expand);
@@ -51,6 +58,8 @@ signals:
     void currentThemeChanged(int theme);
     void currentLanguageChanged(int language);
     void cachePathChanged(const QString &path);
+    void cacheSizeChanged(const QString &size);
+    void autoClearCacheChanged(bool enable);
     void autoDownloadChanged(bool enable);
     void concurrentTransfersChanged(int transfers);
     void expandOnActionChanged(bool expand);
@@ -73,6 +82,8 @@ private:
     int current_language; // 0: English, 1: Chinese
     QUrl cache_url;
     QString cache_path;
+    QString cache_size;
+    bool auto_clear_cache;
     bool auto_download;
     int concurrent_transfers;
     bool expand_on_action;
@@ -81,6 +92,8 @@ private:
 
     QQmlEngine *qml_engine = nullptr;
     QTranslator *translator;
+
+    QTimer *cache_size_updater;
 };
 
 #endif

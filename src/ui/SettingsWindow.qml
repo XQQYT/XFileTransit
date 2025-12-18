@@ -44,6 +44,8 @@ ApplicationWindow {
     property string usedSize: "---"
     property string freeSize: "---"
     property string totalSize: "---"
+
+    property bool isCleanCache : false
     
     property bool isDragging: false
     property int dragStartX: 0
@@ -53,43 +55,40 @@ ApplicationWindow {
     function switchTheme(theme) {
         settings_model.currentTheme = theme
         setTheme(theme)
-        console.log("切换主题:", theme)
     }
     
     // 语言切换处理
     function switchLanguage(language) {
         settings_model.currentLanguage = language
-        console.log("切换语言:", language)
     }
     
     // 选择缓存目录
     function chooseCachePath() {
-        console.log("选择缓存目录")
         folderDialog.open()
+    }
+
+    function toggleAutoClearCache(enable){
+        settings_model.autoClearCache = enable
     }
     
     // 切换自动下载
     function toggleAutoDownload(enabled) {
         settings_model.autoDownload = enabled
-        console.log("自动下载:", enabled ? "启用" : "禁用")
     }
     
     // 设置并发传输数
     function setConcurrentTransfers(count) {
         settings_model.concurrentTransfers = count
-        console.log("设置并发传输数:", count)
     }
     
     // 切换智能展开
     function toggleExpandOnAction(enabled) {
         settings_model.expandOnAction = enabled
-        console.log("智能展开:", enabled ? "启用" : "禁用")
     }
     
     // 检查更新
     function checkForUpdates() {
         settings_model.isUpdateAvailable = true
-        console.log("检查更新")
     }
     
     // 处理鼠标拖动
@@ -121,6 +120,7 @@ ApplicationWindow {
     
     onVisibleChanged: {
         if (visible) {
+            isCleanCache = false
             centerOnScreen()
             requestActivate()
         }
@@ -881,7 +881,89 @@ ApplicationWindow {
                     Column {
                         width: parent.width
                         spacing: 20
+
+                    Rectangle {
+                        width: parent.width
+                        height: 140
+                        radius: 16
+                        color: cardColor
+                        border.color: borderColor
+                        border.width: 2
                         
+                        Column {
+                            anchors.fill: parent
+                            anchors.margins: 20
+                            spacing: 20
+                            
+                            Row {
+                                    width: parent.width
+                                    spacing: 12
+                                    
+                                    Column {
+                                        spacing: 2
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        
+                                        Text {
+                                            text: qsTr("退出时自动清理缓存")
+                                            font {
+                                                pixelSize: 18
+                                                weight: Font.Bold
+                                            }
+                                            color: textPrimary
+                                        }
+                                        
+                                        Text {
+                                            text: qsTr("应用退出时自动删除临时文件")
+                                            font.pixelSize: 13
+                                            color: textSecondary
+                                        }
+                                    }
+                                }
+                                
+                                Row {
+                                    spacing: 20
+                                    width: parent.width
+                                    
+                                    Text {
+                                        text: qsTr("启用自动清理")
+                                        font.pixelSize: 16
+                                        color: textPrimary
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                    
+                                    Item { width: 20; height: 1 }
+                                    
+                                    Rectangle {
+                                        id: autoClearSwitch
+                                        width: 60
+                                        height: 30
+                                        radius: 15
+                                        color: settings_model.autoClearCache ? primaryColor : switchOffColor
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        
+                                        Rectangle {
+                                            x: settings_model.autoClearCache ? parent.width - width - 3 : 3
+                                            y: 3
+                                            width: 24
+                                            height: 24
+                                            radius: 12
+                                            color: switchHandleColor
+                                            
+                                            Behavior on x {
+                                                NumberAnimation { duration: 200 }
+                                            }
+                                        }
+                                        
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: toggleAutoClearCache(!settings_model.autoClearCache)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                            
                         Rectangle {
                             width: parent.width
                             height: 220
@@ -914,9 +996,9 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: qsTr("设置缓存文件的存储位置")
+                                            text: qsTr("注意！！ 不要设置为根目录,home,D:等路径，否则清理缓存会清空内容")
                                             font.pixelSize: 13
-                                            color: textSecondary
+                                            color: warningColor
                                         }
                                     }
                                 }
@@ -1033,6 +1115,82 @@ ApplicationWindow {
                                             color: textSecondary
                                             anchors.horizontalCenter: parent.horizontalCenter
                                         }
+                                    }
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            width: parent.width
+                            height: 140
+                            radius: 16
+                            color: cardColor
+                            border.color: borderColor
+                            border.width: 2
+                            
+                            Column {
+                                anchors.fill: parent
+                                anchors.margins: 20
+                                spacing: 20
+                                
+                                Row {
+                                    width: parent.width
+                                    spacing: 12
+                                    
+                                    Column {
+                                        spacing: 2
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        
+                                        Text {
+                                            text: qsTr("缓存大小")
+                                            font {
+                                                pixelSize: 18
+                                                weight: Font.Bold
+                                            }
+                                            color: textPrimary
+                                        }
+                                        
+                                        Text {
+                                            text: settings_model.cacheSize
+                                            font.pixelSize: 13
+                                            color: textSecondary
+                                        }
+                                    }
+                                }
+                                
+                                Rectangle {
+                                    width: 140
+                                    height: 40
+                                    radius: 10
+                                    color: !isCleanCache ? clearCacheButtonBg : accentGreen
+                                    border.color: !isCleanCache ? clearCacheButtonBorder : "#1c8762"
+                                    border.width: 2
+                                    
+                                    Row {
+                                        spacing: 8
+                                        anchors.centerIn: parent
+                                        
+                                        Text {
+                                            text: !isCleanCache ? qsTr("清理缓存") : qsTr("已清除缓存")
+                                            font.pixelSize: 14
+                                            font.weight: Font.Medium
+                                            color: !isCleanCache ? accentRed : textPrimary
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+                                    }
+                                    
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        hoverEnabled: true
+                                        
+                                        onClicked: {
+                                            console.log("开始清理缓存...")
+                                            isCleanCache = true
+                                        }
+                                        
+                                        onEntered: parent.opacity = 0.9
+                                        onExited: parent.opacity = 1
                                     }
                                 }
                             }

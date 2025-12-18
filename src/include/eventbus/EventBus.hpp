@@ -407,7 +407,7 @@ public:
                             {
                                 events_failed_count.fetch_add(1, std::memory_order_relaxed);
                                 event_statistics[eventName].failed_count.fetch_add(1, std::memory_order_relaxed);
-                                LOG_ERROR("Callback execution failed for event: " << wrapper.id << "\n");
+                                LOG_ERROR("Callback execution failed for event: " << eventName << "\n");
                             }
                         });
                 }
@@ -428,7 +428,7 @@ public:
                 if (task_model == TaskModel::NORMAL)
                 {
                     thread_pool->addTask(
-                        [this, wrapper, args_tuple]()
+                        [this, wrapper, args_tuple, eventName]()
                         {
                             try
                             {
@@ -445,13 +445,13 @@ public:
                             }
                             catch (const std::exception &e)
                             {
-                                LOG_ERROR("Callback execution failed for event: " << wrapper.id
+                                LOG_ERROR("Callback execution failed for event: " << eventName
                                                                                   << ", error: " << e.what() << "\n");
                             }
                             catch (...)
                             {
                                 LOG_ERROR("Unknown error in callback execution for event: "
-                                          << wrapper.id << "\n");
+                                          << eventName << "\n");
                             }
                         });
                 }

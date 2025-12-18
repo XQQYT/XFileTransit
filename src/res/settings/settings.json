@@ -4,7 +4,8 @@
     "theme": "0"
   },
   "File": {
-    "default_save_path": ""
+    "auto_clear_cache": "0",
+    "default_save_url": ""
   },
   "Transfer": {
     "auto_download": "1",

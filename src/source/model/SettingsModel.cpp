@@ -18,6 +18,16 @@ SettingsModel::SettingsModel(QObject *parent)
                                                                               this,
                                                                               std::placeholders::_1,
                                                                               std::placeholders::_2));
+    cache_size_updater = new QTimer(this);
+    cache_size_updater->setInterval(5000);
+    connect(cache_size_updater, &QTimer::timeout, [=]()
+            {
+        if(!cache_path.isEmpty())
+        {
+        uint64_t cache_size = FileSystemUtils::calculateFolderSize(cache_path.toStdString());
+        setCacheSize(QString::fromStdString(FileSystemUtils::formatFileSize(cache_size)));
+        } });
+    cache_size_updater->start();
 }
 
 void SettingsModel::initSettings()
@@ -78,6 +88,8 @@ void SettingsModel::setCurrentLanguage(int language)
 
         emit currentLanguageChanged(language);
         emit settingsChanged(Settings::Item::Language, language);
+        EventBusManager::instance().publish("/settings/update_settings_value",
+                                            static_cast<uint8_t>(Settings::SettingsGroup::General), std::string("language"), std::to_string(language));
     }
 }
 
@@ -98,6 +110,7 @@ void SettingsModel::setCachePath(const QUrl &url)
         QThread::create([this]()
                         {
                         auto [total, free_size] = FileSystemUtils::getDiskSpaceForFolder(cache_path.toStdString()); 
+                        uint64_t cache_size = FileSystemUtils::calculateFolderSize(cache_path.toStdString());
                         emit cacheInfoDone(QString::fromStdString(FileSystemUtils::formatFileSize(total-free_size)),
                         QString::fromStdString(FileSystemUtils::formatFileSize(free_size)),
                         QString::fromStdString(FileSystemUtils::formatFileSize(total))); })
@@ -110,6 +123,29 @@ void SettingsModel::setCachePath(const QUrl &url)
                         emit cacheMoveDone();
                         emit settingsChanged(Settings::Item::CachePath, cache_path); })
             ->start();
+        EventBusManager::instance().publish("/settings/update_settings_value",
+                                            static_cast<uint8_t>(Settings::SettingsGroup::File), std::string("default_save_url"), cache_url.toString().toStdString());
+    }
+}
+
+void SettingsModel::setCacheSize(const QString &size)
+{
+    if (size != cache_size)
+    {
+        cache_size = size;
+        emit cacheSizeChanged(size);
+    }
+}
+
+void SettingsModel::setAutoClearCache(bool enable)
+{
+    if (auto_clear_cache != enable)
+    {
+        auto_clear_cache = enable;
+        emit autoClearCacheChanged(enable);
+        emit settingsChanged(Settings::Item::AutoClearCache, enable);
+        EventBusManager::instance().publish("/settings/update_settings_value",
+                                            static_cast<uint8_t>(Settings::SettingsGroup::File), std::string("auto_clear_cache"), std::to_string(enable));
     }
 }
 
@@ -120,6 +156,8 @@ void SettingsModel::setAutoDownload(bool enable)
         auto_download = enable;
         emit autoDownloadChanged(enable);
         emit settingsChanged(Settings::Item::AutoDownload, enable);
+        EventBusManager::instance().publish("/settings/update_settings_value",
+                                            static_cast<uint8_t>(Settings::SettingsGroup::Transfer), std::string("auto_download"), std::to_string(enable));
     }
 }
 
@@ -134,6 +172,8 @@ void SettingsModel::setConcurrentTransfers(int transfers)
         {
             EventBusManager::instance().publish("/settings/send_concurrent_changed", static_cast<uint8_t>(transfers));
         }
+        EventBusManager::instance().publish("/settings/update_settings_value",
+                                            static_cast<uint8_t>(Settings::SettingsGroup::Transfer), std::string("concurrent_task"), std::to_string(transfers));
     }
 }
 
@@ -144,6 +184,8 @@ void SettingsModel::setExpandOnAction(bool expand)
         expand_on_action = expand;
         emit expandOnActionChanged(expand);
         emit settingsChanged(Settings::Item::ExpandOnAction, expand);
+        EventBusManager::instance().publish("/settings/update_settings_value",
+                                            static_cast<uint8_t>(Settings::SettingsGroup::Notification), std::string("auto_expand"), std::to_string(expand));
     }
 }
 
@@ -203,7 +245,18 @@ void SettingsModel::setGeneralConfig(std::shared_ptr<std::unordered_map<std::str
 
 void SettingsModel::setFileConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
 {
-    setCachePath(QString::fromStdString((*config)["default_save_path"]));
+    QString default_save_path = QString::fromStdString((*config)["default_save_url"]);
+    if (default_save_path.isEmpty())
+    {
+        QString tmp_dir = QString::fromStdString(GlobalStatusManager::absolute_tmp_dir);
+        tmp_dir.chop(1);
+        setCachePath(QUrl::fromLocalFile(tmp_dir));
+    }
+    else
+    {
+        setCachePath(default_save_path);
+    }
+    setAutoClearCache(std::stoi((*config)["auto_clear_cache"]));
 }
 
 void SettingsModel::setTransitConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)

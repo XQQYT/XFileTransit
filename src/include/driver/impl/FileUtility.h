@@ -552,9 +552,13 @@ public:
         fs::path src(source);
         fs::path dst(destination);
 
-        if (!fs::exists(src) || !fs::is_directory(src) || fs::is_empty(src))
+        if (!fs::exists(src) || !fs::is_directory(src))
         {
             LOG_ERROR("拷贝失败" << source << " to " << destination);
+        }
+        if (fs::is_empty(src))
+        {
+            LOG_WARN("拷贝目录为空" << source << " to " << destination);
         }
 
         fs::create_directories(dst);
