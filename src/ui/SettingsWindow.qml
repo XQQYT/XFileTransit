@@ -996,7 +996,7 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: qsTr("注意！！ 不要设置为根目录,home,D:等路径，否则清理缓存会清空内容")
+                                            text: qsTr("注意！！ 不要设置为根目录,home,C:,D:等路径，因为清理缓存会删除目录")
                                             font.pixelSize: 13
                                             color: warningColor
                                         }
@@ -1151,7 +1151,7 @@ ApplicationWindow {
                                         }
                                         
                                         Text {
-                                            text: settings_model.cacheSize
+                                            text: settings_model.cacheSize === "" ? "计算中" : settings_model.cacheSize
                                             font.pixelSize: 13
                                             color: textSecondary
                                         }
@@ -1185,7 +1185,8 @@ ApplicationWindow {
                                         hoverEnabled: true
                                         
                                         onClicked: {
-                                            console.log("开始清理缓存...")
+                                            settings_model.clearCache()
+                                            settings_model.cacheSize = "0B"
                                             isCleanCache = true
                                         }
                                         

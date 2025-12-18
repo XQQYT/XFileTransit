@@ -489,21 +489,19 @@ void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, uint32_t s
 
 void FileListModel::cleanTmpFiles()
 {
-    qDebug() << "clear " << auto_clear_cache;
-
     if (!auto_clear_cache)
     {
         return;
     }
-    // QDir dir(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir));
+    QDir dir(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir));
 
-    // if (!dir.exists())
-    // {
-    //     return;
-    // }
+    if (!dir.exists())
+    {
+        return;
+    }
 
-    // dir.removeRecursively();
-    // QDir().mkpath(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir));
+    dir.removeRecursively();
+    QDir().mkpath(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir));
 }
 
 bool FileListModel::isTransferring()

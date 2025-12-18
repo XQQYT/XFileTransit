@@ -18,6 +18,8 @@
 
 #include <QtGui/QFont>
 
+static const QString settingsPath = "settings.json";
+
 void initRegisterEvents()
 {
     // 发送连接请求
@@ -68,16 +70,37 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/file/upload_progress");
     // 下载进度更新
     EventBusManager::instance().registerEvent("/file/download_progress");
-
+    // 发送任务数修改
     EventBusManager::instance().registerEvent("/settings/send_concurrent_changed");
-
+    // 收到任务数修改消息
     EventBusManager::instance().registerEvent("/settings/have_concurrent_changed");
-
+    // 获取设置组配置
     EventBusManager::instance().registerEvent("/settings/get_item_config");
-
+    // 收到设置组配置
     EventBusManager::instance().registerEvent("/settings/item_config_reslut");
-
+    // 更新配置中键值
     EventBusManager::instance().registerEvent("/settings/update_settings_value");
+}
+
+void checkSettingsFile()
+{
+    if (!QFile::exists(settingsPath))
+    {
+        QFile res_file(":/settings/settings.json");
+        if (res_file.exists())
+        {
+            if (res_file.copy(settingsPath))
+            {
+                QFile::setPermissions(settingsPath,
+                                      QFile::ReadOwner | QFile::WriteOwner |
+                                          QFile::ReadGroup | QFile::ReadOther);
+            }
+            else
+            {
+                LOG_ERROR("Failed to copy file:" << res_file.errorString().toStdString());
+            }
+        }
+    }
 }
 
 int main(int argc, char *argv[])
@@ -124,10 +147,13 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    QDir::setCurrent(QCoreApplication::applicationDirPath());
+
     QQmlApplicationEngine engine;
     // 初始化组件
     EventBusManager::instance().startEventBus();
     initRegisterEvents();
+    checkSettingsFile();
 
     NetworkController network_controller;
     FileSyncEngine file_sync_engine;

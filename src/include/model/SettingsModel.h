@@ -53,6 +53,7 @@ public:
     void setQmlEngine(QQmlEngine *engine);
 
     Q_INVOKABLE void initSettings();
+    Q_INVOKABLE void clearCache();
 
 signals:
     void currentThemeChanged(int theme);
@@ -76,6 +77,8 @@ private:
     void setTransitConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config);
     void setNotificationConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config);
     void setAboutConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config);
+    void updateCacheDiskInfo();
+    void moveCacheDir(const std::string &des);
 
 private:
     int current_theme;    // 0: light, 1: dark

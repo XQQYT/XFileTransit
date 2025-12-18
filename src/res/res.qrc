@@ -14,5 +14,6 @@
     <file>logo/logo_small.ico</file>
     <file>translations/zh_CN.qm</file>
     <file>translations/en.qm</file>
+    <file>settings/settings.json</file>
   </qresource>
 </RCC>

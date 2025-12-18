@@ -3,6 +3,7 @@
 #include "control/EventBusManager.h"
 
 #include <QtCore/QDebug>
+#include <QtCore/QDir>
 #include <QtCore/QStringList>
 #include <QtWidgets/QApplication>
 #include <algorithm>
@@ -93,6 +94,31 @@ void SettingsModel::setCurrentLanguage(int language)
     }
 }
 
+void SettingsModel::updateCacheDiskInfo()
+{
+    // 获取当前所在分区的信息
+    QThread::create([this]()
+                    {
+                        auto [total, free_size] = FileSystemUtils::getDiskSpaceForFolder(cache_path.toStdString()); 
+                        uint64_t cache_size = FileSystemUtils::calculateFolderSize(cache_path.toStdString());
+                        emit cacheInfoDone(QString::fromStdString(FileSystemUtils::formatFileSize(total-free_size)),
+                        QString::fromStdString(FileSystemUtils::formatFileSize(free_size)),
+                        QString::fromStdString(FileSystemUtils::formatFileSize(total))); })
+        ->start();
+}
+
+void SettingsModel::moveCacheDir(const std::string &des)
+{
+    // 迁移文件
+    QThread::create([this, des]()
+                    {
+                        FileSystemUtils::copyDirectory(des, cache_path.toStdString());
+                        FileSystemUtils::removeFileOrDirectory(des, false);
+                        emit cacheMoveDone();
+                        emit settingsChanged(Settings::Item::CachePath, cache_path); })
+        ->start();
+}
+
 void SettingsModel::setCachePath(const QUrl &url)
 {
     if (cache_url != url)
@@ -106,23 +132,9 @@ void SettingsModel::setCachePath(const QUrl &url)
         GlobalStatusManager::absolute_tmp_dir = cache_path.toStdString();
         FileSystemUtils::createDirectoryRecursive(GlobalStatusManager::absolute_tmp_dir);
         emit cachePathChanged(cache_path);
-        // 获取当前所在分区的信息
-        QThread::create([this]()
-                        {
-                        auto [total, free_size] = FileSystemUtils::getDiskSpaceForFolder(cache_path.toStdString()); 
-                        uint64_t cache_size = FileSystemUtils::calculateFolderSize(cache_path.toStdString());
-                        emit cacheInfoDone(QString::fromStdString(FileSystemUtils::formatFileSize(total-free_size)),
-                        QString::fromStdString(FileSystemUtils::formatFileSize(free_size)),
-                        QString::fromStdString(FileSystemUtils::formatFileSize(total))); })
-            ->start();
-        // 迁移文件
-        QThread::create([this, old_tmp_path]()
-                        {
-                        FileSystemUtils::copyDirectory(old_tmp_path, cache_path.toStdString());
-                        FileSystemUtils::removeFileOrDirectory(old_tmp_path, false);
-                        emit cacheMoveDone();
-                        emit settingsChanged(Settings::Item::CachePath, cache_path); })
-            ->start();
+
+        updateCacheDiskInfo();
+        moveCacheDir(old_tmp_path);
         EventBusManager::instance().publish("/settings/update_settings_value",
                                             static_cast<uint8_t>(Settings::SettingsGroup::File), std::string("default_save_url"), cache_url.toString().toStdString());
     }
@@ -245,17 +257,22 @@ void SettingsModel::setGeneralConfig(std::shared_ptr<std::unordered_map<std::str
 
 void SettingsModel::setFileConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
 {
-    QString default_save_path = QString::fromStdString((*config)["default_save_url"]);
-    if (default_save_path.isEmpty())
+    QString default_save_url = QString::fromStdString((*config)["default_save_url"]);
+    if (default_save_url.isEmpty())
     {
         QString tmp_dir = QString::fromStdString(GlobalStatusManager::absolute_tmp_dir);
-        tmp_dir.chop(1);
-        setCachePath(QUrl::fromLocalFile(tmp_dir));
+        cache_url = QUrl::fromLocalFile(tmp_dir);
+        cache_path = tmp_dir;
     }
     else
     {
-        setCachePath(default_save_path);
+        cache_url = default_save_url;
+        cache_path = cache_url.toLocalFile();
     }
+    GlobalStatusManager::absolute_tmp_dir = cache_path.toStdString() + "/";
+    emit cachePathChanged(cache_path);
+    updateCacheDiskInfo();
+
     setAutoClearCache(std::stoi((*config)["auto_clear_cache"]));
 }
 
@@ -273,4 +290,16 @@ void SettingsModel::setNotificationConfig(std::shared_ptr<std::unordered_map<std
 void SettingsModel::setAboutConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
 {
     setIsUpdateAvailable(std::stoi((*config)["update_is_avaible"]));
+}
+void SettingsModel::clearCache()
+{
+    QDir dir(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir));
+
+    if (!dir.exists())
+    {
+        return;
+    }
+
+    dir.removeRecursively();
+    QDir().mkpath(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir));
 }
