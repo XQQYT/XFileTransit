@@ -552,7 +552,7 @@ public:
         fs::path src(source);
         fs::path dst(destination);
 
-        if (!fs::exists(src) || !fs::is_directory(src))
+        if (!fs::exists(src) || !fs::is_directory(src) || fs::is_empty(src))
         {
             LOG_ERROR("拷贝失败" << source << " to " << destination);
         }

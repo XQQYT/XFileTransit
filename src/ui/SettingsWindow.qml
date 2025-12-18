@@ -129,6 +129,20 @@ ApplicationWindow {
     onSettings_modelChanged: {
         if (settings_model && !initialized) {
             settings_model.initSettings()
+
+            settings_model.currentThemeChanged.connect(function(theme) {
+                setTheme(theme)
+            })
+            settings_model.cacheInfoDone.connect(function(used, free, total) {
+                usedSize = used
+                freeSize = free
+                totalSize = total
+            })
+            settings_model.cacheMoveDone.connect(function() {
+                Qt.callLater(function() {
+                    load_dialog.close()
+                })
+            })
             initialized = true
         }
     }
@@ -183,18 +197,10 @@ ApplicationWindow {
                 return
         }
         
-        // 保存当前组件
-        var currentComp = currentPage
-        
-        // 强制重新加载当前页面
-        currentPage = null
-        Qt.callLater(function() {
-            currentPage = currentComp
-        })
-        
-        // 强制重绘当前选中按钮
-        if (currentBtn) {
-            currentBtn.color = primaryColor
+        for (var prop in this) {
+            if (this[prop] && this[prop].repaint) {
+                this[prop].repaint()
+            }
         }
     }
 
@@ -1028,30 +1034,6 @@ ApplicationWindow {
                                             anchors.horizontalCenter: parent.horizontalCenter
                                         }
                                     }
-                                    Connections {
-                                        target: settings_model
-                                        enabled: true
-                                        function onCurrentThemeChanged(theme) {
-                                            console.log("theme changed:")
-                                        }
-                                    }
-                                    Connections{
-                                        target: settings_model
-                                        function onCacheInfoDone(used,free,total) {
-                                            usedSize = used
-                                            freeSize = free
-                                            totalSize = total
-                                        }
-                                    }
-
-                                    Connections{
-                                        target: settings_model
-                                        function onCacheMoveDone() {
-                                            Qt.callLater(function() {
-                                                load_dialog.close()
-                                            })
-                                        }
-                                    }  
                                 }
                             }
                         }
@@ -1657,6 +1639,5 @@ ApplicationWindow {
         }
     }
     Component.onCompleted:{
-        console.log("completed")
     }
 }

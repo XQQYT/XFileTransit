@@ -4,10 +4,7 @@
     "theme": "0"
   },
   "File": {
-    "default_save_path": "",
-    "used_size":"",
-    "free_size":"",
-    "total_size":""
+    "default_save_path": ""
   },
   "Transfer": {
     "auto_download": "1",

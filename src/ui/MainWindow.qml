@@ -1095,21 +1095,30 @@ ApplicationWindow  {
                             generalDialogLoader.item.requestActivate()
                         }
                     }
-                }
-
-                Connections {
-                    target: root
-                    function onExpandedChanged() {
-                        if (!root.expanded) {
-                            showBlueBarTimer.start()
-                        } else {
-                            blueBarWindow.visible = false
-                            blueBarWindow.opacity = 0
+                    
+                    function onHaveRecvError(message) {
+                        if (generalDialogLoader.status === Loader.Ready) {
+                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                            generalDialogLoader.item.text = message
+                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
+                            resetStatus()
                         }
                     }
-                }
-                Connections {
-                    target: connection_manager
+                    
+                    function onPeerClosed() {
+                        if (generalDialogLoader.status === Loader.Ready && isConnected) {
+                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                            generalDialogLoader.item.text = "对方断开连接"
+                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
+                            resetStatus()
+                        }
+                        resetStatus()
+                    }
+                
                     function onHaveConRequest(device_ip, device_name) {
                         if (connectRequestLoader.status === Loader.Ready) {
                             connectRequestLoader.item.device_ip = device_ip
@@ -1120,10 +1129,6 @@ ApplicationWindow  {
                             console.error("连接请求对话框未正确加载:", connectRequestLoader.status)
                         }
                     }
-                }
-
-                Connections {
-                    target: connection_manager
                     function onConRequestCancel(device_ip, device_name) {
                         connectRequestLoader.item.close()
                         if (generalDialogLoader.status === Loader.Ready) {
@@ -1136,6 +1141,17 @@ ApplicationWindow  {
                         }
                     }
                 }
+                Connections {
+                    target: root
+                    function onExpandedChanged() {
+                        if (!root.expanded) {
+                            showBlueBarTimer.start()
+                        } else {
+                            blueBarWindow.visible = false
+                            blueBarWindow.opacity = 0
+                        }
+                    }
+                }
                 Connections{
                     target: file_list_model
                     function onThemeChanged(theme_index) {
@@ -1145,9 +1161,6 @@ ApplicationWindow  {
                         networkInfoDialogLoader.item.setTheme(theme_index)
                         generalDialogLoader.item.setTheme(theme_index)
                     }
-                }
-                Connections{
-                    target: file_list_model
                     function onMainWinExpand() {
                         if(!root.expanded){
                             collapseTimer.stop()
@@ -1178,47 +1191,6 @@ ApplicationWindow  {
                     }
                     
                     function onRejected(ip, name) {
-                    }
-                }
-
-                Connections {
-                    target: connection_manager
-                    enabled: connectRequestLoader.status === Loader.Ready
-                    
-                    function onHaveConnectError(message) {
-                        if (deviceWindowLoader.status === Loader.Ready) {
-                            deviceWindowLoader.item.closeLoadingDialog()
-                        }
-                        if (generalDialogLoader.status === Loader.Ready) {
-                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                            generalDialogLoader.item.text = message
-                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
-                            generalDialogLoader.item.show()
-                            generalDialogLoader.item.requestActivate()
-                        }
-                    }
-                    
-                    function onHaveRecvError(message) {
-                        if (generalDialogLoader.status === Loader.Ready) {
-                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                            generalDialogLoader.item.text = message
-                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
-                            generalDialogLoader.item.show()
-                            generalDialogLoader.item.requestActivate()
-                            resetStatus()
-                        }
-                    }
-                    
-                    function onPeerClosed() {
-                        if (generalDialogLoader.status === Loader.Ready && isConnected) {
-                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                            generalDialogLoader.item.text = "对方断开连接"
-                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
-                            generalDialogLoader.item.show()
-                            generalDialogLoader.item.requestActivate()
-                            resetStatus()
-                        }
-                        resetStatus()
                     }
                 }
                 
@@ -1441,7 +1413,7 @@ ApplicationWindow  {
         collapseTimer.start()
     }
     Component.onDestruction: {
-        file_list_model.cleanTmpFiles()
+        // file_list_model.cleanTmpFiles()
     }
 
     function resetStatus() {

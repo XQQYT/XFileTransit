@@ -30,7 +30,6 @@ void SettingsModel::initSettings()
         static_cast<uint8_t>(Settings::SettingsGroup::About),
     };
     EventBusManager::instance().publish("/settings/get_item_config", groups);
-    qDebug() << "init settings";
 }
 
 void SettingsModel::setQmlEngine(QQmlEngine *engine)
@@ -74,7 +73,6 @@ void SettingsModel::setCurrentLanguage(int language)
 
         if (qml_engine)
         {
-            qDebug() << "retranslate";
             qml_engine->retranslate();
         }
 
@@ -87,8 +85,10 @@ void SettingsModel::setCachePath(const QUrl &url)
 {
     if (cache_url != url)
     {
+
         cache_url = url;
         cache_path = url.toLocalFile() + "/";
+
         // 先设置新临时目录，使迁移中也可以传输文件
         auto old_tmp_path = GlobalStatusManager::absolute_tmp_dir;
         GlobalStatusManager::absolute_tmp_dir = cache_path.toStdString();
@@ -204,9 +204,6 @@ void SettingsModel::setGeneralConfig(std::shared_ptr<std::unordered_map<std::str
 void SettingsModel::setFileConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
 {
     setCachePath(QString::fromStdString((*config)["default_save_path"]));
-    emit cacheInfoDone(QString::fromStdString((*config)["used_size"]),
-                       QString::fromStdString((*config)["free_size"]),
-                       QString::fromStdString((*config)["total_size"]));
 }
 
 void SettingsModel::setTransitConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
