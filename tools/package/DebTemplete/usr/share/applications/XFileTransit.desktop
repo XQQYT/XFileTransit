@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=XFileTransit
+Exec=bash -c "cd /opt/XFileTransit && ./XFileTransit"
+Icon=/opt/XFileTransit/logo.png
+Type=Application
+Categories=Utility;
+StartupNotify=true
+

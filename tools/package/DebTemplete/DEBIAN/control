@@ -1,0 +1,8 @@
+Package: xfiletransit
+Version: 1.1.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: xqqyt <xqqyt0502@163.com>
+Description: XFileTransit is a Windows file transfer utility developed in C++. Users simply drag and drop files into the application window, enabling other users on the same local area network (LAN) to drag and retrieve them directly. It facilitates a convenient and efficient local network file-sharing experience
+
