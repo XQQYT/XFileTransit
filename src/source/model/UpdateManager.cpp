@@ -1,31 +1,89 @@
 #include "model/UpdateManager.h"
-
 #include "common/DebugOutputer.h"
+#include "control/GlobalStatusManager.h"
 
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 #include <QtCore/QJsonArray>
 
+#include <QtCore/QFile>
+
 UpdateManager::UpdateManager(QObject *parent) : QObject(parent),
                                                 git_downloader(std::make_unique<GitDownloader>(parent)),
-                                                version_parser(std::make_unique<VersionParser>())
+                                                version_parser(std::make_unique<VersionParser>()) {
+                                                };
+
+QString UpdateManager::buildUrl(const GitPlatform platform, const QString &owner,
+                                const QString &repo, const QString &branch,
+                                const QString &file_path) const
 {
+    switch (platform)
+    {
+    case GitPlatform::Github:
+        return QString("https://raw.githubusercontent.com/%1/%2/%3/%4")
+            .arg(owner)
+            .arg(repo)
+            .arg(branch)
+            .arg(file_path);
+    case GitPlatform::Gitee:
+        return QString("https://gitee.com/%1/%2/raw/%3/%4")
+            .arg(owner)
+            .arg(repo)
+            .arg(branch)
+            .arg(file_path);
+    default:
+        LOG_ERROR("Invalid GitPlatform");
+        return QString();
+    }
+}
+
+void UpdateManager::downloadVersionJson(const GitPlatform platform, const QString &owner,
+                                        const QString &repo, const QString &branch,
+                                        const QString &file_path)
+{
+    QString url = buildUrl(platform, owner, repo, branch, file_path);
+
     git_downloader->setCallbacks([=](quint64 n1, quint64 n2)
                                  { emit downloadProgress(n1, n2); },
                                  [=](const QByteArray &data)
-                                 { emit downloadFinished(data); },
+                                 {
+                                     emit versionJsonParsedDone(version_parser->parse(data));
+                                 },
                                  [=](const QString &error_msg)
                                  { emit downloadError(error_msg); });
-};
-
-void UpdateManager::downloadFile(const GitPlatform platform, const QString &owner,
-                                 const QString &repo, const QString &branch,
-                                 const QString &file_path)
-{
-    git_downloader->downloadFile(platform, owner, repo, branch, file_path);
+    git_downloader->downloadFile(url);
 }
 
-UpdateManager::VersionParser::VersionInfo UpdateManager::VersionParser::parse(QByteArray version_json)
+void UpdateManager::downloadPackage(const VersionInfo &new_version_info)
+{
+    git_downloader->resetCallbacks();
+    git_downloader->setCallbacks([=](quint64 n1, quint64 n2)
+                                 { emit downloadProgress(n1, n2); },
+                                 [=](QByteArray data)
+                                 {
+                                     // 默认将安装包保存到当前设置的缓存目录
+                                     QFile file(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir) + "update.tar.gz");
+                                     if (!file.open(QIODevice::WriteOnly))
+                                     {
+                                         LOG_ERROR(file.errorString().toStdString());
+                                         return;
+                                     }
+                                     file.write(data);
+                                     file.flush();
+                                     file.close();
+
+                                     emit downloadPackageDone(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir) + "update.tar.gz");
+                                 },
+                                 [=](const QString &error_msg)
+                                 { emit downloadError(error_msg); });
+#ifdef _WIN32
+    git_downloader->downloadFile(new_version_info.win_url);
+#else
+    git_downloader->downloadFile(new_version_info.linux_url);
+#endif
+}
+
+VersionInfo UpdateManager::VersionParser::parse(QByteArray version_json)
 {
     QJsonDocument doc = QJsonDocument::fromJson(version_json);
     if (doc.isNull())
@@ -95,16 +153,12 @@ UpdateManager::GitDownloader::GitDownloader(QObject *parent)
     connect(timeout_timer, &QTimer::timeout, this, &GitDownloader::onTimeout);
 }
 
-void UpdateManager::GitDownloader::downloadFile(const GitPlatform platform, const QString &owner,
-                                                const QString &repo, const QString &branch,
-                                                const QString &file_path)
+void UpdateManager::GitDownloader::downloadFile(QString url)
 {
     if (current_reply)
     {
         cancelDownload();
     }
-
-    QString url = buildUrl(platform, owner, repo, branch, file_path);
 
     if (url.isEmpty())
     {
@@ -134,6 +188,14 @@ void UpdateManager::GitDownloader::setCallbacks(DownloadProgressCallback progres
     finished_cb = finishedCb;
     errorCb = error_cb;
 }
+
+void UpdateManager::GitDownloader::resetCallbacks()
+{
+    progress_cb = nullptr;
+    finished_cb = nullptr;
+    error_cb = nullptr;
+}
+
 void UpdateManager::GitDownloader::cancelDownload()
 {
     if (current_reply && current_reply->isRunning())
@@ -141,30 +203,6 @@ void UpdateManager::GitDownloader::cancelDownload()
         current_reply->abort();
         current_reply = nullptr;
         timeout_timer->stop();
-    }
-}
-
-QString UpdateManager::GitDownloader::buildUrl(const GitPlatform platform, const QString &owner,
-                                               const QString &repo, const QString &branch,
-                                               const QString &file_path) const
-{
-    switch (platform)
-    {
-    case GitPlatform::Github:
-        return QString("https://raw.githubusercontent.com/%1/%2/%3/%4")
-            .arg(owner)
-            .arg(repo)
-            .arg(branch)
-            .arg(file_path);
-    case GitPlatform::Gitee:
-        return QString("https://gitee.com/%1/%2/raw/%3/%4")
-            .arg(owner)
-            .arg(repo)
-            .arg(branch)
-            .arg(file_path);
-    default:
-        LOG_ERROR("Invalid GitPlatform");
-        return QString();
     }
 }
 

@@ -14,14 +14,26 @@ enum class GitPlatform
     Gitee,
     Github
 };
+struct VersionInfo
+{
+    QString lastest_version;
+    QString update_time;
+    QString changelog;
+    QString win_url;
+    QString linux_url;
+};
 class UpdateManager : public QObject
 {
     Q_OBJECT
 public:
     explicit UpdateManager(QObject *parent = nullptr);
-    void downloadFile(const GitPlatform platform, const QString &owner,
-                      const QString &repo, const QString &branch,
-                      const QString &file_path);
+    void downloadVersionJson(const GitPlatform platform, const QString &owner,
+                             const QString &repo, const QString &branch,
+                             const QString &file_path);
+    void downloadPackage(const VersionInfo &new_version_info);
+    QString buildUrl(const GitPlatform platform, const QString &owner,
+                     const QString &repo, const QString &branch,
+                     const QString &file_path) const;
 
 private:
     class GitDownloader;
@@ -30,6 +42,9 @@ signals:
     void downloadProgress(qint64, qint64);
     void downloadFinished(const QByteArray &);
     void downloadError(const QString &);
+
+    void versionJsonParsedDone(VersionInfo info);
+    void downloadPackageDone(QString save_path);
 
 private:
     std::unique_ptr<GitDownloader> git_downloader;
@@ -43,9 +58,7 @@ class UpdateManager::GitDownloader : public QObject
 public:
     explicit GitDownloader(QObject *parent = nullptr);
 
-    void downloadFile(const GitPlatform platform, const QString &owner,
-                      const QString &repo, const QString &branch,
-                      const QString &file_path);
+    void downloadFile(QString url);
     using DownloadProgressCallback = std::function<void(qint64, qint64)>;
     using DownloadFinishedCallback = std::function<void(const QByteArray &)>;
     using DownloadErrorCallback = std::function<void(const QString &)>;
@@ -53,6 +66,7 @@ public:
     void setCallbacks(DownloadProgressCallback progressCb,
                       DownloadFinishedCallback finishedCb,
                       DownloadErrorCallback errorCb);
+    void resetCallbacks();
     void cancelDownload();
 
     bool isDownloading() const { return current_reply != nullptr; }
@@ -66,10 +80,6 @@ private:
     QNetworkReply *current_reply = nullptr;
     QTimer *timeout_timer;
 
-    QString buildUrl(const GitPlatform platform, const QString &owner,
-                     const QString &repo, const QString &branch,
-                     const QString &file_path) const;
-
     void handleRedirect(const QUrl &redirect_url);
 
     DownloadProgressCallback progress_cb;
@@ -80,14 +90,6 @@ private:
 class UpdateManager::VersionParser
 {
 public:
-    struct VersionInfo
-    {
-        QString lastest_version;
-        QString update_time;
-        QString changelog;
-        QString win_url;
-        QString linux_url;
-    };
     VersionInfo parse(QByteArray version_json);
 };
 

@@ -26,6 +26,8 @@ class SettingsModel : public QObject
     Q_PROPERTY(int concurrentTransfers READ concurrentTransfers WRITE setConcurrentTransfers NOTIFY concurrentTransfersChanged)
     Q_PROPERTY(bool expandOnAction READ expandOnAction WRITE setExpandOnAction NOTIFY expandOnActionChanged)
     Q_PROPERTY(QString appVersion READ appVersion WRITE setAppVersion NOTIFY appVersionChanged)
+    Q_PROPERTY(QString changeLog READ changeLog WRITE setChangeLog NOTIFY changeLogChanged)
+    Q_PROPERTY(QString newVersion READ newVersion WRITE setNewVersion NOTIFY newVersionChanged)
     Q_PROPERTY(bool isUpdateAvailable READ isUpdateAvailable WRITE setIsUpdateAvailable NOTIFY isUpdateAvailableChanged)
 
 public:
@@ -39,6 +41,8 @@ public:
     int concurrentTransfers() const { return concurrent_transfers; }
     bool expandOnAction() const { return expand_on_action; }
     QString appVersion() const { return app_version; }
+    QString changeLog() const { return changelog; }
+    QString newVersion() const { return new_version; }
     bool isUpdateAvailable() const { return is_update_available; }
 
     void setCurrentTheme(int theme);
@@ -50,12 +54,15 @@ public:
     void setConcurrentTransfers(int transfers);
     void setExpandOnAction(bool expand);
     void setAppVersion(const QString &version);
+    void setChangeLog(const QString &log);
+    void setNewVersion(const QString &new_version);
     void setIsUpdateAvailable(bool available);
     void setQmlEngine(QQmlEngine *engine);
 
     Q_INVOKABLE void initSettings();
     Q_INVOKABLE void clearCache();
     Q_INVOKABLE void checkUpdate();
+    Q_INVOKABLE void updateSoftware();
 
 signals:
     void currentThemeChanged(int theme);
@@ -67,10 +74,14 @@ signals:
     void concurrentTransfersChanged(int transfers);
     void expandOnActionChanged(bool expand);
     void appVersionChanged(const QString &version);
+    void changeLogChanged(const QString &log);
+    void newVersionChanged(const QString &new_version);
     void isUpdateAvailableChanged(bool available);
     void cacheInfoDone(QString used, QString free_size, QString total);
     void cacheMoveDone();
     void settingsChanged(Settings::Item item, QVariant value);
+    void downloadProgress(QString progress);
+    void downloadDone();
 
 private:
     void onConfigResult(uint8_t group, std::shared_ptr<std::unordered_map<std::string, std::string>> config);
@@ -93,6 +104,8 @@ private:
     int concurrent_transfers;
     bool expand_on_action;
     QString app_version;
+    QString new_version;
+    QString changelog;
     bool is_update_available;
 
     QQmlEngine *qml_engine = nullptr;
@@ -101,6 +114,8 @@ private:
     QTimer *cache_size_updater;
 
     UpdateManager update_manager;
+
+    VersionInfo new_version_info;
 };
 
 #endif

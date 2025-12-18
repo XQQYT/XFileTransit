@@ -143,6 +143,14 @@ ApplicationWindow {
                     load_dialog.close()
                 })
             })
+            settings_model.downloadProgress.connect(function(percent_str) {
+                load_dialog.message = percent_str;
+            })
+            settings_model.downloadDone.connect(function() {
+                Qt.callLater(function() {
+                    load_dialog.close()
+                })
+            })
             initialized = true
         }
     }
@@ -1730,7 +1738,7 @@ ApplicationWindow {
                                         width: 150
                                         height: 45
                                         radius: 10
-                                        color: primaryColor
+                                        color: settings_model.isUpdateAvailable ? accentGreen : primaryColor
                                         
                                         Row {
                                             spacing: 8
@@ -1738,7 +1746,7 @@ ApplicationWindow {
                                             
                                             
                                             Text {
-                                                text: qsTr("检查更新")
+                                                text: settings_model.isUpdateAvailable ? qsTr("更新") : qsTr("检查更新")
                                                 font.pixelSize: 16
                                                 color: whiteColor
                                                 anchors.verticalCenter: parent.verticalCenter
@@ -1749,7 +1757,15 @@ ApplicationWindow {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
                                             hoverEnabled: true
-                                            onClicked: checkForUpdates()
+                                            onClicked: {
+                                                if(!settings_model.isUpdateAvailable){
+                                                    checkForUpdates()
+                                                }else{
+                                                    settings_model.updateSoftware()
+                                                    load_dialog.show(qsTr("0%"), qsTr("取消"))
+                                                }
+                                                
+                                            }
                                             
                                             onEntered: parent.opacity = 0.9
                                             onExited: parent.opacity = 1
@@ -1777,14 +1793,14 @@ ApplicationWindow {
                                         spacing: 8
                                         
                                         Text {
-                                            text: settings_model.appVersion + qsTr(" 更新内容")
+                                            text: settings_model.newVersion + qsTr(" 更新内容")
                                             font.pixelSize: 14
                                             font.weight: Font.Bold
                                             color: textPrimary
                                         }
                                         
                                         Text {
-                                            text: qsTr("• 新增主题切换功能\n• 优化传输性能\n• 修复已知问题")
+                                            text: settings_model.changeLog
                                             font.pixelSize: 12
                                             color: textSecondary
                                         }

@@ -414,117 +414,118 @@
         <translation>Settings</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="366"/>
+        <location filename="../ui/SettingsWindow.qml" line="374"/>
         <source>控制中心</source>
         <translation>Control Center</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="541"/>
+        <location filename="../ui/SettingsWindow.qml" line="549"/>
         <source>基础设置</source>
         <translation>Basic Settings</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="862"/>
+        <location filename="../ui/SettingsWindow.qml" line="870"/>
         <source>文件设置</source>
         <translation>File Settings</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1221"/>
+        <location filename="../ui/SettingsWindow.qml" line="1229"/>
         <source>传输设置</source>
         <translation>Transfer Settings</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1276"/>
+        <location filename="../ui/SettingsWindow.qml" line="1284"/>
         <source>小于50MB的文件自动开始下载</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1479"/>
+        <location filename="../ui/SettingsWindow.qml" line="1487"/>
         <source>通知与提醒</source>
         <translation>Notifications &amp; Alerts</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1603"/>
+        <location filename="../ui/SettingsWindow.qml" line="1611"/>
         <source>关于软件</source>
         <translation>About</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="486"/>
+        <location filename="../ui/SettingsWindow.qml" line="494"/>
         <source>用户设置</source>
         <translation>User Settings</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="218"/>
+        <location filename="../ui/SettingsWindow.qml" line="226"/>
+        <location filename="../ui/SettingsWindow.qml" line="1765"/>
         <source>取消</source>
         <translation type="unfinished">Cancel</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="218"/>
+        <location filename="../ui/SettingsWindow.qml" line="226"/>
         <source>迁移中</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="590"/>
+        <location filename="../ui/SettingsWindow.qml" line="598"/>
         <source>主题切换</source>
         <translation>Theme Switch</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="599"/>
+        <location filename="../ui/SettingsWindow.qml" line="607"/>
         <source>切换应用的主题模式</source>
         <translation>Switch application theme mode</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="630"/>
+        <location filename="../ui/SettingsWindow.qml" line="638"/>
         <source>浅色</source>
         <translation>Light</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="673"/>
+        <location filename="../ui/SettingsWindow.qml" line="681"/>
         <source>深色</source>
         <translation>Dark</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="711"/>
+        <location filename="../ui/SettingsWindow.qml" line="719"/>
         <source>自动</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="760"/>
+        <location filename="../ui/SettingsWindow.qml" line="768"/>
         <source>语言切换</source>
         <translation>Language Switch</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="769"/>
+        <location filename="../ui/SettingsWindow.qml" line="777"/>
         <source>选择界面显示语言</source>
         <translation>Select interface display language</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="834"/>
+        <location filename="../ui/SettingsWindow.qml" line="842"/>
         <source>当前语言: </source>
         <translation>Current language: </translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="907"/>
+        <location filename="../ui/SettingsWindow.qml" line="915"/>
         <source>退出时自动清理缓存</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="916"/>
+        <location filename="../ui/SettingsWindow.qml" line="924"/>
         <source>应用退出时自动删除临时文件</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="928"/>
+        <location filename="../ui/SettingsWindow.qml" line="936"/>
         <source>启用自动清理</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="990"/>
+        <location filename="../ui/SettingsWindow.qml" line="998"/>
         <source>缓存目录</source>
         <translation>Cache Directory</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="999"/>
+        <location filename="../ui/SettingsWindow.qml" line="1007"/>
         <source>注意！！ 不要设置为根目录,home,C:,D:等路径，因为清理缓存会删除目录</source>
         <translation type="unfinished"></translation>
     </message>
@@ -533,47 +534,47 @@
         <translation type="vanished">Set storage location for cache files</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1035"/>
+        <location filename="../ui/SettingsWindow.qml" line="1043"/>
         <source>更改</source>
         <translation>Change</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1061"/>
+        <location filename="../ui/SettingsWindow.qml" line="1069"/>
         <source>已使用</source>
         <translation>Used</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1082"/>
+        <location filename="../ui/SettingsWindow.qml" line="1090"/>
         <source>可用</source>
         <translation>Available</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1103"/>
+        <location filename="../ui/SettingsWindow.qml" line="1111"/>
         <source>总大小</source>
         <translation>Total Size</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1145"/>
+        <location filename="../ui/SettingsWindow.qml" line="1153"/>
         <source>缓存大小</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1174"/>
+        <location filename="../ui/SettingsWindow.qml" line="1182"/>
         <source>清理缓存</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1174"/>
+        <location filename="../ui/SettingsWindow.qml" line="1182"/>
         <source>已清除缓存</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1658"/>
+        <location filename="../ui/SettingsWindow.qml" line="1666"/>
         <source>文件中转站</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1679"/>
+        <location filename="../ui/SettingsWindow.qml" line="1687"/>
         <source>https://github.com/XQQYT/XFileTransit</source>
         <translation type="unfinished"></translation>
     </message>
@@ -594,7 +595,7 @@
         <translation type="vanished">Clear Now</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1267"/>
+        <location filename="../ui/SettingsWindow.qml" line="1275"/>
         <source>文件自动下载</source>
         <translation>Auto File Download</translation>
     </message>
@@ -603,22 +604,22 @@
         <translation type="vanished">Automatically start downloading when receiving files</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1288"/>
+        <location filename="../ui/SettingsWindow.qml" line="1296"/>
         <source>启用自动下载</source>
         <translation>Enable Auto Download</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1350"/>
+        <location filename="../ui/SettingsWindow.qml" line="1358"/>
         <source>同时传输任务数</source>
         <translation>Concurrent Transfer Tasks</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1359"/>
+        <location filename="../ui/SettingsWindow.qml" line="1367"/>
         <source>设置最大并行传输任务数量</source>
         <translation>Set maximum number of parallel transfer tasks</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1371"/>
+        <location filename="../ui/SettingsWindow.qml" line="1379"/>
         <source>最大任务数:</source>
         <translation>Max tasks:</translation>
     </message>
@@ -639,17 +640,17 @@
         <translation type="vanished">Enhanced security, privacy protection</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1525"/>
+        <location filename="../ui/SettingsWindow.qml" line="1533"/>
         <source>有动作时展开</source>
         <translation>Expand on Activity</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1534"/>
+        <location filename="../ui/SettingsWindow.qml" line="1542"/>
         <source>检测到活动时自动显示通知</source>
         <translation>Automatically show notifications when activity detected</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1573"/>
+        <location filename="../ui/SettingsWindow.qml" line="1581"/>
         <source>启用智能展开</source>
         <translation>Enable Smart Expansion</translation>
     </message>
@@ -658,7 +659,7 @@
         <translation type="vanished">Quick Transfer</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1673"/>
+        <location filename="../ui/SettingsWindow.qml" line="1681"/>
         <source>版本号: </source>
         <translation>Version: </translation>
     </message>
@@ -667,37 +668,46 @@
         <translation type="vanished">© 2024 Quick Transfer Team. All rights reserved.</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1710"/>
-        <location filename="../ui/SettingsWindow.qml" line="1741"/>
+        <location filename="../ui/SettingsWindow.qml" line="1718"/>
+        <location filename="../ui/SettingsWindow.qml" line="1749"/>
         <source>检查更新</source>
         <translation>Check for Updates</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1719"/>
+        <location filename="../ui/SettingsWindow.qml" line="1727"/>
         <source>检查软件最新版本</source>
         <translation>Check for latest software version</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1760"/>
+        <location filename="../ui/SettingsWindow.qml" line="1749"/>
+        <source>更新</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/SettingsWindow.qml" line="1765"/>
+        <source>0%</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/SettingsWindow.qml" line="1776"/>
         <source>发现新版本</source>
         <translation>New version found</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1760"/>
+        <location filename="../ui/SettingsWindow.qml" line="1776"/>
         <source>当前已是最新版本</source>
         <translation>Currently up to date</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1780"/>
+        <location filename="../ui/SettingsWindow.qml" line="1796"/>
         <source> 更新内容</source>
         <translation> Update content</translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1787"/>
         <source>• 新增主题切换功能
 • 优化传输性能
 • 修复已知问题</source>
-        <translation>• Added theme switching feature
+        <translation type="vanished">• Added theme switching feature
 • Optimized transfer performance
 • Fixed known issues</translation>
     </message>

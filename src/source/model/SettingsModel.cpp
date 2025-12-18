@@ -221,6 +221,24 @@ void SettingsModel::setIsUpdateAvailable(bool available)
     }
 }
 
+void SettingsModel::setChangeLog(const QString &log)
+{
+    if (changelog != log)
+    {
+        changelog = log;
+        emit changeLogChanged(changelog);
+    }
+}
+
+void SettingsModel::setNewVersion(const QString &nv)
+{
+    if (new_version != nv)
+    {
+        new_version = nv;
+        emit newVersionChanged(new_version);
+    }
+}
+
 void SettingsModel::onConfigResult(uint8_t group, std::shared_ptr<std::unordered_map<std::string, std::string>> config)
 {
 
@@ -263,13 +281,15 @@ void SettingsModel::setFileConfig(std::shared_ptr<std::unordered_map<std::string
         QString tmp_dir = QString::fromStdString(GlobalStatusManager::absolute_tmp_dir);
         cache_url = QUrl::fromLocalFile(tmp_dir);
         cache_path = tmp_dir;
+        EventBusManager::instance().publish("/settings/update_settings_value",
+                                            static_cast<uint8_t>(Settings::SettingsGroup::File), std::string("default_save_url"), cache_url.toString().toStdString());
     }
     else
     {
         cache_url = default_save_url;
         cache_path = cache_url.toLocalFile();
     }
-    GlobalStatusManager::absolute_tmp_dir = cache_path.toStdString() + "/";
+    GlobalStatusManager::absolute_tmp_dir = cache_path.toStdString();
     emit cachePathChanged(cache_path);
     updateCacheDiskInfo();
 
@@ -304,11 +324,55 @@ void SettingsModel::clearCache()
     QDir().mkpath(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir));
 }
 
+int compareVersions(const QString &versionA, const QString &versionB)
+{
+    QVersionNumber v1 = QVersionNumber::fromString(versionA.mid(1));
+    QVersionNumber v2 = QVersionNumber::fromString(versionB.mid(1));
+
+    if (v1 > v2)
+        return 1;
+    if (v1 < v2)
+        return -1;
+    return 0;
+}
+
 void SettingsModel::checkUpdate()
 {
-    connect(&update_manager, &UpdateManager::downloadFinished, [=](QByteArray data)
-            { qDebug() << QString::fromUtf8(data); });
-    // qDebug()<<"lastest version: "<<version_info.lastest_version<<"update_time: "<<version_info.update_time
-    //<<"changelog: "<<version_info.changelog<<"win_url: "<<version_info.win_url<<"linux_url: "<<version_info.linux_url;
-    update_manager.downloadFile(GitPlatform::Github, "XQQYT", "XFileTransit", "feature/add_settings_widget", "src/res/version/version.json");
+    connect(&update_manager, &UpdateManager::versionJsonParsedDone, [=](VersionInfo version_info)
+            { if (compareVersions(version_info.lastest_version, AppVersion::string) > 0)
+            {
+                new_version_info = version_info;
+                setIsUpdateAvailable(true);
+                setNewVersion(version_info.lastest_version);
+                setChangeLog(version_info.changelog);
+            } });
+
+    update_manager.downloadVersionJson(GitPlatform::Github, "XQQYT", "XFileTransit", "feature/add_settings_widget", "src/res/version/version.json");
+}
+
+void SettingsModel::updateSoftware()
+{
+    connect(&update_manager, &UpdateManager::downloadPackageDone, [=](QString path)
+            { qDebug() << "package is saved in " << path; });
+    connect(&update_manager, &UpdateManager::downloadProgress, this, [=](qint64 received, qint64 total)
+            {
+                QString percent_str;
+
+                if (total > 0)
+                {                    
+                    if(received == total)
+                    {
+                        emit downloadDone();
+                        return;
+                    }
+                    double percent = (static_cast<double>(received) / total) * 100.0;
+                    percent_str = QString::asprintf("%.1f%%", percent);
+
+                }
+                else
+                {
+                    percent_str = "0.0%";
+                } 
+                emit downloadProgress(percent_str); });
+    update_manager.downloadPackage(new_version_info);
 }
