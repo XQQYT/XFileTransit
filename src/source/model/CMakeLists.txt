@@ -1,5 +1,6 @@
 set(MODEL_SOURCES
     NetworkInfoModel.cpp
+    UpdateManager.cpp
     DeviceListModel.cpp
     ICMPScanner.cpp
     FileIconManager.cpp
@@ -11,6 +12,7 @@ set(MODEL_SOURCES
 
 set(MODEL_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/model/DeviceListModel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/model/UpdateManager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/model/NetworkInfoModel.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/model/ICMPScanner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/model/FileIconManager.h

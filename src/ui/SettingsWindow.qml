@@ -88,7 +88,7 @@ ApplicationWindow {
     
     // 检查更新
     function checkForUpdates() {
-        settings_model.isUpdateAvailable = true
+        settings_model.checkUpdate()
     }
     
     // 处理鼠标拖动

@@ -303,3 +303,12 @@ void SettingsModel::clearCache()
     dir.removeRecursively();
     QDir().mkpath(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir));
 }
+
+void SettingsModel::checkUpdate()
+{
+    connect(&update_manager, &UpdateManager::downloadFinished, [=](QByteArray data)
+            { qDebug() << QString::fromUtf8(data); });
+    // qDebug()<<"lastest version: "<<version_info.lastest_version<<"update_time: "<<version_info.update_time
+    //<<"changelog: "<<version_info.changelog<<"win_url: "<<version_info.win_url<<"linux_url: "<<version_info.linux_url;
+    update_manager.downloadFile(GitPlatform::Github, "XQQYT", "XFileTransit", "feature/add_settings_widget", "src/res/version/version.json");
+}

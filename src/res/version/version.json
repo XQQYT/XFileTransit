@@ -1,0 +1,48 @@
+{
+  "app_name": "XFileTransit",
+  "description": "局域网文件传输工具",
+  "latest_version": "v1.2.0",
+  "update_time": "2025-12-18",
+  "versions": {
+    "v1.0.0": {
+      "version": "v1.0.0",
+      "release_date": "2025-12-06",
+      "changelog": [
+        "Added 局域网自动发现，无需服务器或繁琐配置",
+        "Added 文件拖拽到主窗口即可一键发送",
+        "Added 实时显示传输进度，任务多线程处理",
+        "Added 支持文件列表去重与批量发送",
+        "Added 支持自动同步当前文件列表",
+        "Added 实现文件传输的 TLS+AES 加密",
+        "Added 提供连接状态检测及断开自动清理",
+        "Added 支持传入和下载文件的请求",
+        "Added 便捷设备管理与连接管理",
+        "Added 支持文件夹与文件的识别与处理",
+        "Added 查看本地网络信息"
+      ],
+      "downloads": {
+        "windows": {
+            "url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.0.0/XFileTransit_win_64_v1.0.0.zip"
+        },
+        "linux": {
+            "url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.0.0/XFileTransit_linux_64_v1.0.0.tar.gz"
+        }
+      }
+    },
+    "v1.2.0": {
+      "version": "v1.2.0",
+      "release_date": "2025-12-18",
+      "changelog": [
+        "测试v1.2.0版本"
+      ],
+      "downloads": {
+        "windows": {
+            "url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.2.0/XFileTransit.exe"
+        },
+        "linux": {
+            "url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.2.0/XFileTransit"
+        }
+      }
+    }
+  }
+}

@@ -10,6 +10,7 @@
 #include <cstdint>
 
 #include "control/GlobalStatusManager.h"
+#include "model/UpdateManager.h"
 
 class SettingsModel : public QObject
 {
@@ -54,6 +55,7 @@ public:
 
     Q_INVOKABLE void initSettings();
     Q_INVOKABLE void clearCache();
+    Q_INVOKABLE void checkUpdate();
 
 signals:
     void currentThemeChanged(int theme);
@@ -97,6 +99,8 @@ private:
     QTranslator *translator;
 
     QTimer *cache_size_updater;
+
+    UpdateManager update_manager;
 };
 
 #endif
