@@ -19,13 +19,14 @@
         "Added 便捷设备管理与连接管理",
         "Added 支持文件夹与文件的识别与处理",
         "Added 查看本地网络信息"
+
       ],
       "downloads": {
         "windows": {
-            "url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.0.0/XFileTransit_win_64_v1.0.0.zip"
+            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.0.0/XFileTransit_win_64_v1.0.0.zip"
         },
         "linux": {
-            "url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.0.0/XFileTransit_linux_64_v1.0.0.tar.gz"
+            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.0.0/XFileTransit_linux_64_v1.0.0.tar.gz"
         }
       }
     },
@@ -37,10 +38,13 @@
       ],
       "downloads": {
         "windows": {
-            "url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.2.0/XFileTransit.exe"
+            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.2.0/XFileTransit.exe",
+            "gitee_url": "https://gitee.com/XQQYT/XFileTransit/releases/download/v1.2.0/XFileTransit.tar.gz"
+
         },
         "linux": {
-            "url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.2.0/XFileTransit"
+            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.2.0/XFileTransit",
+            "gitee_url": "https://gitee.com/XQQYT/XFileTransit/releases/download/v1.2.0/XFileTransit.tar.gz"
         }
       }
     }
