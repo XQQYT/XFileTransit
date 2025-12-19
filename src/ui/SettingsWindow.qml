@@ -51,6 +51,149 @@ ApplicationWindow {
     property int dragStartX: 0
     property int dragStartY: 0
     
+    property string outputText: ""
+
+    property var acceptedConnection: null
+    property var rejectedConnection: null
+
+    GeneralDialog{
+        id: general_dialog
+    }
+
+Window {
+    id: update_output_dialog
+    width: 800
+    height: 600
+    visible: outputText != ""
+    flags: Qt.Dialog | Qt.FramelessWindowHint
+    modality: Qt.ApplicationModal
+    
+    color: "#f5f5f5"
+    
+    property alias outputText: outputDisplay.text
+    
+    // 标题栏
+    Rectangle {
+        id: titleBar
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: 40
+        color: "#2c3e50"
+        
+        MouseArea {
+            anchors.fill: parent
+            property point clickPos: "0,0"
+            
+            onPressed: function(mouse) {
+                clickPos = Qt.point(mouse.x, mouse.y)
+            }
+            
+            onPositionChanged: function(mouse) {
+                var delta = Qt.point(mouse.x - clickPos.x, mouse.y - clickPos.y)
+                update_output_dialog.x += delta.x
+                update_output_dialog.y += delta.y
+            }
+        }
+        
+        // 标题
+        Text {
+            anchors.left: parent.left
+            anchors.leftMargin: 15
+            anchors.verticalCenter: parent.verticalCenter
+            text: "更新进度"
+            color: "white"
+            font.pixelSize: 14
+            font.bold: true
+        }
+        
+        // 右上角关闭按钮
+        Rectangle {
+            id: closeButton
+            anchors.right: parent.right
+            width: 40
+            height: 40
+            color: closeMouseArea.containsMouse ? "#e74c3c" : "transparent"
+            
+            MouseArea {
+                id: closeMouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                
+                onClicked: {
+                    update_output_dialog.close()
+
+                    general_dialog.iconType = general_dialog.warning
+                    general_dialog.text = qsTr("是否重启应用")
+                    general_dialog.buttons = general_dialog.yes | general_dialog.no
+                    
+                    var acceptFunc = function() {
+                        general_dialog.close()
+                        general_dialog.accepted.disconnect(acceptFunc)
+                    }
+                    var rejectFunc = function() {
+                        general_dialog.close()
+                        general_dialog.rejected.disconnect(rejectFunc)
+                    }
+                    
+                    general_dialog.accepted.connect(acceptFunc)
+                    general_dialog.rejected.connect(rejectFunc)
+
+                    general_dialog.show()
+                }
+            }
+            
+            Text {
+                anchors.centerIn: parent
+                text: "×"
+                color: "white"
+                font.pixelSize: 20
+                font.bold: true
+            }
+        }
+    }
+    
+
+    // 内容区域
+    Flickable {
+        id: flickable
+        anchors.top: titleBar.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.margins: 0
+        contentWidth: outputDisplay.width
+        contentHeight: outputDisplay.height
+        clip: true
+        
+        TextEdit {
+            id: outputDisplay
+            width: flickable.width
+            text: outputText
+            font.family: "Monospace"
+            font.pointSize: 9
+            wrapMode: TextEdit.Wrap
+            readOnly: true
+            selectByMouse: true
+            
+            onTextChanged: {
+                cursorPosition = text.length
+                // 自动滚动到底部
+                flickable.contentY = Math.max(0, outputDisplay.height - flickable.height)
+            }
+        }
+        
+        // 滚动条应该放在 Flickable 内部
+        ScrollBar.vertical: ScrollBar {
+            id: scrollBar
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: 10
+            policy: ScrollBar.AlwaysOn
+        }
+    }
+}
     // 主题切换处理
     function switchTheme(theme) {
         settings_model.currentTheme = theme
@@ -150,6 +293,31 @@ ApplicationWindow {
                 Qt.callLater(function() {
                     load_dialog.close()
                 })
+            })
+            settings_model.downloadError.connect(function(msg){
+                Qt.callLater(function() {
+                    load_dialog.close()
+                })
+                general_dialog.iconType = general_dialog.error
+                general_dialog.text = qsTr(msg)
+                general_dialog.buttons = general_dialog.ok
+                general_dialog.show()
+            })
+            settings_model.versionInfoShow.connect(function(msg){
+                if(load_dialog.visible)
+                {
+                    Qt.callLater(function() {
+                        load_dialog.close()
+                    })
+                }
+                general_dialog.iconType = general_dialog.success
+                general_dialog.text = qsTr(msg)
+                general_dialog.buttons = general_dialog.ok
+                general_dialog.show()
+            })
+            settings_model.updateOutput.connect(function(output) {
+                update_output_dialog.show()
+                outputText += output + "\n"
             })
             initialized = true
         }
@@ -1694,13 +1862,16 @@ ApplicationWindow {
                         
                         Rectangle {
                             width: parent.width
-                            height: 260
                             radius: 16
                             color: cardColor
                             border.color: borderColor
                             border.width: 2
                             
+                            // 使用隐式高度，让卡片自适应内容
+                            implicitHeight: updateColumn.implicitHeight + 40
+                            
                             Column {
+                                id: updateColumn
                                 anchors.fill: parent
                                 anchors.margins: 20
                                 spacing: 15
@@ -1708,7 +1879,6 @@ ApplicationWindow {
                                 Row {
                                     width: parent.width
                                     spacing: 12
-                                    
                                     
                                     Column {
                                         spacing: 2
@@ -1732,6 +1902,78 @@ ApplicationWindow {
                                 }
                                 
                                 Row {
+                                    width: parent.width
+                                    spacing: 20
+                                    
+                                    Text {
+                                        text: qsTr("更新源:")
+                                        font.pixelSize: 14
+                                        color: textPrimary
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                    
+                                    Rectangle {
+                                        width: 120
+                                        height: 40
+                                        radius: 8
+                                        color: backgroundColor
+                                        border.color: borderColor
+                                        border.width: 1
+                                        
+                                        Row {
+                                            anchors.fill: parent
+                                            anchors.margins: 1
+                                            
+                                            Rectangle {
+                                                width: parent.width / 2
+                                                height: parent.height
+                                                radius: 7
+                                                color: settings_model.updateSource === "github" ? primaryColor : "transparent"
+                                                
+                                                Text {
+                                                    text: "GitHub"
+                                                    anchors.centerIn: parent
+                                                    font.pixelSize: 14
+                                                    color: settings_model.updateSource === "github" ? whiteColor : textPrimary
+                                                }
+                                                
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    hoverEnabled: true
+                                                    onClicked: settings_model.updateSource = "github"
+                                                    onEntered: parent.opacity = parent.color !== primaryColor ? 0.9 : 1
+                                                    onExited: parent.opacity = 1
+                                                }
+                                            }
+                                            
+                                            Rectangle {
+                                                width: parent.width / 2
+                                                height: parent.height
+                                                radius: 7
+                                                color: settings_model.updateSource === "gitee" ? primaryColor : "transparent"
+                                                
+                                                Text {
+                                                    text: "Gitee"
+                                                    anchors.centerIn: parent
+                                                    font.pixelSize: 14
+                                                    color: settings_model.updateSource === "gitee" ? whiteColor : textPrimary
+                                                }
+                                                
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    hoverEnabled: true
+                                                    onClicked: settings_model.updateSource = "gitee"
+                                                    onEntered: parent.opacity = parent.color !== primaryColor ? 0.9 : 1
+                                                    onExited: parent.opacity = 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                Row {
                                     spacing: 20
                                     
                                     Rectangle {
@@ -1743,7 +1985,6 @@ ApplicationWindow {
                                         Row {
                                             spacing: 8
                                             anchors.centerIn: parent
-                                            
                                             
                                             Text {
                                                 text: settings_model.isUpdateAvailable ? qsTr("更新") : qsTr("检查更新")
@@ -1760,11 +2001,11 @@ ApplicationWindow {
                                             onClicked: {
                                                 if(!settings_model.isUpdateAvailable){
                                                     checkForUpdates()
+                                                    load_dialog.show(qsTr("正在获取版本信息"), qsTr("取消"))
                                                 }else{
                                                     settings_model.updateSoftware()
                                                     load_dialog.show(qsTr("0%"), qsTr("取消"))
                                                 }
-                                                
                                             }
                                             
                                             onEntered: parent.opacity = 0.9
@@ -1780,29 +2021,27 @@ ApplicationWindow {
                                     }
                                 }
                                 
+                                // 修改：使用ScrollView包裹changelog
                                 Rectangle {
                                     width: parent.width
-                                    height: 100
+                                    height: Math.min(200, changelogText.implicitHeight + 40)  // 限制最大高度
                                     radius: 10
                                     color: updateInfoBg
                                     border.color: borderColor
                                     border.width: 1
                                     
-                                    Column {
-                                        anchors.centerIn: parent
-                                        spacing: 8
+                                    ScrollView {
+                                        anchors.fill: parent
+                                        anchors.margins: 10
+                                        clip: true
                                         
                                         Text {
-                                            text: settings_model.newVersion + qsTr(" 更新内容")
-                                            font.pixelSize: 14
-                                            font.weight: Font.Bold
-                                            color: textPrimary
-                                        }
-                                        
-                                        Text {
+                                            id: changelogText
+                                            width: parent.width - 20
                                             text: settings_model.changeLog
                                             font.pixelSize: 12
                                             color: textSecondary
+                                            wrapMode: Text.WordWrap
                                         }
                                     }
                                 }

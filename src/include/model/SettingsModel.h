@@ -29,6 +29,7 @@ class SettingsModel : public QObject
     Q_PROPERTY(QString changeLog READ changeLog WRITE setChangeLog NOTIFY changeLogChanged)
     Q_PROPERTY(QString newVersion READ newVersion WRITE setNewVersion NOTIFY newVersionChanged)
     Q_PROPERTY(bool isUpdateAvailable READ isUpdateAvailable WRITE setIsUpdateAvailable NOTIFY isUpdateAvailableChanged)
+    Q_PROPERTY(QString updateSource READ updateSource WRITE setUpdateSource NOTIFY updateSourceChanged)
 
 public:
     explicit SettingsModel(QObject *parent = nullptr);
@@ -44,6 +45,7 @@ public:
     QString changeLog() const { return changelog; }
     QString newVersion() const { return new_version; }
     bool isUpdateAvailable() const { return is_update_available; }
+    QString updateSource() const { return update_source; }
 
     void setCurrentTheme(int theme);
     void setCurrentLanguage(int language);
@@ -57,6 +59,7 @@ public:
     void setChangeLog(const QString &log);
     void setNewVersion(const QString &new_version);
     void setIsUpdateAvailable(bool available);
+    void setUpdateSource(const QString &us);
     void setQmlEngine(QQmlEngine *engine);
 
     Q_INVOKABLE void initSettings();
@@ -77,11 +80,15 @@ signals:
     void changeLogChanged(const QString &log);
     void newVersionChanged(const QString &new_version);
     void isUpdateAvailableChanged(bool available);
+    void updateSourceChanged(const QString &update_source);
     void cacheInfoDone(QString used, QString free_size, QString total);
     void cacheMoveDone();
     void settingsChanged(Settings::Item item, QVariant value);
     void downloadProgress(QString progress);
     void downloadDone();
+    void downloadError(QString error_msg);
+    void versionInfoShow(QString msg);
+    void updateOutput(QString output);
 
 private:
     void onConfigResult(uint8_t group, std::shared_ptr<std::unordered_map<std::string, std::string>> config);
@@ -92,6 +99,8 @@ private:
     void setAboutConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config);
     void updateCacheDiskInfo();
     void moveCacheDir(const std::string &des);
+    void onDownloadProgress(quint64 received, quint64 total);
+    void onPackageDownloadDone(QString path);
 
 private:
     int current_theme;    // 0: light, 1: dark
@@ -107,6 +116,7 @@ private:
     QString new_version;
     QString changelog;
     bool is_update_available;
+    QString update_source;
 
     QQmlEngine *qml_engine = nullptr;
     QTranslator *translator;

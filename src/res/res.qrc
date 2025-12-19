@@ -15,5 +15,6 @@
     <file>translations/zh_CN.qm</file>
     <file>translations/en.qm</file>
     <file>settings/settings.json</file>
+    <file>tools/updateLinux.sh</file>
   </qresource>
 </RCC>

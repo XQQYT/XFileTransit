@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <QtCore/QFileInfo>
 #include <QtCore/QThread>
+#include <QtCore/QProcess>
 
 SettingsModel::SettingsModel(QObject *parent)
     : QObject(parent), translator(new QTranslator(this))
@@ -239,6 +240,17 @@ void SettingsModel::setNewVersion(const QString &nv)
     }
 }
 
+void SettingsModel::setUpdateSource(const QString &us)
+{
+    if (update_source != us)
+    {
+        update_source = us;
+        emit updateSourceChanged(update_source);
+        EventBusManager::instance().publish("/settings/update_settings_value",
+                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("update_source"), update_source.toStdString());
+    }
+}
+
 void SettingsModel::onConfigResult(uint8_t group, std::shared_ptr<std::unordered_map<std::string, std::string>> config)
 {
 
@@ -310,6 +322,7 @@ void SettingsModel::setNotificationConfig(std::shared_ptr<std::unordered_map<std
 void SettingsModel::setAboutConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
 {
     setIsUpdateAvailable(std::stoi((*config)["update_is_avaible"]));
+    setUpdateSource(QString::fromStdString((*config)["update_source"]));
 }
 void SettingsModel::clearCache()
 {
@@ -345,34 +358,138 @@ void SettingsModel::checkUpdate()
                 setIsUpdateAvailable(true);
                 setNewVersion(version_info.lastest_version);
                 setChangeLog(version_info.changelog);
+                emit versionInfoShow("发现新版本");
+            }
+            else
+            {
+                emit versionInfoShow("当前已是最新版本");
             } });
 
-    update_manager.downloadVersionJson(GitPlatform::Github, "XQQYT", "XFileTransit", "feature/add_settings_widget", "src/res/version/version.json");
+    if (update_source == "github")
+    {
+        update_manager.downloadVersionJson(GitPlatform::Github, "XQQYT", "XFileTransit", "feature/add_settings_widget", "src/res/version/version.json");
+    }
+    else if (update_source == "gitee")
+    {
+        update_manager.downloadVersionJson(GitPlatform::Gitee, "XQQYT", "XFileTransit", "feature/add_settings_widget", "src/res/version/version.json");
+    }
+    else
+    {
+        emit versionInfoShow("更新源错误");
+    }
+}
+
+void SettingsModel::onDownloadProgress(quint64 received, quint64 total)
+{
+    QString percent_str;
+
+    if (total > 0)
+    {
+        if (received == total)
+        {
+            emit downloadDone();
+            return;
+        }
+        double percent = (static_cast<double>(received) / total) * 100.0;
+        percent_str = QString::asprintf("%.1f%%", percent);
+    }
+    else
+    {
+        percent_str = "0.0%";
+    }
+    emit downloadProgress(percent_str);
+}
+
+void SettingsModel::onPackageDownloadDone(QString path)
+{
+    QFile scriptFile(":/tools/updateLinux.sh");
+    QString tempScriptPath = QDir::tempPath() + "/updateXFileTransit.sh";
+
+    QString updatePackage = path;
+    QString installDir = QCoreApplication::applicationDirPath();
+    QDir dir(installDir);
+
+    if (dir.cdUp())
+    {
+        installDir = dir.absolutePath();
+    }
+
+    QString sudoCmd = "pkexec";
+    if (QProcess::execute("which", {"gksu"}) == 0)
+    {
+        sudoCmd = "gksu";
+    }
+    else if (QProcess::execute("which", {"kdesudo"}) == 0)
+    {
+        sudoCmd = "kdesudo";
+    }
+
+    QProcess *process = new QProcess();
+
+    connect(process, &QProcess::readyReadStandardOutput, [=]()
+            {
+        QString output = QString::fromLocal8Bit(process->readAllStandardOutput());
+        emit updateOutput(output); });
+
+    connect(process, &QProcess::readyReadStandardError, [=]()
+            {
+        QString error = QString::fromLocal8Bit(process->readAllStandardError());
+        if (!error.trimmed().isEmpty()) {
+            emit updateOutput("错误: " + error);
+        } });
+
+    connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            [=](int exitCode, QProcess::ExitStatus exitStatus)
+            {
+                if (exitStatus == QProcess::NormalExit && exitCode == 0)
+                {
+                    emit updateOutput("更新成功，请重启应用");
+                }
+                else
+                {
+                    emit updateOutput("更新失败");
+                }
+
+                process->deleteLater();
+            });
+
+    process->setProgram(sudoCmd);
+    process->setArguments({tempScriptPath, updatePackage, installDir});
+    process->start();
+
+    if (!process->waitForStarted(5000))
+    {
+        emit updateOutput("更新脚本启动失败");
+    }
 }
 
 void SettingsModel::updateSoftware()
 {
-    connect(&update_manager, &UpdateManager::downloadPackageDone, [=](QString path)
-            { qDebug() << "package is saved in " << path; });
-    connect(&update_manager, &UpdateManager::downloadProgress, this, [=](qint64 received, qint64 total)
-            {
-                QString percent_str;
+    connect(&update_manager, &UpdateManager::downloadPackageDone, this, &SettingsModel::onPackageDownloadDone);
 
-                if (total > 0)
-                {                    
-                    if(received == total)
-                    {
-                        emit downloadDone();
-                        return;
-                    }
-                    double percent = (static_cast<double>(received) / total) * 100.0;
-                    percent_str = QString::asprintf("%.1f%%", percent);
+    connect(&update_manager, &UpdateManager::downloadProgress, this, &SettingsModel::onDownloadProgress);
 
-                }
-                else
-                {
-                    percent_str = "0.0%";
-                } 
-                emit downloadProgress(percent_str); });
-    update_manager.downloadPackage(new_version_info);
+    connect(&update_manager, &UpdateManager::downloadError, [=](const QString &error_msg)
+            { emit downloadError(error_msg); });
+
+    if (update_source == "github")
+    {
+#ifdef _WIN32
+        update_manager.downloadPackage(new_version_info.win_github_url);
+#else
+        update_manager.downloadPackage(new_version_info.linux_github_url);
+#endif
+    }
+    else if (update_source == "gitee")
+    {
+#ifdef _WIN32
+        update_manager.downloadPackage(new_version_info.win_gitee_url);
+#else
+        update_manager.downloadPackage(new_version_info.linux_gitee_url);
+#endif
+    }
+    else
+    {
+        emit versionInfoShow("更新源错误");
+    }
 }

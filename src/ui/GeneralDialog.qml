@@ -7,7 +7,7 @@ Window {
     width: 400
     height: 180
     modality: Qt.ApplicationModal
-    flags: Qt.FramelessWindowHint | Qt.Dialog
+    flags: Qt.FramelessWindowHint | Qt.Dialog | Qt.WindowStaysOnTopHint
     color: "transparent"
     visible: false
     

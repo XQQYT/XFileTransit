@@ -19,8 +19,10 @@ struct VersionInfo
     QString lastest_version;
     QString update_time;
     QString changelog;
-    QString win_url;
-    QString linux_url;
+    QString win_github_url;
+    QString linux_github_url;
+    QString win_gitee_url;
+    QString linux_gitee_url;
 };
 class UpdateManager : public QObject
 {
@@ -30,7 +32,7 @@ public:
     void downloadVersionJson(const GitPlatform platform, const QString &owner,
                              const QString &repo, const QString &branch,
                              const QString &file_path);
-    void downloadPackage(const VersionInfo &new_version_info);
+    void downloadPackage(const QString &url);
     QString buildUrl(const GitPlatform platform, const QString &owner,
                      const QString &repo, const QString &branch,
                      const QString &file_path) const;

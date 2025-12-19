@@ -54,7 +54,7 @@ void UpdateManager::downloadVersionJson(const GitPlatform platform, const QStrin
     git_downloader->downloadFile(url);
 }
 
-void UpdateManager::downloadPackage(const VersionInfo &new_version_info)
+void UpdateManager::downloadPackage(const QString &url)
 {
     git_downloader->resetCallbacks();
     git_downloader->setCallbacks([=](quint64 n1, quint64 n2)
@@ -76,11 +76,7 @@ void UpdateManager::downloadPackage(const VersionInfo &new_version_info)
                                  },
                                  [=](const QString &error_msg)
                                  { emit downloadError(error_msg); });
-#ifdef _WIN32
-    git_downloader->downloadFile(new_version_info.win_url);
-#else
-    git_downloader->downloadFile(new_version_info.linux_url);
-#endif
+    git_downloader->downloadFile(url);
 }
 
 VersionInfo UpdateManager::VersionParser::parse(QByteArray version_json)
@@ -126,7 +122,8 @@ VersionInfo UpdateManager::VersionParser::parse(QByteArray version_json)
     if (download_url_obj.contains("windows"))
     {
         QJsonObject windows_obj = download_url_obj["windows"].toObject();
-        version_info.win_url = windows_obj["url"].toString();
+        version_info.win_github_url = windows_obj["github_url"].toString();
+        version_info.win_gitee_url = windows_obj["gitee_url"].toString();
     }
     else
     {
@@ -136,7 +133,8 @@ VersionInfo UpdateManager::VersionParser::parse(QByteArray version_json)
     if (download_url_obj.contains("linux"))
     {
         QJsonObject linux_obj = download_url_obj["linux"].toObject();
-        version_info.linux_url = linux_obj["url"].toString();
+        version_info.linux_github_url = linux_obj["github_url"].toString();
+        version_info.linux_gitee_url = linux_obj["gitee_url"].toString();
     }
     else
     {
@@ -175,9 +173,14 @@ void UpdateManager::GitDownloader::downloadFile(QString url)
     connect(current_reply, &QNetworkReply::finished, this, &GitDownloader::onReplyFinished);
     connect(current_reply, &QNetworkReply::downloadProgress,
             this, [=](quint64 n1, quint64 n2)
-            { progress_cb(n1, n2); });
+            { 
+                if(n1 > 0 && timeout_timer->isActive())
+                {
+                    timeout_timer->stop();
+                }
+                progress_cb(n1, n2); });
 
-    timeout_timer->start(30000); // 30秒超时
+    timeout_timer->start(20000); // 20秒超时
 }
 
 void UpdateManager::GitDownloader::setCallbacks(DownloadProgressCallback progressCb,
@@ -186,7 +189,7 @@ void UpdateManager::GitDownloader::setCallbacks(DownloadProgressCallback progres
 {
     progress_cb = progressCb;
     finished_cb = finishedCb;
-    errorCb = error_cb;
+    error_cb = errorCb;
 }
 
 void UpdateManager::GitDownloader::resetCallbacks()
@@ -251,7 +254,7 @@ void UpdateManager::GitDownloader::onTimeout()
     if (current_reply && current_reply->isRunning())
     {
         current_reply->abort();
-        error_cb("请求超时 (30秒)");
+        error_cb("请求超时 (20秒)");
     }
 }
 
@@ -267,7 +270,12 @@ void UpdateManager::GitDownloader::handleRedirect(const QUrl &redirect_url)
     connect(GitDownloader::current_reply, &QNetworkReply::finished, this, &GitDownloader::onReplyFinished);
     connect(current_reply, &QNetworkReply::downloadProgress,
             this, [=](quint64 n1, quint64 n2)
-            { progress_cb(n1, n2); });
+            {                 
+                if(n1 > 0)
+                {
+                    timeout_timer->stop();
+                }
+                progress_cb(n1, n2); });
 
     timeout_timer->start(30000);
 }
