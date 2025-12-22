@@ -12,25 +12,25 @@
 #include <QtCore/QProcess>
 #include <QtCore/QTemporaryFile>
 
-SettingsModel::SettingsModel(QObject *parent)
+SettingsModel::SettingsModel(QObject* parent)
     : QObject(parent), translator(new QTranslator(this))
 {
     app_version = AppVersion::string;
     EventBusManager::instance().subscribe("/settings/item_config_reslut", std::bind(
-                                                                              &SettingsModel::onConfigResult,
-                                                                              this,
-                                                                              std::placeholders::_1,
-                                                                              std::placeholders::_2));
+        &SettingsModel::onConfigResult,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2));
     cache_size_updater = new QTimer(this);
     cache_size_updater->setInterval(5000);
     connect(cache_size_updater, &QTimer::timeout, [=]()
-            {
-        if(!cache_path.isEmpty())
         {
-        uint64_t cache_size = FileSystemUtils::calculateFolderSize(cache_path.toStdString());
-        setCacheSize(QString::fromStdString(FileSystemUtils::formatFileSize(cache_size)));
-        } });
-    cache_size_updater->start();
+            if (!cache_path.isEmpty())
+            {
+                uint64_t cache_size = FileSystemUtils::calculateFolderSize(cache_path.toStdString());
+                setCacheSize(QString::fromStdString(FileSystemUtils::formatFileSize(cache_size)));
+            } });
+            cache_size_updater->start();
 }
 
 void SettingsModel::initSettings()
@@ -45,7 +45,7 @@ void SettingsModel::initSettings()
     EventBusManager::instance().publish("/settings/get_item_config", groups);
 }
 
-void SettingsModel::setQmlEngine(QQmlEngine *engine)
+void SettingsModel::setQmlEngine(QQmlEngine* engine)
 {
     qml_engine = engine;
 }
@@ -58,7 +58,7 @@ void SettingsModel::setCurrentTheme(int theme)
         emit currentThemeChanged(theme);                    // qml
         emit settingsChanged(Settings::Item::Theme, theme); // model
         EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::General), std::string("theme"), std::to_string(theme));
+            static_cast<uint8_t>(Settings::SettingsGroup::General), std::string("theme"), std::to_string(theme));
     }
 }
 
@@ -92,7 +92,7 @@ void SettingsModel::setCurrentLanguage(int language)
         emit currentLanguageChanged(language);
         emit settingsChanged(Settings::Item::Language, language);
         EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::General), std::string("language"), std::to_string(language));
+            static_cast<uint8_t>(Settings::SettingsGroup::General), std::string("language"), std::to_string(language));
     }
 }
 
@@ -100,28 +100,28 @@ void SettingsModel::updateCacheDiskInfo()
 {
     // 获取当前所在分区的信息
     QThread::create([this]()
-                    {
-                        auto [total, free_size] = FileSystemUtils::getDiskSpaceForFolder(cache_path.toStdString()); 
-                        uint64_t cache_size = FileSystemUtils::calculateFolderSize(cache_path.toStdString());
-                        emit cacheInfoDone(QString::fromStdString(FileSystemUtils::formatFileSize(total-free_size)),
-                        QString::fromStdString(FileSystemUtils::formatFileSize(free_size)),
-                        QString::fromStdString(FileSystemUtils::formatFileSize(total))); })
+        {
+            auto [total, free_size] = FileSystemUtils::getDiskSpaceForFolder(cache_path.toStdString());
+            uint64_t cache_size = FileSystemUtils::calculateFolderSize(cache_path.toStdString());
+            emit cacheInfoDone(QString::fromStdString(FileSystemUtils::formatFileSize(total - free_size)),
+                QString::fromStdString(FileSystemUtils::formatFileSize(free_size)),
+                QString::fromStdString(FileSystemUtils::formatFileSize(total))); })
         ->start();
 }
 
-void SettingsModel::moveCacheDir(const std::string &des)
+void SettingsModel::moveCacheDir(const std::string& des)
 {
     // 迁移文件
     QThread::create([this, des]()
-                    {
-                        FileSystemUtils::copyDirectory(des, cache_path.toStdString());
-                        FileSystemUtils::removeFileOrDirectory(des, false);
-                        emit cacheMoveDone();
-                        emit settingsChanged(Settings::Item::CachePath, cache_path); })
+        {
+            FileSystemUtils::copyDirectory(des, cache_path.toStdString());
+            FileSystemUtils::removeFileOrDirectory(des, false);
+            emit cacheMoveDone();
+            emit settingsChanged(Settings::Item::CachePath, cache_path); })
         ->start();
 }
 
-void SettingsModel::setCachePath(const QUrl &url)
+void SettingsModel::setCachePath(const QUrl& url)
 {
     if (cache_url != url)
     {
@@ -138,11 +138,11 @@ void SettingsModel::setCachePath(const QUrl &url)
         updateCacheDiskInfo();
         moveCacheDir(old_tmp_path);
         EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::File), std::string("default_save_url"), cache_url.toString().toStdString());
+            static_cast<uint8_t>(Settings::SettingsGroup::File), std::string("default_save_url"), cache_url.toString().toStdString());
     }
 }
 
-void SettingsModel::setCacheSize(const QString &size)
+void SettingsModel::setCacheSize(const QString& size)
 {
     if (size != cache_size)
     {
@@ -159,7 +159,7 @@ void SettingsModel::setAutoClearCache(bool enable)
         emit autoClearCacheChanged(enable);
         emit settingsChanged(Settings::Item::AutoClearCache, enable);
         EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::File), std::string("auto_clear_cache"), std::to_string(enable));
+            static_cast<uint8_t>(Settings::SettingsGroup::File), std::string("auto_clear_cache"), std::to_string(enable));
     }
 }
 
@@ -171,7 +171,7 @@ void SettingsModel::setAutoDownload(bool enable)
         emit autoDownloadChanged(enable);
         emit settingsChanged(Settings::Item::AutoDownload, enable);
         EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::Transfer), std::string("auto_download"), std::to_string(enable));
+            static_cast<uint8_t>(Settings::SettingsGroup::Transfer), std::string("auto_download"), std::to_string(enable));
     }
 }
 
@@ -187,7 +187,7 @@ void SettingsModel::setConcurrentTransfers(int transfers)
             EventBusManager::instance().publish("/settings/send_concurrent_changed", static_cast<uint8_t>(transfers));
         }
         EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::Transfer), std::string("concurrent_task"), std::to_string(transfers));
+            static_cast<uint8_t>(Settings::SettingsGroup::Transfer), std::string("concurrent_task"), std::to_string(transfers));
     }
 }
 
@@ -199,11 +199,11 @@ void SettingsModel::setExpandOnAction(bool expand)
         emit expandOnActionChanged(expand);
         emit settingsChanged(Settings::Item::ExpandOnAction, expand);
         EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::Notification), std::string("auto_expand"), std::to_string(expand));
+            static_cast<uint8_t>(Settings::SettingsGroup::Notification), std::string("auto_expand"), std::to_string(expand));
     }
 }
 
-void SettingsModel::setAppVersion(const QString &version)
+void SettingsModel::setAppVersion(const QString& version)
 {
     if (app_version != version)
     {
@@ -221,11 +221,11 @@ void SettingsModel::setIsUpdateAvailable(bool available)
         emit isUpdateAvailableChanged(available);
         emit settingsChanged(Settings::Item::IsUpdateAvailable, available);
         EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("update_is_avaible"), std::to_string(available));
+            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("update_is_avaible"), std::to_string(available));
     }
 }
 
-void SettingsModel::setChangeLog(const QString &log)
+void SettingsModel::setChangeLog(const QString& log)
 {
     if (changelog != log)
     {
@@ -233,29 +233,29 @@ void SettingsModel::setChangeLog(const QString &log)
         emit changeLogChanged(changelog);
         emit settingsChanged(Settings::Item::Changelog, changelog);
         EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("change_log"), changelog.toStdString());
+            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("change_log"), changelog.toStdString());
     }
 }
 
-void SettingsModel::setNewVersion(const QString &nv)
+void SettingsModel::setNewVersion(const QString& nv)
 {
     if (new_version != nv)
     {
         new_version = nv;
         emit newVersionChanged(new_version);
         EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("new_version"), new_version.toStdString());
+            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("new_version"), new_version.toStdString());
     }
 }
 
-void SettingsModel::setUpdateSource(const QString &us)
+void SettingsModel::setUpdateSource(const QString& us)
 {
     if (update_source != us)
     {
         update_source = us;
         emit updateSourceChanged(update_source);
         EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("update_source"), update_source.toStdString());
+            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("update_source"), update_source.toStdString());
     }
 }
 
@@ -263,28 +263,28 @@ void SettingsModel::onConfigResult(uint8_t group, std::shared_ptr<std::unordered
 {
 
     QMetaObject::invokeMethod(this, [=]()
-                              {
-    Settings::SettingsGroup g = static_cast<Settings::SettingsGroup>(group);
-        switch (g)
         {
-        case Settings::SettingsGroup::General:
-            setGeneralConfig(config);
-            break;
-        case Settings::SettingsGroup::File:
-            setFileConfig(config);
-            break;
-        case Settings::SettingsGroup::Transfer:
-            setTransitConfig(config);
-            break;
-        case Settings::SettingsGroup::Notification:
-            setNotificationConfig(config);
-            break;
-        case Settings::SettingsGroup::About:
-            setAboutConfig(config);
-            break;
-        default:
-            break;
-    } });
+            Settings::SettingsGroup g = static_cast<Settings::SettingsGroup>(group);
+            switch (g)
+            {
+            case Settings::SettingsGroup::General:
+                setGeneralConfig(config);
+                break;
+            case Settings::SettingsGroup::File:
+                setFileConfig(config);
+                break;
+            case Settings::SettingsGroup::Transfer:
+                setTransitConfig(config);
+                break;
+            case Settings::SettingsGroup::Notification:
+                setNotificationConfig(config);
+                break;
+            case Settings::SettingsGroup::About:
+                setAboutConfig(config);
+                break;
+            default:
+                break;
+            } });
 }
 
 void SettingsModel::setGeneralConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
@@ -302,7 +302,7 @@ void SettingsModel::setFileConfig(std::shared_ptr<std::unordered_map<std::string
         cache_url = QUrl::fromLocalFile(tmp_dir);
         cache_path = tmp_dir;
         EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::File), std::string("default_save_url"), cache_url.toString().toStdString());
+            static_cast<uint8_t>(Settings::SettingsGroup::File), std::string("default_save_url"), cache_url.toString().toStdString());
     }
     else
     {
@@ -353,7 +353,7 @@ void SettingsModel::clearCache()
     QDir().mkpath(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir));
 }
 
-int compareVersions(const QString &versionA, const QString &versionB)
+int compareVersions(const QString& versionA, const QString& versionB)
 {
     QVersionNumber v1 = QVersionNumber::fromString(versionA.mid(1));
     QVersionNumber v2 = QVersionNumber::fromString(versionB.mid(1));
@@ -368,18 +368,18 @@ int compareVersions(const QString &versionA, const QString &versionB)
 void SettingsModel::checkUpdate()
 {
     connect(&update_manager, &UpdateManager::versionJsonParsedDone, [=](VersionInfo version_info)
-            { if (compareVersions(version_info.lastest_version, AppVersion::string) > 0)
-            {
-                new_version_info = version_info;
-                setIsUpdateAvailable(true);
-                setNewVersion(version_info.lastest_version);
-                setChangeLog(version_info.changelog);
-                emit versionInfoShow("发现新版本");
-            }
-            else
-            {
-                emit versionInfoShow("当前已是最新版本");
-            } });
+        { if (compareVersions(version_info.lastest_version, AppVersion::string) > 0)
+    {
+        new_version_info = version_info;
+        setIsUpdateAvailable(true);
+        setNewVersion(version_info.lastest_version);
+        setChangeLog(version_info.changelog);
+        emit versionInfoShow("发现新版本");
+    }
+        else
+    {
+        emit versionInfoShow("当前已是最新版本");
+    } });
 
     if (update_source == "github")
     {
@@ -418,6 +418,14 @@ void SettingsModel::onDownloadProgress(quint64 received, quint64 total)
 
 void SettingsModel::onPackageDownloadDone(QString path)
 {
+#ifdef _WIN32
+    if (!QFile::exists(path)) {
+        qWarning() << "文件不存在:" << path;
+        return;
+    }
+    QProcess::startDetached(path);
+    QCoreApplication::quit();
+#else
     QFile scriptFile(":/tools/updateLinux.sh");
     QString tempScriptPath = QDir::tempPath() + "/updateXFileTransit.sh";
     QFile temp_script(tempScriptPath);
@@ -435,52 +443,54 @@ void SettingsModel::onPackageDownloadDone(QString path)
     }
 
     QString sudoCmd = "pkexec";
-    if (QProcess::execute("which", {"gksu"}) == 0)
+    if (QProcess::execute("which", { "gksu" }) == 0)
     {
         sudoCmd = "gksu";
     }
-    else if (QProcess::execute("which", {"kdesudo"}) == 0)
+    else if (QProcess::execute("which", { "kdesudo" }) == 0)
     {
         sudoCmd = "kdesudo";
     }
 
-    QProcess *process = new QProcess();
+    QProcess* process = new QProcess();
 
     connect(process, &QProcess::readyReadStandardOutput, [=]()
-            {
-        QString output = QString::fromLocal8Bit(process->readAllStandardOutput());
-        emit updateOutput(output); });
+        {
+            QString output = QString::fromLocal8Bit(process->readAllStandardOutput());
+            emit updateOutput(output); });
 
     connect(process, &QProcess::readyReadStandardError, [=]()
-            {
-        QString error = QString::fromLocal8Bit(process->readAllStandardError());
-        if (!error.trimmed().isEmpty()) {
-            emit updateOutput("错误: " + error);
-        } });
+        {
+            QString error = QString::fromLocal8Bit(process->readAllStandardError());
+            if (!error.trimmed().isEmpty()) {
+                emit updateOutput("错误: " + error);
+            } });
 
-    connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            [=](int exitCode, QProcess::ExitStatus exitStatus)
-            {
-                if (exitStatus == QProcess::NormalExit && exitCode == 0)
+            connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                [=](int exitCode, QProcess::ExitStatus exitStatus)
                 {
-                    emit updateOutput("更新成功，请重启应用");
-                }
-                else
-                {
-                    emit updateOutput("更新失败");
-                }
+                    if (exitStatus == QProcess::NormalExit && exitCode == 0)
+                    {
+                        emit updateOutput("更新成功，请重启应用");
+                    }
+                    else
+                    {
+                        emit updateOutput("更新失败");
+                    }
 
-                process->deleteLater();
-            });
+                    process->deleteLater();
+                });
 
-    process->setProgram(sudoCmd);
-    process->setArguments({tempScriptPath, updatePackage, installDir});
-    process->start();
+            process->setProgram(sudoCmd);
+            process->setArguments({ tempScriptPath, updatePackage, installDir });
+            process->start();
 
-    if (!process->waitForStarted(5000))
-    {
-        emit updateOutput("更新脚本启动失败");
-    }
+            if (!process->waitForStarted(5000))
+            {
+                emit updateOutput("更新脚本启动失败");
+            }
+#endif
+
 }
 
 void SettingsModel::updateSoftware()
@@ -489,8 +499,8 @@ void SettingsModel::updateSoftware()
 
     connect(&update_manager, &UpdateManager::downloadProgress, this, &SettingsModel::onDownloadProgress);
 
-    connect(&update_manager, &UpdateManager::downloadError, [=](const QString &error_msg)
-            { emit downloadError(error_msg); });
+    connect(&update_manager, &UpdateManager::downloadError, [=](const QString& error_msg)
+        { emit downloadError(error_msg); });
 
     if (update_source == "github")
     {
@@ -512,7 +522,7 @@ void SettingsModel::updateSoftware()
     {
         emit versionInfoShow("更新源错误");
     }
-}
+    }
 
 void SettingsModel::restartApplication()
 {
