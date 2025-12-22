@@ -76,7 +76,7 @@ public:
     }
 
 public:
-    NetworkInterface() {};
+    NetworkInterface() = default;
     NetworkInterface(const NetworkInterface &obj) = delete;
     NetworkInterface(NetworkInterface &&obj) = delete;
     NetworkInterface &operator=(NetworkInterface &other) = delete;

@@ -15,8 +15,9 @@
     "auto_expand": "1"
   },
   "About": {
-    "last_check_date":"",
     "update_is_avaible":"0",
-    "change_log":""
+    "new_version":"",
+    "change_log":"",
+    "update_source":"gitee"
   }
 }

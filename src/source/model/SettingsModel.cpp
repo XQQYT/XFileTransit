@@ -10,6 +10,7 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QThread>
 #include <QtCore/QProcess>
+#include <QtCore/QTemporaryFile>
 
 SettingsModel::SettingsModel(QObject *parent)
     : QObject(parent), translator(new QTranslator(this))
@@ -219,6 +220,8 @@ void SettingsModel::setIsUpdateAvailable(bool available)
         is_update_available = available;
         emit isUpdateAvailableChanged(available);
         emit settingsChanged(Settings::Item::IsUpdateAvailable, available);
+        EventBusManager::instance().publish("/settings/update_settings_value",
+                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("update_is_avaible"), std::to_string(available));
     }
 }
 
@@ -228,6 +231,9 @@ void SettingsModel::setChangeLog(const QString &log)
     {
         changelog = log;
         emit changeLogChanged(changelog);
+        emit settingsChanged(Settings::Item::Changelog, changelog);
+        EventBusManager::instance().publish("/settings/update_settings_value",
+                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("change_log"), changelog.toStdString());
     }
 }
 
@@ -237,6 +243,8 @@ void SettingsModel::setNewVersion(const QString &nv)
     {
         new_version = nv;
         emit newVersionChanged(new_version);
+        EventBusManager::instance().publish("/settings/update_settings_value",
+                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("new_version"), new_version.toStdString());
     }
 }
 
@@ -321,8 +329,16 @@ void SettingsModel::setNotificationConfig(std::shared_ptr<std::unordered_map<std
 
 void SettingsModel::setAboutConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
 {
-    setIsUpdateAvailable(std::stoi((*config)["update_is_avaible"]));
     setUpdateSource(QString::fromStdString((*config)["update_source"]));
+    bool update_avaible = std::stoi((*config)["update_is_avaible"]);
+    if (update_avaible)
+    {
+        setNewVersion(QString::fromStdString((*config)["new_version"]));
+        setChangeLog(QString::fromStdString((*config)["change_log"]));
+    }
+    // 不采用配置文件中的值，为了用户每次都需要检查更新，防止新版本过时
+    is_update_available = false;
+    emit isUpdateAvailableChanged(false);
 }
 void SettingsModel::clearCache()
 {
@@ -404,6 +420,10 @@ void SettingsModel::onPackageDownloadDone(QString path)
 {
     QFile scriptFile(":/tools/updateLinux.sh");
     QString tempScriptPath = QDir::tempPath() + "/updateXFileTransit.sh";
+    QFile temp_script(tempScriptPath);
+
+    scriptFile.copy(tempScriptPath);
+    temp_script.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
 
     QString updatePackage = path;
     QString installDir = QCoreApplication::applicationDirPath();
@@ -492,4 +512,9 @@ void SettingsModel::updateSoftware()
     {
         emit versionInfoShow("更新源错误");
     }
+}
+
+void SettingsModel::restartApplication()
+{
+    QCoreApplication::quit();
 }

@@ -135,7 +135,9 @@ namespace Settings
         ConcurrentTransfers,
         ExpandOnAction,
         AppVersion,
-        IsUpdateAvailable
+        IsUpdateAvailable,
+        Changelog,
+        NewVersion
     };
 
     enum class SettingsGroup

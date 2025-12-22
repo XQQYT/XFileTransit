@@ -124,12 +124,13 @@ Window {
                     update_output_dialog.close()
 
                     general_dialog.iconType = general_dialog.warning
-                    general_dialog.text = qsTr("是否重启应用")
+                    general_dialog.text = qsTr("是否立即退出")
                     general_dialog.buttons = general_dialog.yes | general_dialog.no
                     
                     var acceptFunc = function() {
                         general_dialog.close()
                         general_dialog.accepted.disconnect(acceptFunc)
+                        settings_model.restartApplication()
                     }
                     var rejectFunc = function() {
                         general_dialog.close()
@@ -785,7 +786,7 @@ Window {
                                     // 浅色主题选项
                                     Rectangle {
                                         id: lightTheme
-                                        width: parent.width / 3 - 15
+                                        width: parent.width / 2 - 10
                                         height: 120
                                         radius: 12
                                         color: settings_model.currentTheme === 0 ? primaryColor : cardColor
@@ -828,7 +829,7 @@ Window {
                                     // 深色主题选项
                                     Rectangle {
                                         id: darkTheme
-                                        width: parent.width / 3 - 15
+                                        width: parent.width / 2 - 10
                                         height: 120
                                         radius: 12
                                         color: settings_model.currentTheme === 1 ? primaryColor : cardColor
@@ -869,42 +870,42 @@ Window {
                                     }
                                     
                                     // 自动主题选项
-                                    Rectangle {
-                                        id: autoTheme
-                                        width: parent.width / 3 - 15
-                                        height: 120
-                                        radius: 12
-                                        color: settings_model.currentTheme === 2 ? primaryColor : cardColor
-                                        border.color: settings_model.currentTheme === 2 ? primaryLightColor : borderColor
-                                        border.width: settings_model.currentTheme === 2 ? 3 : 2
+                                    // Rectangle {
+                                    //     id: autoTheme
+                                    //     width: parent.width / 3 - 15
+                                    //     height: 120
+                                    //     radius: 12
+                                    //     color: settings_model.currentTheme === 2 ? primaryColor : cardColor
+                                    //     border.color: settings_model.currentTheme === 2 ? primaryLightColor : borderColor
+                                    //     border.width: settings_model.currentTheme === 2 ? 3 : 2
                                         
-                                        Column {
-                                            anchors.centerIn: parent
-                                            spacing: 8
+                                    //     Column {
+                                    //         anchors.centerIn: parent
+                                    //         spacing: 8
                                             
                                             
-                                            Text {
-                                                text: qsTr("自动")
-                                                font.pixelSize: 14
-                                                font.weight: Font.Medium
-                                                color: settings_model.currentTheme === 2 ? whiteColor : textPrimary
-                                                anchors.horizontalCenter: parent.horizontalCenter
-                                            }
+                                    //         Text {
+                                    //             text: qsTr("自动")
+                                    //             font.pixelSize: 14
+                                    //             font.weight: Font.Medium
+                                    //             color: settings_model.currentTheme === 2 ? whiteColor : textPrimary
+                                    //             anchors.horizontalCenter: parent.horizontalCenter
+                                    //         }
                                             
-                                            Text {
-                                                text: "Auto"
-                                                font.pixelSize: 11
-                                                color: settings_model.currentTheme === 2 ? "rgba(255,255,255,0.8)" : textSecondary
-                                                anchors.horizontalCenter: parent.horizontalCenter
-                                            }
-                                        }
+                                    //         Text {
+                                    //             text: "Auto"
+                                    //             font.pixelSize: 11
+                                    //             color: settings_model.currentTheme === 2 ? "rgba(255,255,255,0.8)" : textSecondary
+                                    //             anchors.horizontalCenter: parent.horizontalCenter
+                                    //         }
+                                    //     }
                                         
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: switchTheme(2)
-                                        }
-                                    }
+                                    //     MouseArea {
+                                    //         anchors.fill: parent
+                                    //         cursorShape: Qt.PointingHandCursor
+                                    //         onClicked: switchTheme(2)
+                                    //     }
+                                    // }
                                 }
                             }
                         }
@@ -2014,17 +2015,16 @@ Window {
                                     }
                                     
                                     Text {
-                                        text: settings_model.isUpdateAvailable ? qsTr("发现新版本") : qsTr("当前已是最新版本")
+                                        text: settings_model.newVersion != "" ? qsTr("发现新版本: " + settings_model.newVersion) : qsTr("当前已是最新版本")
                                         font.pixelSize: 14
                                         color: settings_model.isUpdateAvailable ? accentOrange : accentGreen
                                         anchors.verticalCenter: parent.verticalCenter
                                     }
                                 }
                                 
-                                // 修改：使用ScrollView包裹changelog
                                 Rectangle {
                                     width: parent.width
-                                    height: Math.min(200, changelogText.implicitHeight + 40)  // 限制最大高度
+                                    height: Math.min(200, changelogText.implicitHeight + 40)
                                     radius: 10
                                     color: updateInfoBg
                                     border.color: borderColor

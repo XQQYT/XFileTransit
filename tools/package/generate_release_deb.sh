@@ -76,6 +76,14 @@ if [ -x "$(command -v gtk-update-icon-cache)" ]; then
     gtk-update-icon-cache -f /usr/share/icons/hicolor 2>/dev/null || true
 fi
 
+user=$(logname)
+desktop_path=$(eval echo ~$user/Desktop)
+
+if [ -d "$desktop_path" ]; then
+    cp /usr/share/applications/XFileTransit.desktop "$desktop_path/"
+    chmod +x "$desktop_path/XFileTransit.desktop"
+fi
+
 chmod 755 /opt/XFileTransit/XFileTransit 2>/dev/null || true
 
 echo "XFileTransit $1 安装完成！"
@@ -88,8 +96,16 @@ cat > "$DEB_ROOT/DEBIAN/prerm" << 'EOF'
 #!/bin/bash
 set -e
 
+user=$(logname)
+desktop_path=$(eval echo ~$user/Desktop)
+
+if [ -d "$desktop_path" ]; then
+    rm -f "$desktop_path/XFileTransit.desktop"
+fi
+
 echo "正在卸载 XFileTransit..."
 EOF
+
 chmod 755 "$DEB_ROOT/DEBIAN/prerm"
 
 echo "复制可执行文件..."
@@ -243,14 +259,14 @@ done
 
 
 # 创建桌面文件
-cat > "$DEB_ROOT/usr/share/applications/xfiletransit.desktop" << EOF
+cat > "$DEB_ROOT/usr/share/applications/XFileTransit.desktop" << EOF
 [Desktop Entry]
 Type=Application
 Name=XFileTransit
 GenericName=File Transfer Tool
 Comment=Fast and secure file transfer application
 Exec=/opt/XFileTransit/XFileTransit
-Icon=xfiletransit
+Icon=/opt/XFileTransit/icon.png
 Terminal=false
 Categories=Network;FileTransfer;Utility;
 Keywords=file;transfer;network;qt;qml;
