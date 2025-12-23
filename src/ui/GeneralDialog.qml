@@ -1,11 +1,12 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Layouts
+import QtQuick.Controls
 
 Window {
     id: root
     width: 400
-    height: 180
+    height: contentContainer.height
     modality: Qt.ApplicationModal
     flags: Qt.FramelessWindowHint | Qt.Dialog
     color: "transparent"
@@ -127,6 +128,10 @@ Window {
         }
     }
     
+    // 当text或title改变时，重新计算大小
+    onTextChanged: Qt.callLater(root.adjustWindowSize)
+    onTitleChanged: Qt.callLater(root.adjustWindowSize)
+    
     function centerOnScreen() {
         Qt.callLater(function() {
             var screen = getCurrentScreen()
@@ -173,6 +178,9 @@ Window {
         root.iconType = iconType || root.info
         root.buttons = buttons || root.ok
         
+        // 调整窗口大小以适应内容
+        adjustWindowSize()
+        
         // 居中并显示
         centerOnScreen()
         root.show()
@@ -183,18 +191,44 @@ Window {
     function closeDialog() {
         root.close()
     }
+    
+    // 调整窗口大小以适应内容
+    function adjustWindowSize() {
+        if (!contentContainer.visible) return
+        
+        // 计算文本所需的高度
+        var textHeight = messageText.contentHeight
+        var textWidth = messageText.contentWidth
+        
+        // 计算合适的宽度
+        var maxTextWidth = Math.max(280, Math.min(500, textWidth + 80))
+        var containerWidth = Math.max(320, Math.min(600, maxTextWidth))
+        
+        // 计算合适的高度
+        var maxTextHeight = Math.min(400, textHeight) // 限制最大文本高度
+        var containerHeight = Math.max(140, Math.min(500, 
+            maxTextHeight + 120 + buttonArea.height)) // 120=标题区+边距
+        
+        // 设置容器大小
+        contentContainer.width = containerWidth
+        contentContainer.height = containerHeight
+        
+        // 设置窗口大小
+        root.width = contentContainer.width
+        root.height = contentContainer.height
+    }
 
-    // 对话框主体
+    // 对话框主体容器
     Rectangle {
+        id: contentContainer
         anchors.centerIn: parent
-        width: 360
-        height: 160
         radius: windowRadius
         color: windowBg
         border.color: windowBorder
         border.width: 1
         
         ColumnLayout {
+            id: mainLayout
             anchors.fill: parent
             anchors.margins: 20
             spacing: 16
@@ -202,6 +236,7 @@ Window {
             // 标题行
             RowLayout {
                 spacing: 12
+                Layout.fillWidth: true
                 
                 // 图标
                 Rectangle {
@@ -226,24 +261,63 @@ Window {
                     font.bold: true
                     color: textPrimary
                     Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                    elide: Text.ElideRight
                 }
             }
             
-            // 消息内容
-            Text {
-                text: root.text
-                font.pixelSize: 18
-                color: textSecondary
-                wrapMode: Text.Wrap
-                lineHeight: 1.4
+            // 消息内容区域
+            ScrollView {
+                id: scrollView
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.preferredHeight: Math.min(400, messageText.contentHeight + 20)
+                clip: true
+                
+                TextArea {
+                    id: messageText
+                    width: scrollView.width - 20
+                    text: root.text
+                    font.pixelSize: getFontSize()
+                    color: textSecondary
+                    wrapMode: Text.Wrap
+                    readOnly: true
+                    selectByMouse: false
+                    background: Rectangle {
+                        color: "transparent"
+                    }
+                    
+                    // 计算合适的字体大小
+                    function getFontSize() {
+                        var lines = text.split('\n').length
+                        var charsPerLine = text.length / Math.max(1, lines)
+                        
+                        if (lines > 15 || charsPerLine > 80) {
+                            return 12
+                        } else if (lines > 10 || charsPerLine > 60) {
+                            return 13
+                        } else {
+                            return 14
+                        }
+                    }
+                    
+                    // 文本改变时调整
+                    onTextChanged: {
+                        Qt.callLater(root.adjustWindowSize)
+                    }
+                    
+                    // 内容大小改变时调整
+                    onContentHeightChanged: {
+                        Qt.callLater(root.adjustWindowSize)
+                    }
+                }
             }
             
             // 按钮区域
             Row {
+                id: buttonArea
                 spacing: 8
-                Layout.alignment: Qt.AlignRight
+                Layout.alignment: Qt.AlignRight | Qt.AlignBottom
                 
                 // 取消按钮
                 Rectangle {

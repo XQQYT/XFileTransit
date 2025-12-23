@@ -67,6 +67,7 @@ public:
     Q_INVOKABLE void checkUpdate();
     Q_INVOKABLE void updateSoftware();
     Q_INVOKABLE void restartApplication();
+    Q_INVOKABLE void cancelDownload();
 
 signals:
     void currentThemeChanged(int theme);

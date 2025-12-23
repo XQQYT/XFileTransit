@@ -381,6 +381,9 @@ void SettingsModel::checkUpdate()
         emit versionInfoShow("当前已是最新版本");
     } });
 
+    connect(&update_manager, &UpdateManager::downloadError, [=](const QString& error_msg)
+        { emit downloadError(error_msg); });
+
     if (update_source == "github")
     {
         update_manager.downloadVersionJson(GitPlatform::Github, "XQQYT", "XFileTransit", "feature/add_settings_widget", "src/res/version/version.json");
@@ -527,4 +530,9 @@ void SettingsModel::updateSoftware()
 void SettingsModel::restartApplication()
 {
     QCoreApplication::quit();
+}
+
+void SettingsModel::cancelDownload()
+{
+    update_manager.cancelDownload();
 }

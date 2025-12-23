@@ -36,7 +36,7 @@ public:
     QString buildUrl(const GitPlatform platform, const QString &owner,
                      const QString &repo, const QString &branch,
                      const QString &file_path) const;
-
+    void cancelDownload();
 private:
     class GitDownloader;
     class VersionParser;

@@ -56,6 +56,8 @@ ApplicationWindow {
     property var acceptedConnection: null
     property var rejectedConnection: null
 
+    property var curLoadingBtnHandler: null
+
     GeneralDialog{
         id: general_dialog
         transientParent: settingsWindow
@@ -384,7 +386,7 @@ Window {
 
     LoadingDialog {
         id: load_dialog
-        enableBtn: false
+        enableBtn: true
     }
     FolderDialog {
         id: folderDialog
@@ -2002,12 +2004,30 @@ Window {
                                             cursorShape: Qt.PointingHandCursor
                                             hoverEnabled: true
                                             onClicked: {
+                                                if(curLoadingBtnHandler){
+                                                    load_dialog.onButtonClicked.disconnect(curLoadingBtnHandler)
+                                                }
                                                 if(!settings_model.isUpdateAvailable){
                                                     checkForUpdates()
                                                     load_dialog.show(qsTr("正在获取版本信息"), qsTr("取消"))
+                                                    curLoadingBtnHandler = function cancelGetVersionInfo(){
+                                                        Qt.callLater(function() {
+                                                            load_dialog.close()
+                                                        })
+                                                        settings_model.cancelDownload()
+                                                    }
                                                 }else{
                                                     settings_model.updateSoftware()
                                                     load_dialog.show(qsTr("0%"), qsTr("取消"))
+                                                    curLoadingBtnHandler = function cancelGetVersionInfo(){
+                                                        Qt.callLater(function() {
+                                                            load_dialog.close()
+                                                        })
+                                                        settings_model.cancelDownload()
+                                                    }
+                                                }
+                                                if(curLoadingBtnHandler){
+                                                    load_dialog.onButtonClicked.connect(curLoadingBtnHandler)
                                                 }
                                             }
                                             

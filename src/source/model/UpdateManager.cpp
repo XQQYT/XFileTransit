@@ -93,6 +93,12 @@ void UpdateManager::downloadPackage(const QString& url)
     git_downloader->downloadFile(url);
 }
 
+void UpdateManager::cancelDownload()
+{
+    git_downloader->resetCallbacks();
+    git_downloader->cancelDownload();
+}
+
 VersionInfo UpdateManager::VersionParser::parse(QByteArray version_json)
 {
     QJsonDocument doc = QJsonDocument::fromJson(version_json);
@@ -217,9 +223,16 @@ void UpdateManager::GitDownloader::cancelDownload()
 {
     if (current_reply && current_reply->isRunning())
     {
+        QObject::disconnect(current_reply, nullptr, this, nullptr);
+        
+        if (timeout_timer) {
+            timeout_timer->stop();
+        }
+        
         current_reply->abort();
+        
+        resetCallbacks();
         current_reply = nullptr;
-        timeout_timer->stop();
     }
 }
 
