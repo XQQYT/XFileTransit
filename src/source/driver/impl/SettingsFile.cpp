@@ -11,7 +11,6 @@ void SettingsFile::load(const std::string &path)
         in.close();
     }
     full_config = json::parse(in);
-    writeFullJson();
 }
 
 std::unordered_map<std::string, std::string> SettingsFile::getConfig(const Settings::SettingsGroup config_name)
@@ -26,7 +25,7 @@ std::unordered_map<std::string, std::string> SettingsFile::getConfig(const Setti
     return full_config[config_name_str].get<std::unordered_map<std::string, std::string>>();
 }
 
-void SettingsFile::writeFullJson()
+void SettingsFile::flush()
 {
     std::ofstream out(config_path, std::ios::trunc);
     if (!out.is_open())
@@ -47,7 +46,7 @@ void SettingsFile::updateConfig(const Settings::SettingsGroup config_name, const
         return;
     }
     full_config[config_name_str] = config;
-    writeFullJson();
+    flush();
 }
 
 void SettingsFile::setValue(const Settings::SettingsGroup config_name, const std::string key, const std::string value)
@@ -66,5 +65,5 @@ void SettingsFile::setValue(const Settings::SettingsGroup config_name, const std
     }
     config_json[key] = value;
     full_config[config_name_str] = config_json;
-    writeFullJson();
+    flush();
 }

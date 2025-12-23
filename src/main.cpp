@@ -80,6 +80,8 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/settings/item_config_reslut");
     // 更新配置中键值
     EventBusManager::instance().registerEvent("/settings/update_settings_value");
+    // 立即写入到文件
+    EventBusManager::instance().registerEvent("/settings/write_into_file");
 }
 
 void checkSettingsFile()

@@ -11,6 +11,7 @@ public:
     SettingsController();
     void onGetConfig(std::vector<uint8_t> groups);
     void onUpdateValue(uint8_t group, std::string key, std::string value);
+    void onFlushConfig();
 
 private:
     std::unique_ptr<SettingsFileInterface> settings_driver;

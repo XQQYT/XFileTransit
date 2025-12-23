@@ -8,14 +8,14 @@
 
 #include <QtCore/QFile>
 
-UpdateManager::UpdateManager(QObject* parent) : QObject(parent),
-git_downloader(std::make_unique<GitDownloader>(parent)),
-version_parser(std::make_unique<VersionParser>()) {
-};
+UpdateManager::UpdateManager(QObject *parent) : QObject(parent),
+                                                git_downloader(std::make_unique<GitDownloader>(parent)),
+                                                version_parser(std::make_unique<VersionParser>()) {
+                                                };
 
-QString UpdateManager::buildUrl(const GitPlatform platform, const QString& owner,
-    const QString& repo, const QString& branch,
-    const QString& file_path) const
+QString UpdateManager::buildUrl(const GitPlatform platform, const QString &owner,
+                                const QString &repo, const QString &branch,
+                                const QString &file_path) const
 {
     switch (platform)
     {
@@ -37,29 +37,29 @@ QString UpdateManager::buildUrl(const GitPlatform platform, const QString& owner
     }
 }
 
-void UpdateManager::downloadVersionJson(const GitPlatform platform, const QString& owner,
-    const QString& repo, const QString& branch,
-    const QString& file_path)
+void UpdateManager::downloadVersionJson(const GitPlatform platform, const QString &owner,
+                                        const QString &repo, const QString &branch,
+                                        const QString &file_path)
 {
     QString url = buildUrl(platform, owner, repo, branch, file_path);
 
     git_downloader->setCallbacks([=](quint64 n1, quint64 n2)
-        { emit downloadProgress(n1, n2); },
-        [=](const QByteArray& data)
-        {
-            emit versionJsonParsedDone(version_parser->parse(data));
-        },
-        [=](const QString& error_msg)
-        { emit downloadError(error_msg); });
+                                 { emit downloadProgress(n1, n2); },
+                                 [=](const QByteArray &data)
+                                 {
+                                     emit versionJsonParsedDone(version_parser->parse(data));
+                                 },
+                                 [=](const QString &error_msg)
+                                 { emit downloadError(error_msg); });
     git_downloader->downloadFile(url);
 }
 
-
-QString getUrlSuffix(const QString& url)
+QString getUrlSuffix(const QString &url)
 {
     QString file = QUrl(url).fileName().split('?').first().split('#').first();
 
-    if (file.endsWith(".tar.gz", Qt::CaseInsensitive)) {
+    if (file.endsWith(".tar.gz", Qt::CaseInsensitive))
+    {
         return ".tar.gz";
     }
 
@@ -67,29 +67,29 @@ QString getUrlSuffix(const QString& url)
     return (dotPos > 0) ? file.mid(dotPos) : QString();
 }
 
-void UpdateManager::downloadPackage(const QString& url)
+void UpdateManager::downloadPackage(const QString &url)
 {
     git_downloader->resetCallbacks();
     git_downloader->setCallbacks([=](quint64 n1, quint64 n2)
-        { emit downloadProgress(n1, n2); },
-        [=](QByteArray data)
-        {
-            QString package_path = QString::fromStdString(GlobalStatusManager::absolute_tmp_dir) + "update" + getUrlSuffix(url);
-            // 默认将安装包保存到当前设置的缓存目录
-            QFile file(package_path);
-            if (!file.open(QIODevice::WriteOnly))
-            {
-                LOG_ERROR(file.errorString().toStdString());
-                return;
-            }
-            file.write(data);
-            file.flush();
-            file.close();
+                                 { emit downloadProgress(n1, n2); },
+                                 [=](QByteArray data)
+                                 {
+                                     QString package_path = QString::fromStdString(GlobalStatusManager::absolute_tmp_dir) + "update" + getUrlSuffix(url);
+                                     // 默认将安装包保存到当前设置的缓存目录
+                                     QFile file(package_path);
+                                     if (!file.open(QIODevice::WriteOnly))
+                                     {
+                                         LOG_ERROR(file.errorString().toStdString());
+                                         return;
+                                     }
+                                     file.write(data);
+                                     file.flush();
+                                     file.close();
 
-            emit downloadPackageDone(package_path);
-        },
-        [=](const QString& error_msg)
-        { emit downloadError(error_msg); });
+                                     emit downloadPackageDone(package_path);
+                                 },
+                                 [=](const QString &error_msg)
+                                 { emit downloadError(error_msg); });
     git_downloader->downloadFile(url);
 }
 
@@ -131,7 +131,7 @@ VersionInfo UpdateManager::VersionParser::parse(QByteArray version_json)
 
     QStringList changelog_list;
     QJsonArray changelog_array = lastest_version_obj["changelog"].toArray();
-    for (const QJsonValue& item : changelog_array)
+    for (const QJsonValue &item : changelog_array)
     {
         changelog_list.append(item.toString());
     }
@@ -164,7 +164,7 @@ VersionInfo UpdateManager::VersionParser::parse(QByteArray version_json)
     return version_info;
 }
 
-UpdateManager::GitDownloader::GitDownloader(QObject* parent)
+UpdateManager::GitDownloader::GitDownloader(QObject *parent)
     : QObject(parent), manager(new QNetworkAccessManager(this)), timeout_timer(new QTimer(this))
 {
     timeout_timer->setSingleShot(true);
@@ -187,13 +187,13 @@ void UpdateManager::GitDownloader::downloadFile(QString url)
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::UserAgentHeader, "Mozilla/5.0 (Qt Downloader)");
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
-        QNetworkRequest::NoLessSafeRedirectPolicy);
+                         QNetworkRequest::NoLessSafeRedirectPolicy);
 
     current_reply = manager->get(request);
     connect(current_reply, &QNetworkReply::finished, this, &GitDownloader::onReplyFinished);
     connect(current_reply, &QNetworkReply::downloadProgress,
-        this, [=](quint64 n1, quint64 n2)
-        {
+            this, [=](quint64 n1, quint64 n2)
+            {
             if (n1 > 0 && timeout_timer->isActive())
             {
                 timeout_timer->stop();
@@ -204,8 +204,8 @@ void UpdateManager::GitDownloader::downloadFile(QString url)
 }
 
 void UpdateManager::GitDownloader::setCallbacks(DownloadProgressCallback progressCb,
-    DownloadFinishedCallback finishedCb,
-    DownloadErrorCallback errorCb)
+                                                DownloadFinishedCallback finishedCb,
+                                                DownloadErrorCallback errorCb)
 {
     progress_cb = progressCb;
     finished_cb = finishedCb;
@@ -224,13 +224,14 @@ void UpdateManager::GitDownloader::cancelDownload()
     if (current_reply && current_reply->isRunning())
     {
         QObject::disconnect(current_reply, nullptr, this, nullptr);
-        
-        if (timeout_timer) {
+
+        if (timeout_timer)
+        {
             timeout_timer->stop();
         }
-        
+
         current_reply->abort();
-        
+
         resetCallbacks();
         current_reply = nullptr;
     }
@@ -285,19 +286,19 @@ void UpdateManager::GitDownloader::onTimeout()
     }
 }
 
-void UpdateManager::GitDownloader::handleRedirect(const QUrl& redirect_url)
+void UpdateManager::GitDownloader::handleRedirect(const QUrl &redirect_url)
 {
     QNetworkRequest request(redirect_url);
     request.setHeader(QNetworkRequest::UserAgentHeader, "Mozilla/5.0 (Qt Downloader)");
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
-        QNetworkRequest::NoLessSafeRedirectPolicy);
+                         QNetworkRequest::NoLessSafeRedirectPolicy);
 
     current_reply = manager->get(request);
     current_reply->disconnect();
     connect(GitDownloader::current_reply, &QNetworkReply::finished, this, &GitDownloader::onReplyFinished);
     connect(current_reply, &QNetworkReply::downloadProgress,
-        this, [=](quint64 n1, quint64 n2)
-        {
+            this, [=](quint64 n1, quint64 n2)
+            {
             if (n1 > 0)
             {
                 timeout_timer->stop();

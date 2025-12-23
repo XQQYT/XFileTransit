@@ -124,6 +124,7 @@ private:
     QTranslator *translator;
 
     QTimer *cache_size_updater;
+    QTimer *flush_config_timer;
 
     UpdateManager update_manager;
 

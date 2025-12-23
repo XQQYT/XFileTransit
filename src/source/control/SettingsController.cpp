@@ -32,6 +32,9 @@ SettingsController::SettingsController() : settings_driver(std::make_unique<Sett
                                                                                  std::placeholders::_1,
                                                                                  std::placeholders::_2,
                                                                                  std::placeholders::_3));
+    EventBusManager::instance().subscribe("/settings/write_into_file", std::bind(
+                                                                           &SettingsController::onFlushConfig,
+                                                                           this));
 }
 
 void SettingsController::onGetConfig(std::vector<uint8_t> groups)
@@ -95,4 +98,9 @@ void SettingsController::onUpdateValue(uint8_t group, std::string key, std::stri
         LOG_ERROR("Invalid group" << static_cast<int>(g));
         break;
     }
+}
+
+void SettingsController::onFlushConfig()
+{
+    settings_driver->flush();
 }

@@ -13,6 +13,7 @@ public:
     virtual std::unordered_map<std::string, std::string> getConfig(const Settings::SettingsGroup config_name) = 0;
     virtual void updateConfig(const Settings::SettingsGroup config_name, const std::unordered_map<std::string, std::string> config) = 0;
     virtual void setValue(const Settings::SettingsGroup config_name, const std::string key, const std::string value) = 0;
+    virtual void flush() = 0;
     virtual ~SettingsFileInterface() = default;
 };
 
