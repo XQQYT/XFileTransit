@@ -187,6 +187,7 @@ ApplicationWindow  {
         
         onLoaded: {
             item.deviceModel = device_list_model
+            item.transientParent = root
         }
     }
     
@@ -196,6 +197,7 @@ ApplicationWindow  {
         
         onLoaded: {
             item.connection_model = connection_manager
+            item.transientParent = root
         }
     }
 
@@ -205,6 +207,7 @@ ApplicationWindow  {
         
         onLoaded: {
             item.networkInfoModel = net_info_list_model
+            item.transientParent = root
         }
     }
 
@@ -214,6 +217,7 @@ ApplicationWindow  {
         
         onLoaded: {
             item.settings_model = settings_model
+            item.transientParent = root
         }
     }
 
@@ -237,6 +241,7 @@ ApplicationWindow  {
                 currentAcceptHandler = null
                 currentRejectHandler = null
             })
+            item.transientParent = root
         }
     }
 

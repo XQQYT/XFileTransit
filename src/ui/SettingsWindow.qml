@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import Qt.labs.platform
 
 ApplicationWindow {
-    id: window
+    id: settingsWindow
     width: 1000
     height: 650
     minimumWidth: 850
@@ -58,6 +58,7 @@ ApplicationWindow {
 
     GeneralDialog{
         id: general_dialog
+        transientParent: settingsWindow
     }
 
 Window {
@@ -257,8 +258,8 @@ Window {
             var screenWidth = Screen.width > 0 ? Screen.width : 1920
             var screenHeight = Screen.height > 0 ? Screen.height : 1080
             
-            window.x = Math.max(0, (screenWidth - window.width) / 2)
-            window.y = Math.max(0, (screenHeight - window.height) / 2)
+            settingsWindow.x = Math.max(0, (screenWidth - settingsWindow.width) / 2)
+            settingsWindow.y = Math.max(0, (screenHeight - settingsWindow.height) / 2)
         })
     }
     
@@ -622,6 +623,7 @@ Window {
                             item.itemTitleKey = "关于软件"
                             item.itemSubtitleKey = "About"
                             item.pageComponent = aboutSettingsPage
+
                         }
                     }
                 }

@@ -8,8 +8,7 @@ Window {
     height: 350
     minimumWidth: 300
     minimumHeight: 250
-    flags: Qt.Dialog | Qt.FramelessWindowHint
-    modality: Qt.ApplicationModal
+    flags: Qt.FramelessWindowHint
     color: "transparent"
     visible: false
     

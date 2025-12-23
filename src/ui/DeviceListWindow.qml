@@ -256,6 +256,9 @@ Window {
     Loader {
         id: generalDialogLoader
         source: "qrc:/ui/GeneralDialog.qml"
+        onLoaded:{
+            item.transientParent = deviceListWindow
+        }
     }
     
     // 居中显示
