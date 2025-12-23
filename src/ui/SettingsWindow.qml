@@ -290,8 +290,8 @@ Window {
                     load_dialog.close()
                 })
             })
-            settings_model.downloadProgress.connect(function(percent_str) {
-                load_dialog.message = percent_str;
+            settings_model.downloadProgress.connect(function(percent) {
+                load_dialog.updateProgress(percent)
             })
             settings_model.downloadDone.connect(function() {
                 Qt.callLater(function() {
@@ -2018,7 +2018,7 @@ Window {
                                                     }
                                                 }else{
                                                     settings_model.updateSoftware()
-                                                    load_dialog.show(qsTr("0%"), qsTr("取消"))
+                                                    load_dialog.show(qsTr("0%"), qsTr("取消"), 0.0)
                                                     curLoadingBtnHandler = function cancelGetVersionInfo(){
                                                         Qt.callLater(function() {
                                                             load_dialog.close()

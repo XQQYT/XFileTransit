@@ -86,7 +86,7 @@ signals:
     void cacheInfoDone(QString used, QString free_size, QString total);
     void cacheMoveDone();
     void settingsChanged(Settings::Item item, QVariant value);
-    void downloadProgress(QString progress);
+    void downloadProgress(float progress);
     void downloadDone();
     void downloadError(QString error_msg);
     void versionInfoShow(QString msg);

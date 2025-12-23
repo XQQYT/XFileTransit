@@ -400,8 +400,8 @@ void SettingsModel::checkUpdate()
 
 void SettingsModel::onDownloadProgress(quint64 received, quint64 total)
 {
-    QString percent_str;
-
+    // QString percent_str;
+    double percent;
     if (total > 0)
     {
         if (received == total)
@@ -409,14 +409,15 @@ void SettingsModel::onDownloadProgress(quint64 received, quint64 total)
             emit downloadDone();
             return;
         }
-        double percent = (static_cast<double>(received) / total) * 100.0;
-        percent_str = QString::asprintf("%.1f%%", percent);
+        percent = (static_cast<double>(received) / total);
+        // percent_str = QString::asprintf("%.1f%%", percent);
     }
     else
     {
-        percent_str = "0.0%";
+        percent = 0.0f;
+        // percent_str = "0.0%";
     }
-    emit downloadProgress(percent_str);
+    emit downloadProgress(percent);
 }
 
 void SettingsModel::onPackageDownloadDone(QString path)
