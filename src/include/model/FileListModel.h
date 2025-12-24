@@ -66,6 +66,7 @@ public:
   Q_INVOKABLE void cleanTmpFiles();
   Q_INVOKABLE bool isTransferring();
   Q_INVOKABLE void cancelTransit(int index);
+  Q_INVOKABLE void cancelAllTransit();
   void updateFilePath(QString new_path);
   void setAutoDownload(bool enable);
   void addRemoteFiles(std::vector<std::vector<std::string>> files);

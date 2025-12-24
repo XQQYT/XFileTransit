@@ -158,5 +158,4 @@ void JsonParser::concurrentChanged(std::unique_ptr<Json::Parser> parser)
 void JsonParser::cancelFileTransit(std::unique_ptr<Json::Parser> parser)
 {
     EventBusManager::instance().publish("/file/have_cancel_transit", static_cast<uint32_t>(std::stoul(parser->getValue("id"))));
-    EventBusManager::instance().publish("/file/cancel_transit_in_sender", static_cast<uint32_t>(std::stoul(parser->getValue("id"))));
 }

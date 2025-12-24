@@ -54,7 +54,7 @@ void NetworkController::initSubscribe()
                                           std::bind(&NetworkController::onConcurrentChanged,
                                                     this,
                                                     std::placeholders::_1));
-    EventBusManager::instance().subscribe("/file/cancel_transit_in_receiver",
+    EventBusManager::instance().subscribe("/file/send_cancel_file_send",
                                           std::bind(&NetworkController::onSendCancelTransit,
                                                     this,
                                                     std::placeholders::_1));

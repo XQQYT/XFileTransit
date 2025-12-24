@@ -846,7 +846,7 @@ ApplicationWindow  {
                             cursorShape: Qt.PointingHandCursor
                             
                         onClicked: {
-                            if(model.fileStatus === 3 || model.fileStatus === 4)
+                            if(model.fileStatus === 3 || model.fileStatus === 4 || model.fileStatus === 0)
                             {
                                 if (generalDialogLoader.status === Loader.Ready) {
                                     generalDialogLoader.item.iconType = generalDialogLoader.item.warning
@@ -1300,7 +1300,18 @@ ApplicationWindow  {
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked: {
-                        file_list_model.clearAll()
+                        if (generalDialogLoader.status === Loader.Ready) {
+                            generalDialogLoader.item.iconType = generalDialogLoader.item.info
+                            generalDialogLoader.item.text = file_list_model.isTransferring() ? qsTr("确定清空吗？传输中的文件也会中断") : qsTr("确定清空吗？")
+                            generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
+                                    
+                            root.currentAcceptHandler = function() {
+                                file_list_model.clearAll()
+                            }
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
+                        }
+                        
                     }
                     onEntered: {
                         mouseIsInWindow = true

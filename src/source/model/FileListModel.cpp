@@ -7,6 +7,7 @@
 #include <QtCore/QUrl>
 #include <QtWidgets/QApplication>
 #include <QtGui/QClipboard>
+#include <QtCore/QThread>
 
 FileListModel::FileListModel(QObject *parent) : QAbstractListModel(parent)
 {
@@ -227,7 +228,9 @@ void FileListModel::clearAll()
 {
     if (file_list.isEmpty())
         return;
-
+    cancelAllTransit();
+    for (int i = 0; i < file_list.size(); ++i)
+        deleteFile(i);
     beginResetModel();
     file_list.clear();
     endResetModel();
@@ -298,10 +301,6 @@ void FileListModel::deleteFile(int index)
 {
     quint32 file_id = file_list[index].id;
     EventBusManager::instance().publish("/sync/send_deletefiles", static_cast<uint32_t>(file_id));
-    if (file_list[index].file_status == FileStatus::StatusPending)
-    {
-        EventBusManager::instance().publish("/file/cancel_file_send", static_cast<uint32_t>(file_id));
-    }
 }
 
 void FileListModel::onHaveExpiredFile(std::vector<std::string> id)
@@ -499,9 +498,18 @@ void FileListModel::onHaveCancelFile(uint32_t id)
 {
     for (int i = 0; i < file_list.size(); ++i)
     {
-        if (file_list[i].id == id)
+        auto &file_item = file_list[i];
+        if (file_item.id == id)
         {
-            file_list[i].file_status = file_list[i].is_remote_file ? FileStatus::StatusDownloadCancel : FileStatus::StatusUploadCancel;
+            if (!file_item.is_remote_file && file_item.file_status == FileStatus::StatusUploading)
+            {
+                EventBusManager::instance().publish("/file/cancel_transit_in_sender", static_cast<uint32_t>(file_item.id));
+            }
+            else if (!file_item.is_remote_file && file_item.file_status == FileStatus::StatusPending)
+            {
+                EventBusManager::instance().publish("/file/cancel_file_send", static_cast<uint32_t>(file_item.id));
+            }
+            file_item.file_status = file_item.is_remote_file ? FileStatus::StatusDownloadCancel : FileStatus::StatusUploadCancel;
             QModelIndex model_index = index(i, 0);
             QVector<int> roles = {FileStatusRole};
             emit dataChanged(model_index, model_index, roles);
@@ -581,7 +589,6 @@ void FileListModel::onSettingsChanged(Settings::Item item, QVariant value)
 void FileListModel::cancelTransit(int i)
 {
     FileInfo &info = file_list[i];
-    qDebug() << "cancel transit id: " << info.id;
 
     if (info.file_status == FileStatus::StatusUploading)
     {
@@ -594,10 +601,38 @@ void FileListModel::cancelTransit(int i)
     }
     else if (info.file_status == FileStatus::StatusDownloading)
     {
-        EventBusManager::instance().publish("/file/cancel_transit_in_receiver", static_cast<uint32_t>(info.id));
+        EventBusManager::instance().publish("/file/send_cancel_file_send", static_cast<uint32_t>(info.id));
+    }
+    else if (info.file_status == FileStatus::StatusPending)
+    {
+        if (!info.is_remote_file)
+        {
+            // 本地文件说明是发送方，需要通知文件引擎移除等待文件
+            EventBusManager::instance().publish("/file/cancel_file_send", static_cast<uint32_t>(info.id));
+        }
+        // 同步
+        EventBusManager::instance().publish("/file/send_cancel_file_send", static_cast<uint32_t>(info.id));
+        info.file_status = info.is_remote_file ? FileStatus::StatusDownloadCancel : FileStatus::StatusUploadCancel;
+        QModelIndex model_index = index(i, 0);
+        QVector<int> roles = {FileStatusRole};
+        emit dataChanged(model_index, model_index, roles);
     }
     else
     {
         LOG_ERROR("Invalid file status: " << static_cast<int>(info.file_status));
+    }
+}
+
+void FileListModel::cancelAllTransit()
+{
+    for (int i = 0; i < file_list.size(); ++i)
+    {
+        if (file_list[i].file_status == FileStatus::StatusPending)
+            cancelTransit(i);
+    }
+    for (int i = 0; i < file_list.size(); ++i)
+    {
+        if (file_list[i].file_status == FileStatus::StatusDownloading || file_list[i].file_status == FileStatus::StatusDownloading)
+            cancelTransit(i);
     }
 }
