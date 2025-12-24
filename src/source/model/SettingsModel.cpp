@@ -139,9 +139,8 @@ void SettingsModel::setCachePath(const QUrl &url)
 {
     if (cache_url != url)
     {
-
-        cache_url = url;
-        cache_path = url.toLocalFile() + "/";
+        cache_url = QUrl::fromLocalFile(url.toLocalFile() + "/XFileTransitTmp");
+        cache_path = cache_url.toLocalFile() + "/";
 
         // 先设置新临时目录，使迁移中也可以传输文件
         auto old_tmp_path = GlobalStatusManager::absolute_tmp_dir;

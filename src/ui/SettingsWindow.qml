@@ -1179,9 +1179,9 @@ Window {
                                         }
                                         
                                         Text {
-                                            text: qsTr("注意！！ 不要设置为根目录,home,C:,D:等路径，因为清理缓存会删除目录")
+                                            text: qsTr("下载文件的缓存目录")
                                             font.pixelSize: 13
-                                            color: warningColor
+                                            color: textSecondary
                                         }
                                     }
                                 }
