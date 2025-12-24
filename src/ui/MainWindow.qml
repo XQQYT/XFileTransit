@@ -1270,6 +1270,104 @@ ApplicationWindow  {
                 }          
             }        
 
+            // 开始全部下载按钮
+            Rectangle {
+                id: downloadAllButton
+                width: 55
+                height: 24
+                radius: 12
+                color: downloadAllMouseArea.containsMouse ? dangerColor : borderColor
+                border.color: downloadAllMouseArea.containsMouse ? Qt.darker(dangerColor, 1.2) : borderColor
+                border.width: 1
+                visible: root.expanded && fileGridView.count > 0
+                anchors {
+                    right: cancelAllButton.left
+                    rightMargin: 15
+                    verticalCenter: parent.verticalCenter
+                }
+                enabled: root.expanded 
+                
+                Text {
+                    text: qsTr("下载全部")
+                    font.pixelSize: 11
+                    font.bold: true
+                    color: downloadAllMouseArea.containsMouse ? "white" : textSecondary
+                    anchors.centerIn: parent
+                }
+                
+                MouseArea {
+                    id: downloadAllMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: {
+                        file_list_model.downloadAll()
+                    }
+                    onEntered: {
+                        mouseIsInWindow = true
+                    }
+                    onExited: {
+                        mouseIsInWindow = false
+                    }
+                }
+            }
+            // 取消全部下载按钮
+            Rectangle {
+                id: cancelAllButton
+                width: 55
+                height: 24
+                radius: 12
+                color: cancelAllMouseArea.containsMouse ? dangerColor : borderColor
+                border.color: cancelAllMouseArea.containsMouse ? Qt.darker(dangerColor, 1.2) : borderColor
+                border.width: 1
+                visible: root.expanded && fileGridView.count > 0
+                anchors {
+                    right: clearButton.left
+                    rightMargin: 15
+                    verticalCenter: parent.verticalCenter
+                }
+                enabled: root.expanded 
+                
+                Text {
+                    text: qsTr("停止全部")
+                    font.pixelSize: 11
+                    font.bold: true
+                    color: cancelAllMouseArea.containsMouse ? "white" : textSecondary
+                    anchors.centerIn: parent
+                }
+                
+                MouseArea {
+                    id: cancelAllMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: {
+                        if (generalDialogLoader.status === Loader.Ready) {
+                            if(file_list_model.isTransferring()){
+                                generalDialogLoader.item.iconType = generalDialogLoader.item.info
+                                generalDialogLoader.item.text = qsTr("确定停止所有文件的传输吗")
+                                generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
+                                        
+                                root.currentAcceptHandler = function() {
+                                    file_list_model.cancelAllTransit()
+                                }
+                            }
+                            else{
+                                generalDialogLoader.item.iconType = generalDialogLoader.item.info
+                                generalDialogLoader.item.text = qsTr("没有正在传输的文件")
+                                generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                            }
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
+                        }
+                    }
+                    onEntered: {
+                        mouseIsInWindow = true
+                    }
+                    onExited: {
+                        mouseIsInWindow = false
+                    }
+                }
+            }
+
             // 清空按钮
             Rectangle {
                 id: clearButton

@@ -625,14 +625,29 @@ void FileListModel::cancelTransit(int i)
 
 void FileListModel::cancelAllTransit()
 {
+    QList<int> transfing_index;
+    transfing_index.reserve(file_list.size());
     for (int i = 0; i < file_list.size(); ++i)
     {
         if (file_list[i].file_status == FileStatus::StatusPending)
+        {
+            cancelTransit(i);
+            continue;
+        }
+        transfing_index.append(i);
+    }
+    for (auto i : transfing_index)
+    {
+        if (file_list[i].file_status == FileStatus::StatusDownloading || file_list[i].file_status == FileStatus::StatusUploading)
             cancelTransit(i);
     }
+}
+
+void FileListModel::downloadAll()
+{
     for (int i = 0; i < file_list.size(); ++i)
     {
-        if (file_list[i].file_status == FileStatus::StatusDownloading || file_list[i].file_status == FileStatus::StatusDownloading)
-            cancelTransit(i);
+        if (file_list[i].file_status == FileStatus::StatusRemoteDefault || file_list[i].file_status == FileStatus::StatusDownloadCancel)
+            downloadFile(i);
     }
 }
