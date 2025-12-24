@@ -30,6 +30,7 @@ class SettingsModel : public QObject
     Q_PROPERTY(QString newVersion READ newVersion WRITE setNewVersion NOTIFY newVersionChanged)
     Q_PROPERTY(bool isUpdateAvailable READ isUpdateAvailable WRITE setIsUpdateAvailable NOTIFY isUpdateAvailableChanged)
     Q_PROPERTY(QString updateSource READ updateSource WRITE setUpdateSource NOTIFY updateSourceChanged)
+    Q_PROPERTY(bool autoCheckUpdate READ autoCheckUpdate WRITE setAutoCheckUpdate NOTIFY autoCheckUpdateChanged)
 
 public:
     explicit SettingsModel(QObject *parent = nullptr);
@@ -46,6 +47,7 @@ public:
     QString newVersion() const { return new_version; }
     bool isUpdateAvailable() const { return is_update_available; }
     QString updateSource() const { return update_source; }
+    bool autoCheckUpdate() const { return auto_check_update; }
 
     void setCurrentTheme(int theme);
     void setCurrentLanguage(int language);
@@ -59,6 +61,7 @@ public:
     void setNewVersion(const QString &new_version);
     void setIsUpdateAvailable(bool available);
     void setUpdateSource(const QString &us);
+    void setAutoCheckUpdate(bool enable);
     void setQmlEngine(QQmlEngine *engine);
 
     Q_INVOKABLE void initSettings();
@@ -81,6 +84,7 @@ signals:
     void newVersionChanged(const QString &new_version);
     void isUpdateAvailableChanged(bool available);
     void updateSourceChanged(const QString &update_source);
+    void autoCheckUpdateChanged(const bool enabel);
     void cacheInfoDone(QString used, QString free_size, QString total);
     void cacheMoveDone();
     void settingsChanged(Settings::Item item, QVariant value);
@@ -119,6 +123,7 @@ private:
     QString changelog;
     bool is_update_available;
     QString update_source;
+    bool auto_check_update;
 
     QQmlEngine *qml_engine = nullptr;
     QTranslator *translator;

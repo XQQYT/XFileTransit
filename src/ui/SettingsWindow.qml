@@ -197,46 +197,7 @@ Window {
         }
     }
 }
-    // 主题切换处理
-    function switchTheme(theme) {
-        settings_model.currentTheme = theme
-        setTheme(theme)
-    }
-    
-    // 语言切换处理
-    function switchLanguage(language) {
-        settings_model.currentLanguage = language
-    }
-    
-    // 选择缓存目录
-    function chooseCachePath() {
-        folderDialog.open()
-    }
 
-    function toggleAutoClearCache(enable){
-        settings_model.autoClearCache = enable
-    }
-    
-    // 切换自动下载
-    function toggleAutoDownload(enabled) {
-        settings_model.autoDownload = enabled
-    }
-    
-    // 设置并发传输数
-    function setConcurrentTransfers(count) {
-        settings_model.concurrentTransfers = count
-    }
-    
-    // 切换智能展开
-    function toggleExpandOnAction(enabled) {
-        settings_model.expandOnAction = enabled
-    }
-    
-    // 检查更新
-    function checkForUpdates() {
-        settings_model.checkUpdate()
-    }
-    
     // 处理鼠标拖动
     function handleMousePress(mouse) {
         isDragging = true
@@ -842,7 +803,10 @@ Window {
                                         MouseArea {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
-                                            onClicked: switchTheme(0)
+                                            onClicked: {
+                                                settings_model.currentTheme = 0
+                                                setTheme(0)
+                                            }
                                         }
                                     }
                                     
@@ -885,7 +849,10 @@ Window {
                                         MouseArea {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
-                                            onClicked: switchTheme(1)
+                                            onClicked: {
+                                                settings_model.currentTheme = 1
+                                                setTheme(1)
+                                            }
                                         }
                                     }
                                     
@@ -999,7 +966,9 @@ Window {
                                             MouseArea {
                                                 anchors.fill: parent
                                                 cursorShape: Qt.PointingHandCursor
-                                                onClicked: switchLanguage(0)
+                                                onClicked: {
+                                                    settings_model.currentLanguage = 0
+                                                }
                                             }
                                         }
                                         
@@ -1021,7 +990,9 @@ Window {
                                             MouseArea {
                                                 anchors.fill: parent
                                                 cursorShape: Qt.PointingHandCursor
-                                                onClicked: switchLanguage(1)
+                                                onClicked: {
+                                                    settings_model.currentLanguage = 1
+                                                }
                                             }
                                         }
                                     }
@@ -1121,7 +1092,6 @@ Window {
                                 }
                                 
                                 Row {
-                                    spacing: 20
                                     width: parent.width
                                     
                                     Text {
@@ -1157,7 +1127,9 @@ Window {
                                         MouseArea {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
-                                            onClicked: toggleAutoClearCache(!settings_model.autoClearCache)
+                                            onClicked: {
+                                                settings_model.autoClearCache = !settings_model.autoClearCache
+                                            }
                                         }
                                     }
                                 }
@@ -1242,8 +1214,9 @@ Window {
                                                 anchors.fill: parent
                                                 cursorShape: Qt.PointingHandCursor
                                                 hoverEnabled: true
-                                                onClicked: chooseCachePath()
-                                                
+                                                onClicked: {
+                                                    folderDialog.open()
+                                                }
                                                 onEntered: parent.opacity = 0.8
                                                 onExited: parent.opacity = 1
                                             }
@@ -1484,7 +1457,6 @@ Window {
                                 }
                                 
                                 Row {
-                                    spacing: 20
                                     width: parent.width
                                     
                                     Text {
@@ -1520,7 +1492,9 @@ Window {
                                         MouseArea {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
-                                            onClicked: toggleAutoDownload(!settings_model.autoDownload)
+                                            onClicked: {
+                                                settings_model.autoDownload = !settings_model.autoDownload
+                                            }
                                         }
                                     }
                                 }
@@ -1631,7 +1605,7 @@ Window {
                                                 var pos = Math.max(0, Math.min(mouseX, sliderTrack.width))
                                                 var ratio = pos / sliderTrack.width
                                                 var newValue = Math.round(ratio * 9) + 1
-                                                setConcurrentTransfers(newValue)
+                                                settings_model.concurrentTransfers = newValue
                                             }
                                             
                                             onPressed: function(mouse) {
@@ -1746,7 +1720,12 @@ Window {
                                 
                                 Row {
                                     spacing: 20
-                                    
+                                    Text {
+                                        text: qsTr("启用智能展开")
+                                        font.pixelSize: 16
+                                        color: textPrimary
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
                                     Rectangle {
                                         id: expandSwitch
                                         width: 60
@@ -1771,16 +1750,13 @@ Window {
                                         MouseArea {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
-                                            onClicked: toggleExpandOnAction(!settings_model.expandOnAction)
+                                            onClicked: {
+                                                settings_model.expandOnAction = !settings_model.expandOnAction
+                                            }
                                         }
                                     }
                                     
-                                    Text {
-                                        text: qsTr("启用智能展开")
-                                        font.pixelSize: 16
-                                        color: textPrimary
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
+                                    
                                 }
                             }
                         }
@@ -1930,6 +1906,50 @@ Window {
                                             font.pixelSize: 13
                                             color: textSecondary
                                         }
+                                        Item { width: 20; height: 5 }
+
+                                        Row {
+                                            width: parent.width
+                                            
+                                            Text {
+                                                text: qsTr("自动检查更新")
+                                                font.pixelSize: 16
+                                                color: textPrimary
+                                                anchors.verticalCenter: parent.verticalCenter
+                                            }
+                                            
+                                            Item { width: 20; height: 1 }
+                                            
+                                            Rectangle {
+                                                id: autoCheckUpdateSwitch
+                                                width: 60
+                                                height: 30
+                                                radius: 15
+                                                color: settings_model.autoCheckUpdate ? primaryColor : switchOffColor
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                
+                                                Rectangle {
+                                                    x: settings_model.autoCheckUpdate ? parent.width - width - 3 : 3
+                                                    y: 3
+                                                    width: 24
+                                                    height: 24
+                                                    radius: 12
+                                                    color: switchHandleColor
+                                                    
+                                                    Behavior on x {
+                                                        NumberAnimation { duration: 200 }
+                                                    }
+                                                }
+                                                
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: {
+                                                        settings_model.autoCheckUpdate = !settings_model.autoCheckUpdate
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                                 
@@ -2035,7 +2055,7 @@ Window {
                                                     load_dialog.onButtonClicked.disconnect(curLoadingBtnHandler)
                                                 }
                                                 if(!settings_model.isUpdateAvailable){
-                                                    checkForUpdates()
+                                                    settings_model.checkUpdate()
                                                     load_dialog.show(qsTr("正在获取版本信息"), qsTr("取消"))
                                                     curLoadingBtnHandler = function cancelGetVersionInfo(){
                                                         Qt.callLater(function() {

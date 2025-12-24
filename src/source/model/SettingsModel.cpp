@@ -292,6 +292,21 @@ void SettingsModel::setUpdateSource(const QString &us)
     }
 }
 
+void SettingsModel::setAutoCheckUpdate(bool enable)
+{
+    if (auto_check_update != enable)
+    {
+        auto_check_update = enable;
+        emit autoCheckUpdateChanged(enable);
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::About)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("auto_check_update"), std::to_string(auto_check_update));
+            flush_config_timer->start();
+        }
+    }
+}
+
 void SettingsModel::beginLoadConfig(Settings::SettingsGroup group)
 {
     grout_init_flags[Settings::to_uint8(group)] = false;
@@ -392,6 +407,7 @@ void SettingsModel::setAboutConfig(std::shared_ptr<std::unordered_map<std::strin
     beginLoadConfig(Settings::SettingsGroup::About);
 
     setUpdateSource(QString::fromStdString((*config)["update_source"]));
+    setAutoCheckUpdate(std::stoi((*config)["auto_check_update"]));
     bool update_avaible = std::stoi((*config)["update_is_avaible"]);
     if (update_avaible)
     {
@@ -400,18 +416,20 @@ void SettingsModel::setAboutConfig(std::shared_ptr<std::unordered_map<std::strin
     // 不采用配置文件中的值，为了用户每次都需要检查更新，防止新版本过时
     is_update_available = false;
     emit isUpdateAvailableChanged(false);
-
-    int64_t last_check_update = std::stoll((*config)["last_check_update"]);
-    qint64 timestamp_s = QDateTime::currentDateTime().toSecsSinceEpoch();
-
-    qint64 diff_seconds = timestamp_s - last_check_update;
-
-    if (diff_seconds > 86400)
+    if (auto_check_update)
     {
-        (*config)["last_check_update"] = std::to_string(timestamp_s);
-        EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("last_check_update"), std::to_string(timestamp_s));
-        checkUpdate();
+        int64_t last_check_update = std::stoll((*config)["last_check_update"]);
+        qint64 timestamp_s = QDateTime::currentDateTime().toSecsSinceEpoch();
+
+        qint64 diff_seconds = timestamp_s - last_check_update;
+
+        if (diff_seconds > 86400)
+        {
+            (*config)["last_check_update"] = std::to_string(timestamp_s);
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("last_check_update"), std::to_string(timestamp_s));
+            checkUpdate();
+        }
     }
 
     endLoadConfig(Settings::SettingsGroup::About);
