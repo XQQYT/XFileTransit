@@ -58,6 +58,7 @@ private:
     void syncDeleteFiles(std::unique_ptr<Json::Parser> parser);
     void downloadFile(std::unique_ptr<Json::Parser> parser);
     void concurrentChanged(std::unique_ptr<Json::Parser> parser);
+    void cancelFileTransit(std::unique_ptr<Json::Parser> parser);
     void publishResponse(std::string &&event_name, JsonMessageType::ResultType type);
     void publishResponse(std::string &&event_name, JsonMessageType::ResultType type, std::string arg0);
 

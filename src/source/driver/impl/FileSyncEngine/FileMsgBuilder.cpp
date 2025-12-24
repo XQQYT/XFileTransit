@@ -202,10 +202,10 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildEnd()
     return result;
 }
 
-std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildCancel()
+std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildCanceled()
 {
     auto json = json_builder->getBuilder(Json::BuilderType::File);
-    std::string json_str = json->buildFileMsg(Json::MessageType::File::Cancel, {});
+    std::string json_str = json->buildFileMsg(Json::MessageType::File::FileCanceled, {});
     auto result = std::make_unique<std::vector<uint8_t>>();
     result->reserve(json_str.size());
     std::transform(json_str.begin(), json_str.end(),
@@ -303,7 +303,7 @@ FileMsgBuilderInterface::FileMsgBuilderResult FileMsgBuilder::getStream()
     }
     case State::Cancel:
         is_end = true;
-        return {false, 0, buildCancel()};
+        return {false, 0, buildCanceled()};
     default:
         break;
     }

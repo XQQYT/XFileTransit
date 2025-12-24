@@ -174,6 +174,7 @@ void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::stri
                             id, static_cast<uint8_t>(100), static_cast<uint32_t>(0), true);
                     }
                     progress_count = 0;
+                    current_file_id = std::nullopt;
                     cancel = false;
                 }
             }

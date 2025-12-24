@@ -54,6 +54,11 @@ void NetworkController::initSubscribe()
                                           std::bind(&NetworkController::onConcurrentChanged,
                                                     this,
                                                     std::placeholders::_1));
+    EventBusManager::instance().subscribe("/file/cancel_transit_in_receiver",
+                                          std::bind(&NetworkController::onSendCancelTransit,
+                                                    this,
+                                                    std::placeholders::_1));
+
     // 设置错误处理回调函数
     control_msg_network_driver->setDealConnectErrorCb(std::bind(&NetworkController::onConnectError, this, std::placeholders::_1));
     control_msg_network_driver->setDealRecvErrorCb(std::bind(
@@ -259,4 +264,11 @@ void NetworkController::onConcurrentChanged(uint8_t num)
     auto settings_builder = json_builder->getBuilder(Json::BuilderType::Settings);
     control_msg_network_driver->sendMsg(
         settings_builder->buildSettingsMsg(Json::MessageType::Settings::ConcurrentTask, {{"concurrent", std::to_string(num)}}));
+}
+
+void NetworkController::onSendCancelTransit(uint32_t id)
+{
+    auto file_builder = json_builder->getBuilder(Json::BuilderType::File);
+    control_msg_network_driver->sendMsg(
+        file_builder->buildFileMsg(Json::MessageType::File::FileCancel, {{"id", std::to_string(id)}}));
 }

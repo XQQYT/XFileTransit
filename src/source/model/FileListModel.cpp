@@ -501,7 +501,7 @@ void FileListModel::onHaveCancelFile(uint32_t id)
     {
         if (file_list[i].id == id)
         {
-            file_list[i].file_status = FileStatus::StatusDownloadCancel;
+            file_list[i].file_status = file_list[i].is_remote_file ? FileStatus::StatusDownloadCancel : FileStatus::StatusUploadCancel;
             QModelIndex model_index = index(i, 0);
             QVector<int> roles = {FileStatusRole};
             emit dataChanged(model_index, model_index, roles);

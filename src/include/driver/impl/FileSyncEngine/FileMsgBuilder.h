@@ -15,7 +15,7 @@ public:
 private:
     std::unique_ptr<std::vector<uint8_t>> buildHeader();
     std::unique_ptr<std::vector<uint8_t>> buildEnd();
-    std::unique_ptr<std::vector<uint8_t>> buildCancel();
+    std::unique_ptr<std::vector<uint8_t>> buildCanceled();
     std::unique_ptr<std::vector<uint8_t>> buildBlock();
     uint8_t calculateProgress();
 

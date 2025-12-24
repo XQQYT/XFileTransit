@@ -96,6 +96,7 @@ private:
     void buildFileHeader(json &result, Json::MessageType::File::Type type, const std::map<std::string, std::string> &args);
     void buildDirHeader(json &result, Json::MessageType::File::Type type, const std::map<std::string, std::string> &args);
     void buildDirItemHeader(json &result, Json::MessageType::File::Type type, const std::map<std::string, std::string> &args);
+    void buildCancelTransit(json &result);
 };
 
 class SettingsJsonMsgBuilder : public Json::JsonBuilder

@@ -26,6 +26,7 @@ private:
     void onSendSyncDeleteFile(uint32_t id);
     void onSendGetFile(uint32_t id);
     void onConcurrentChanged(uint8_t num);
+    void onSendCancelTransit(uint32_t id);
 
 private:
     std::unique_ptr<NetworkInterface> control_msg_network_driver;

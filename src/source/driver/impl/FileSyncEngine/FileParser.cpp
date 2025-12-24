@@ -18,7 +18,7 @@ FileParser::FileParser() : json_parser(std::make_unique<NlohmannJson>())
     type_parser_map["dir_header"] = std::bind(&FileParser::onDirHeader, this, std::placeholders::_1);
     type_parser_map["dir_item_header"] = std::bind(&FileParser::onDirItemHeader, this, std::placeholders::_1);
     type_parser_map["file_end"] = std::bind(&FileParser::onFileEnd, this, std::placeholders::_1);
-    type_parser_map["file_cancel"] = std::bind(&FileParser::onFileCancel, this, std::placeholders::_1);
+    type_parser_map["file_canceled"] = std::bind(&FileParser::onFileCancel, this, std::placeholders::_1);
 }
 
 uint8_t FileParser::calculateProgress()
