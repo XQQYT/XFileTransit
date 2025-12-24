@@ -401,6 +401,19 @@ void SettingsModel::setAboutConfig(std::shared_ptr<std::unordered_map<std::strin
     is_update_available = false;
     emit isUpdateAvailableChanged(false);
 
+    int64_t last_check_update = std::stoll((*config)["last_check_update"]);
+    qint64 timestamp_s = QDateTime::currentDateTime().toSecsSinceEpoch();
+
+    qint64 diff_seconds = timestamp_s - last_check_update;
+
+    if (diff_seconds > 86400)
+    {
+        (*config)["last_check_update"] = std::to_string(timestamp_s);
+        EventBusManager::instance().publish("/settings/update_settings_value",
+                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("last_check_update"), std::to_string(timestamp_s));
+        checkUpdate();
+    }
+
     endLoadConfig(Settings::SettingsGroup::About);
 }
 void SettingsModel::clearCache()

@@ -307,8 +307,25 @@ Window {
                 general_dialog.show()
             })
             settings_model.versionInfoShow.connect(function(msg){
-                if(load_dialog.visible)
-                {
+                if(!settingsWindow.visible) {
+                    settingsWindow.show()
+                    settingsWindow.requestActivate()
+                    settingsWindow.raise()
+                }
+                
+                if (aboutNavItem.status === Loader.Ready) {
+                    var aboutItem = aboutNavItem.item
+                    if (aboutItem) {
+                        if (currentBtn) {
+                            currentBtn.color = "transparent"
+                        }
+                        aboutItem.color = primaryColor
+                        currentBtn = aboutItem
+                        currentPage = aboutSettingsPage
+                    }
+                }
+                
+                if(load_dialog.visible) {
                     Qt.callLater(function() {
                         load_dialog.close()
                     })
