@@ -136,7 +136,6 @@ namespace Settings
         ExpandOnAction,
         AppVersion,
         IsUpdateAvailable,
-        Changelog,
         NewVersion
     };
 
@@ -182,8 +181,23 @@ inline namespace AppVersion
     inline constexpr int Patch = 0;
     inline constexpr int Build = 20241128;
 
-    inline constexpr const char *string = "v1.1.0";
-    inline constexpr const char *string_full = "v1.0.0.20251228";
+    inline static constexpr const char *string = "v1.1.0";
+    inline static constexpr const char *string_full = "v1.0.0.20251228";
+
+    inline static constexpr const char *change_log = R"(
+    当前版本
+    新增:
+    1. 局域网自动发现，无需服务器或繁琐配置，设备可自动互联。
+    2. 文件拖拽到主窗口即可一键发送，支持多文件同时添加和传输。
+    3. 实时显示传输进度，任务多线程处理，提升性能与体验。
+    4. 支持文件列表去重与批量发送、批量接收。
+    5. 支持自动同步当前文件列表，便于多用户协同。
+    6. 实现文件传输的 TLS +ES 加密，保障数据安全。
+    7. 提供连接状态检测及断开自动清理，确保稳定性。
+    8. 支持传入和下载文件的请求。
+    9. 便捷设备管理与连接管理，适应局域网高效使用场景。
+    10. 支持文件夹与文件的识别与处理，完整本地路径管理。 
+    11. 查看本地网络信息)";
 }
 
 #endif

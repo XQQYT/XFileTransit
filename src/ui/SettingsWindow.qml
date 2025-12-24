@@ -187,7 +187,6 @@ Window {
             }
         }
         
-        // 滚动条应该放在 Flickable 内部
         ScrollBar.vertical: ScrollBar {
             id: scrollBar
             anchors.right: parent.right
@@ -741,13 +740,13 @@ Window {
                     contentWidth: parent.width
 
                     Column {
-                        id: contentColumn
+                        id: generalContentColumn
                         width: parent.width
                         spacing: 20
                         
                         // 主题切换卡片
                         Rectangle {
-                            width: contentColumn.width
+                            width: generalContentColumn.width
                             height: 240
                             radius: 16
                             color: cardColor
@@ -1058,13 +1057,16 @@ Window {
                 ScrollView {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+
+                    contentWidth: parent.width
                     
                     Column {
+                        id: fileContentColumn
                         width: parent.width
                         spacing: 20
 
                     Rectangle {
-                        width: parent.width
+                        width: fileContentColumn.width
                         height: 140
                         radius: 16
                         color: cardColor
@@ -1146,7 +1148,7 @@ Window {
                         }
                             
                         Rectangle {
-                            width: parent.width
+                            width: fileContentColumn.width
                             height: 220
                             radius: 16
                             color: cardColor
@@ -1302,7 +1304,7 @@ Window {
                         }
 
                         Rectangle {
-                            width: parent.width
+                            width: fileContentColumn.width
                             height: 140
                             radius: 16
                             color: cardColor
@@ -1418,12 +1420,15 @@ Window {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     
+                    contentWidth: parent.width
+
                     Column {
+                        id: transferContentColumn
                         width: parent.width
                         spacing: 20
                         
                         Rectangle {
-                            width: parent.width
+                            width: transferContentColumn.width
                             height: 140
                             radius: 16
                             color: cardColor
@@ -1506,7 +1511,7 @@ Window {
                         }
                         
                         Rectangle {
-                            width: parent.width
+                            width: transferContentColumn.width
                             height: 150
                             radius: 16
                             color: cardColor
@@ -1676,12 +1681,15 @@ Window {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     
+                    contentWidth: parent.width
+
                     Column {
+                        id: notifyContentColumn
                         width: parent.width
                         spacing: 20
                         
                         Rectangle {
-                            width: parent.width
+                            width: notifyContentColumn.width
                             height: 140
                             radius: 16
                             color: cardColor
@@ -1799,13 +1807,16 @@ Window {
                 ScrollView {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+
+                    contentWidth: parent.width
                     
                     Column {
+                        id: aboutContentColumn
                         width: parent.width
                         spacing: 20
                         
                         Rectangle {
-                            width: parent.width
+                            width: aboutContentColumn.width
                             height: 180
                             radius: 16
                             color: cardColor
@@ -1866,13 +1877,12 @@ Window {
                         }
                         
                         Rectangle {
-                            width: parent.width
+                            width: aboutContentColumn.width
                             radius: 16
                             color: cardColor
                             border.color: borderColor
                             border.width: 2
                             
-                            // 使用隐式高度，让卡片自适应内容
                             implicitHeight: updateColumn.implicitHeight + 40
                             
                             Column {
@@ -2046,26 +2056,30 @@ Window {
                                 
                                 Rectangle {
                                     width: parent.width
-                                    height: Math.min(200, changelogText.implicitHeight + 40)
+                                    height: changelogText.height
                                     radius: 10
                                     color: updateInfoBg
                                     border.color: borderColor
                                     border.width: 1
                                     
-                                    ScrollView {
-                                        anchors.fill: parent
-                                        anchors.margins: 10
-                                        clip: true
+                                Column {
+                                    anchors.fill: parent
+                                    
+                                    Rectangle {
+                                        width: parent.width
+                                        height: parent.height
+                                        color: "transparent"
                                         
                                         Text {
                                             id: changelogText
-                                            width: parent.width - 20
+                                            width: parent.width
                                             text: settings_model.changeLog
                                             font.pixelSize: 12
                                             color: textSecondary
                                             wrapMode: Text.WordWrap
                                         }
                                     }
+                                }
                                 }
                             }
                         }

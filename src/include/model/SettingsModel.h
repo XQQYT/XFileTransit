@@ -25,7 +25,7 @@ class SettingsModel : public QObject
     Q_PROPERTY(bool autoDownload READ autoDownload WRITE setAutoDownload NOTIFY autoDownloadChanged)
     Q_PROPERTY(int concurrentTransfers READ concurrentTransfers WRITE setConcurrentTransfers NOTIFY concurrentTransfersChanged)
     Q_PROPERTY(bool expandOnAction READ expandOnAction WRITE setExpandOnAction NOTIFY expandOnActionChanged)
-    Q_PROPERTY(QString appVersion READ appVersion WRITE setAppVersion NOTIFY appVersionChanged)
+    Q_PROPERTY(QString appVersion READ appVersion CONSTANT)
     Q_PROPERTY(QString changeLog READ changeLog WRITE setChangeLog NOTIFY changeLogChanged)
     Q_PROPERTY(QString newVersion READ newVersion WRITE setNewVersion NOTIFY newVersionChanged)
     Q_PROPERTY(bool isUpdateAvailable READ isUpdateAvailable WRITE setIsUpdateAvailable NOTIFY isUpdateAvailableChanged)
@@ -55,7 +55,6 @@ public:
     void setAutoDownload(bool enable);
     void setConcurrentTransfers(int transfers);
     void setExpandOnAction(bool expand);
-    void setAppVersion(const QString &version);
     void setChangeLog(const QString &log);
     void setNewVersion(const QString &new_version);
     void setIsUpdateAvailable(bool available);
@@ -78,7 +77,6 @@ signals:
     void autoDownloadChanged(bool enable);
     void concurrentTransfersChanged(int transfers);
     void expandOnActionChanged(bool expand);
-    void appVersionChanged(const QString &version);
     void changeLogChanged(const QString &log);
     void newVersionChanged(const QString &new_version);
     void isUpdateAvailableChanged(bool available);
@@ -116,7 +114,7 @@ private:
     bool auto_download;
     int concurrent_transfers;
     bool expand_on_action;
-    QString app_version;
+    const QString app_version = AppVersion::string;
     QString new_version;
     QString changelog;
     bool is_update_available;
