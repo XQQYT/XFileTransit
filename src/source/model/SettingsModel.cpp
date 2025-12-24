@@ -63,9 +63,12 @@ void SettingsModel::setCurrentTheme(int theme)
         current_theme = theme;
         emit currentThemeChanged(theme);                    // qml
         emit settingsChanged(Settings::Item::Theme, theme); // model
-        EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::General), std::string("theme"), std::to_string(theme));
-        flush_config_timer->start();
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::General)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::General), std::string("theme"), std::to_string(theme));
+            flush_config_timer->start();
+        }
     }
 }
 
@@ -98,9 +101,12 @@ void SettingsModel::setCurrentLanguage(int language)
 
         emit currentLanguageChanged(language);
         emit settingsChanged(Settings::Item::Language, language);
-        EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::General), std::string("language"), std::to_string(language));
-        flush_config_timer->start();
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::General)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::General), std::string("language"), std::to_string(language));
+            flush_config_timer->start();
+        }
     }
 }
 
@@ -144,10 +150,13 @@ void SettingsModel::setCachePath(const QUrl &url)
         emit cachePathChanged(cache_path);
 
         updateCacheDiskInfo();
-        moveCacheDir(old_tmp_path);
-        EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::File), std::string("default_save_url"), cache_url.toString().toStdString());
-        flush_config_timer->start();
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::File)])
+        {
+            moveCacheDir(old_tmp_path);
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::File), std::string("default_save_url"), cache_url.toString().toStdString());
+            flush_config_timer->start();
+        }
     }
 }
 
@@ -168,9 +177,12 @@ void SettingsModel::setAutoClearCache(bool enable)
         auto_clear_cache = enable;
         emit autoClearCacheChanged(enable);
         emit settingsChanged(Settings::Item::AutoClearCache, enable);
-        EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::File), std::string("auto_clear_cache"), std::to_string(enable));
-        flush_config_timer->start();
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::File)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::File), std::string("auto_clear_cache"), std::to_string(enable));
+            flush_config_timer->start();
+        }
     }
 }
 
@@ -181,9 +193,12 @@ void SettingsModel::setAutoDownload(bool enable)
         auto_download = enable;
         emit autoDownloadChanged(enable);
         emit settingsChanged(Settings::Item::AutoDownload, enable);
-        EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::Transfer), std::string("auto_download"), std::to_string(enable));
-        flush_config_timer->start();
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::Transfer)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::Transfer), std::string("auto_download"), std::to_string(enable));
+            flush_config_timer->start();
+        }
     }
 }
 
@@ -198,9 +213,12 @@ void SettingsModel::setConcurrentTransfers(int transfers)
         {
             EventBusManager::instance().publish("/settings/send_concurrent_changed", static_cast<uint8_t>(transfers));
         }
-        EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::Transfer), std::string("concurrent_task"), std::to_string(transfers));
-        flush_config_timer->start();
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::Transfer)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::Transfer), std::string("concurrent_task"), std::to_string(transfers));
+            flush_config_timer->start();
+        }
     }
 }
 
@@ -211,9 +229,12 @@ void SettingsModel::setExpandOnAction(bool expand)
         expand_on_action = expand;
         emit expandOnActionChanged(expand);
         emit settingsChanged(Settings::Item::ExpandOnAction, expand);
-        EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::Notification), std::string("auto_expand"), std::to_string(expand));
-        flush_config_timer->start();
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::Notification)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::Notification), std::string("auto_expand"), std::to_string(expand));
+            flush_config_timer->start();
+        }
     }
 }
 
@@ -234,9 +255,12 @@ void SettingsModel::setIsUpdateAvailable(bool available)
         is_update_available = available;
         emit isUpdateAvailableChanged(available);
         emit settingsChanged(Settings::Item::IsUpdateAvailable, available);
-        EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("update_is_avaible"), std::to_string(available));
-        flush_config_timer->start();
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::About)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("update_is_avaible"), std::to_string(available));
+            flush_config_timer->start();
+        }
     }
 }
 
@@ -247,9 +271,13 @@ void SettingsModel::setChangeLog(const QString &log)
         changelog = log;
         emit changeLogChanged(changelog);
         emit settingsChanged(Settings::Item::Changelog, changelog);
-        EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("change_log"), changelog.toStdString());
-        flush_config_timer->start();
+
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::About)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("change_log"), changelog.toStdString());
+            flush_config_timer->start();
+        }
     }
 }
 
@@ -259,9 +287,12 @@ void SettingsModel::setNewVersion(const QString &nv)
     {
         new_version = nv;
         emit newVersionChanged(new_version);
-        EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("new_version"), new_version.toStdString());
-        flush_config_timer->start();
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::About)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("new_version"), new_version.toStdString());
+            flush_config_timer->start();
+        }
     }
 }
 
@@ -271,10 +302,23 @@ void SettingsModel::setUpdateSource(const QString &us)
     {
         update_source = us;
         emit updateSourceChanged(update_source);
-        EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("update_source"), update_source.toStdString());
-        flush_config_timer->start();
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::About)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("update_source"), update_source.toStdString());
+            flush_config_timer->start();
+        }
     }
+}
+
+void SettingsModel::beginLoadConfig(Settings::SettingsGroup group)
+{
+    grout_init_flags[Settings::to_uint8(group)] = false;
+}
+
+void SettingsModel::endLoadConfig(Settings::SettingsGroup group)
+{
+    grout_init_flags[Settings::to_uint8(group)] = true;
 }
 
 void SettingsModel::onConfigResult(uint8_t group, std::shared_ptr<std::unordered_map<std::string, std::string>> config)
@@ -307,12 +351,18 @@ void SettingsModel::onConfigResult(uint8_t group, std::shared_ptr<std::unordered
 
 void SettingsModel::setGeneralConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
 {
+    beginLoadConfig(Settings::SettingsGroup::General);
+
     setCurrentLanguage(std::stoi((*config)["language"]));
     setCurrentTheme(std::stoi((*config)["theme"]));
+
+    endLoadConfig(Settings::SettingsGroup::General);
 }
 
 void SettingsModel::setFileConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
 {
+    beginLoadConfig(Settings::SettingsGroup::File);
+
     QString default_save_url = QString::fromStdString((*config)["default_save_url"]);
     if (default_save_url.isEmpty())
     {
@@ -333,21 +383,33 @@ void SettingsModel::setFileConfig(std::shared_ptr<std::unordered_map<std::string
     updateCacheDiskInfo();
 
     setAutoClearCache(std::stoi((*config)["auto_clear_cache"]));
+
+    endLoadConfig(Settings::SettingsGroup::File);
 }
 
 void SettingsModel::setTransitConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
 {
+    beginLoadConfig(Settings::SettingsGroup::Transfer);
+
     setAutoDownload(std::stoi((*config)["auto_download"]));
     setConcurrentTransfers(std::stoi((*config)["concurrent_task"]));
+
+    endLoadConfig(Settings::SettingsGroup::Transfer);
 }
 
 void SettingsModel::setNotificationConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
 {
+    beginLoadConfig(Settings::SettingsGroup::Notification);
+
     setExpandOnAction(std::stoi((*config)["auto_expand"]));
+
+    beginLoadConfig(Settings::SettingsGroup::Notification);
 }
 
 void SettingsModel::setAboutConfig(std::shared_ptr<std::unordered_map<std::string, std::string>> config)
 {
+    beginLoadConfig(Settings::SettingsGroup::About);
+
     setUpdateSource(QString::fromStdString((*config)["update_source"]));
     bool update_avaible = std::stoi((*config)["update_is_avaible"]);
     if (update_avaible)
@@ -358,6 +420,8 @@ void SettingsModel::setAboutConfig(std::shared_ptr<std::unordered_map<std::strin
     // 不采用配置文件中的值，为了用户每次都需要检查更新，防止新版本过时
     is_update_available = false;
     emit isUpdateAvailableChanged(false);
+
+    endLoadConfig(Settings::SettingsGroup::About);
 }
 void SettingsModel::clearCache()
 {

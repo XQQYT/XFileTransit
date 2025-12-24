@@ -103,6 +103,8 @@ private:
     void moveCacheDir(const std::string &des);
     void onDownloadProgress(quint64 received, quint64 total);
     void onPackageDownloadDone(QString path);
+    void beginLoadConfig(Settings::SettingsGroup group);
+    void endLoadConfig(Settings::SettingsGroup group);
 
 private:
     int current_theme;    // 0: light, 1: dark
@@ -129,6 +131,8 @@ private:
     UpdateManager update_manager;
 
     VersionInfo new_version_info;
+
+    bool grout_init_flags[Settings::group_count]{false};
 };
 
 #endif

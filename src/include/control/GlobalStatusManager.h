@@ -148,6 +148,10 @@ namespace Settings
         Notification,
         About
     };
+    inline uint8_t to_uint8(SettingsGroup group)
+    {
+        return static_cast<uint8_t>(group);
+    }
     constexpr const char *toString(SettingsGroup item)
     {
         switch (item)
@@ -168,6 +172,7 @@ namespace Settings
     }
 
     inline constexpr const char *config_file = "./settings.json";
+    constexpr const uint8_t group_count = 5;
 };
 
 inline namespace AppVersion
