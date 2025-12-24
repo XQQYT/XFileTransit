@@ -52,7 +52,8 @@ namespace Json
                 FileHeader,
                 DirectoryHeader,
                 DirectoryItemHeader,
-                FileEnd
+                FileEnd,
+                Cancel
             };
 
             constexpr const char *toString(Type type)
@@ -67,6 +68,8 @@ namespace Json
                     return "dir_item_header";
                 case FileEnd:
                     return "file_end";
+                case Cancel:
+                    return "file_cancel";
                 default:
                     return "unknown";
                 }

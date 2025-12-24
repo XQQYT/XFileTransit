@@ -629,6 +629,8 @@ ApplicationWindow  {
                                         case 5: return secondaryColor
                                         case 6: return successColor
                                         case 7: return dangerColor  // 失效时为红色
+                                        case 8: return dangerColor
+                                        case 9: return dangerColor
                                         default: return textLight
                                     }
                                 }
@@ -695,6 +697,8 @@ ApplicationWindow  {
                                                 case 5: return qsTr("上传完毕")
                                                 case 6: return qsTr("下载完成")
                                                 case 7: return qsTr("已失效")
+                                                case 8: return qsTr("取消上传")
+                                                case 9: return qsTr("取消下载")
                                                 default: return ""
                                             }
                                         }
@@ -841,21 +845,36 @@ ApplicationWindow  {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             
-                            onClicked: {
-                                // 检查是否正在传输
-                                if (model.fileStatus === 3 || model.fileStatus === 4) {
-                                    if (generalDialogLoader.status === Loader.Ready) {
-                                        generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                                        generalDialogLoader.item.text = qsTr("文件正在传输中")
-                                        generalDialogLoader.item.buttons = generalDialogLoader.item.ok
-                                        
-                                        generalDialogLoader.item.show()
-                                        generalDialogLoader.item.requestActivate()
+                        onClicked: {
+                            if(model.fileStatus === 3 || model.fileStatus === 4)
+                            {
+                                if (generalDialogLoader.status === Loader.Ready) {
+                                    generalDialogLoader.item.iconType = generalDialogLoader.item.warning
+                                    generalDialogLoader.item.text = qsTr("文件正在传输中")
+                                    generalDialogLoader.item.buttons = generalDialogLoader.item.cancel | generalDialogLoader.item.cancelTransit
+                                                                        
+                                    var handler = function(btn){
+                                        switch(btn){
+                                            case generalDialogLoader.item.cancel:
+                                                break
+                                            case generalDialogLoader.item.cancelTransit:
+                                                file_list_model.cancelTransit(index)
+                                                break
+                                            default:
+                                                break
+                                        }
+                                        generalDialogLoader.item.onClicked.disconnect(handler)
+                                        generalDialogLoader.item.close()
                                     }
-                                } else {
-                                    file_list_model.removeFile(index)
-                                }
+                                    
+                                    generalDialogLoader.item.onClicked.connect(handler)
+                                    generalDialogLoader.item.show()
+                                    generalDialogLoader.item.requestActivate()
+                                }  
+                            } else {
+                                file_list_model.removeFile(index)
                             }
+                        }
                             
                             onEntered: {
                                 deleteButton.children[0].requestPaint()
@@ -1350,7 +1369,7 @@ ApplicationWindow  {
                                             root.hide()
                                             break
                                         default:
-                                            braek
+                                            break
                                     }
                                 });
 

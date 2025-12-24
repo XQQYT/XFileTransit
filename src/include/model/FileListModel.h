@@ -28,7 +28,9 @@ public:
     StatusDownloading,       // 下载中
     StatusUploadCompleted,   // 上传完成
     StatusDownloadCompleted, // 下载完成
-    StatusError              // 错误
+    StatusError,             // 错误
+    StatusUploadCancel,      // 取消上传
+    StatusDownloadCancel     // 取消下载
   };
   Q_ENUM(FileStatus)
 
@@ -63,6 +65,7 @@ public:
   Q_INVOKABLE void downloadFile(int index);
   Q_INVOKABLE void cleanTmpFiles();
   Q_INVOKABLE bool isTransferring();
+  Q_INVOKABLE void cancelTransit(int index);
   void updateFilePath(QString new_path);
   void setAutoDownload(bool enable);
   void addRemoteFiles(std::vector<std::vector<std::string>> files);
@@ -82,6 +85,7 @@ private:
   void removeFileById(std::vector<std::string> id);
   void onUploadFileProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end);
   void onDownLoadProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end);
+  void onHaveCancelFile(uint32_t id);
   std::pair<int, FileInfo &> findFileInfoById(uint32_t id);
   bool auto_expand;
   bool auto_clear_cache;

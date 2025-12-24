@@ -247,6 +247,10 @@ std::string FileJsonMsgBuilder::buildFileMsg(Json::MessageType::File::Type type,
         result["type"] = Json::MessageType::File::toString(Json::MessageType::File::FileEnd);
         result["content"] = content;
         return result.dump();
+    case Json::MessageType::File::Cancel:
+        result["type"] = Json::MessageType::File::toString(Json::MessageType::File::Cancel);
+        result["content"] = content;
+        return result.dump();
     default:
         break;
     }

@@ -125,7 +125,7 @@ void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::stri
                 if (pending_file.has_value())
                 {
                     auto& [id, file_path] = pending_file.value();
-                    
+                    current_file_id = id;
                     // 设置文件信息
                     file_msg_builder->setFileInfo(id, file_path);
                     
@@ -135,6 +135,10 @@ void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::stri
                     bytes_sent = 0;
                     
                     do {
+                        if(cancel)
+                        {
+                            file_msg_builder->cancelSending();
+                        }
                         msg = file_msg_builder->getStream();
                         if (msg.data && !msg.data->empty()) {
                             bytes_sent += static_cast<uint32_t>(msg.data->size());
@@ -162,13 +166,15 @@ void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::stri
                             progress_count = 0;
                         }
                         ++progress_count;
-                        
                     } while (msg.data && !msg.data->empty());
-                    
-                    // 发送完成事件
-                    EventBusManager::instance().publish("/file/upload_progress", 
-                        id, static_cast<uint8_t>(100), static_cast<uint32_t>(0), true);
+                    if(!cancel)
+                    {
+                        // 发送完成事件
+                        EventBusManager::instance().publish("/file/upload_progress", 
+                            id, static_cast<uint8_t>(100), static_cast<uint32_t>(0), true);
+                    }
                     progress_count = 0;
+                    cancel = false;
                 }
             }
             

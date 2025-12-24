@@ -8,6 +8,7 @@
 #include <utility>
 #include <functional>
 #include <optional>
+#include <iostream>
 
 class FileSenderInterface
 {
@@ -21,6 +22,8 @@ public:
     virtual void stop() = 0;
     virtual void setCondition(std::shared_ptr<std::condition_variable> queue_cv) { cv = queue_cv; }
     virtual void setCheckQueue(std::function<bool()> check_cb) { check_queue_cb = check_cb; }
+    virtual uint32_t getCurrentFileID() { return current_file_id; }
+    virtual void cancelSending() { cancel = true; }
 
 protected:
     static OuterMsgBuilderInterface &getOuterMsgBuilder()
@@ -34,6 +37,8 @@ protected:
     std::shared_ptr<std::condition_variable> cv;
     std::function<bool()> check_queue_cb;
     bool running{false};
+    bool cancel{false};
+    uint32_t current_file_id;
 };
 
 #endif

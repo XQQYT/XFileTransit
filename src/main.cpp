@@ -66,6 +66,12 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/file/have_file_to_send");
     // 取消文件发送
     EventBusManager::instance().registerEvent("/file/cancel_file_send");
+    // 发起取消文件传输(发送方)
+    EventBusManager::instance().registerEvent("/file/cancel_transit_in_sender");
+    // 发起取消文件传输(接收方)
+    EventBusManager::instance().registerEvent("/file/cancel_transit_in_receiver");
+    // 收到取消文件传输(接收方)
+    EventBusManager::instance().registerEvent("/file/have_cancel_transit");
     // 上传进度更新
     EventBusManager::instance().registerEvent("/file/upload_progress");
     // 下载进度更新

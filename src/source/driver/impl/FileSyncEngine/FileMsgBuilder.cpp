@@ -202,6 +202,35 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildEnd()
     return result;
 }
 
+std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildCancel()
+{
+    auto json = json_builder->getBuilder(Json::BuilderType::File);
+    std::string json_str = json->buildFileMsg(Json::MessageType::File::Cancel, {});
+    auto result = std::make_unique<std::vector<uint8_t>>();
+    result->reserve(json_str.size());
+    std::transform(json_str.begin(), json_str.end(),
+                   std::back_inserter(*result),
+                   [](char c)
+                   { return static_cast<uint8_t>(c); });
+    file_state = State::Default;
+    dir_sended_size = 0;
+    file_sended_size = 0;
+
+    // 清理文件流
+    file_reader.reset();
+    dir_file_index = 0;
+    dir_items.clear();
+    return result;
+}
+
+void FileMsgBuilder::cancelSending()
+{
+    if (file_state != State::Default) // 如果已经是Default，说明没有在传输了
+    {
+        file_state = State::Cancel;
+    }
+}
+
 uint8_t FileMsgBuilder::calculateProgress()
 {
     if (is_folder)
@@ -272,6 +301,9 @@ FileMsgBuilderInterface::FileMsgBuilderResult FileMsgBuilder::getStream()
         }
         return {false, final_progress, buildEnd()};
     }
+    case State::Cancel:
+        is_end = true;
+        return {false, 0, buildCancel()};
     default:
         break;
     }

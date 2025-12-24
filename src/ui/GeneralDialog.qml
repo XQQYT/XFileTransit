@@ -23,6 +23,7 @@ Window {
     readonly property int no: 0x0008        // 8
     readonly property int closeWin: 0x0010  // 16
     readonly property int hideWin: 0x0020   // 32
+    readonly property int cancelTransit: 0x0040   // 64
     
     // 图标类型枚举
     readonly property int none: 0
@@ -423,6 +424,33 @@ Window {
                         hoverEnabled: true
                         onClicked: {
                             root.clicked(root.closeWin)
+                            root.accepted()
+                            root.close()
+                        }
+                    }
+                }
+
+                // 取消传输按钮
+                Rectangle {
+                    width: 72
+                    height: 32
+                    radius: buttonRadius
+                    color: cancelTransitArea.containsMouse ? closeButtonBgHover : closeButtonBg
+                    visible: root.buttons & root.cancelTransit
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: qsTr("取消传输")
+                        font.pixelSize: 13
+                        color: textOnPrimary
+                    }
+                    
+                    MouseArea {
+                        id: cancelTransitArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: {
+                            root.clicked(root.cancelTransit)
                             root.accepted()
                             root.close()
                         }

@@ -20,7 +20,8 @@ public:
     void start(std::string address, std::string recv_port, std::shared_ptr<SecurityInterface> instance);
     void stop();
     void onHaveFileToSend(uint32_t id, std::string path);
-    void onCancelSendFile(uint32_t id);
+    void onCancelSendFile(uint32_t id);   // 取消等待任务
+    void onCancelUploadFile(uint32_t id); // 停止上传中的任务
     std::optional<std::pair<uint32_t, std::string>> getPendingFile();
     void haveFileConnection(UnifiedSocket socket);
     void haveFileMsg(UnifiedSocket socket, std::unique_ptr<NetworkInterface::UserMsg> msg);

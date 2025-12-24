@@ -37,6 +37,10 @@ FileSyncEngine::FileSyncEngine()
                                                                                    &FileSyncEngine::setConcurrentTask,
                                                                                    this,
                                                                                    std::placeholders::_1));
+    EventBusManager::instance().subscribe("/file/cancel_transit_in_sender", std::bind(
+                                                                                &FileSyncEngine::onCancelUploadFile,
+                                                                                this,
+                                                                                std::placeholders::_1));
 }
 
 void FileSyncEngine::onHaveFileToSend(uint32_t id, std::string path)
@@ -58,6 +62,24 @@ void FileSyncEngine::onCancelSendFile(uint32_t id)
                                   });
     pending_send_files.erase(new_end, pending_send_files.end());
 }
+
+void FileSyncEngine::onCancelUploadFile(uint32_t id)
+{
+    auto it = std::find_if(file_senders.begin(),
+                           file_senders.end(),
+                           [id](const std::shared_ptr<FileSenderInterface> &sender)
+                           {
+                               return sender->getCurrentFileID() == id;
+                           });
+    if (it != file_senders.end())
+    {
+        (*it)->cancelSending();
+    }
+    else
+    {
+        LOG_ERROR("Cann't find file sender with id");
+    }
+};
 
 std::optional<std::pair<uint32_t, std::string>> FileSyncEngine::getPendingFile()
 {

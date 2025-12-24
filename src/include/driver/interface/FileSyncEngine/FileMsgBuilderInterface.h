@@ -21,6 +21,7 @@ public:
         is_initialized = true;
     }
     virtual FileMsgBuilderResult getStream() = 0;
+    virtual void cancelSending() = 0;
     virtual ~FileMsgBuilderInterface() = default;
 
 protected:

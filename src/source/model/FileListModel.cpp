@@ -43,6 +43,10 @@ FileListModel::FileListModel(QObject *parent) : QAbstractListModel(parent)
                                                     std::placeholders::_2,
                                                     std::placeholders::_3,
                                                     std::placeholders::_4));
+    EventBusManager::instance().subscribe("/file/have_cancel_transit",
+                                          std::bind(&FileListModel::onHaveCancelFile,
+                                                    this,
+                                                    std::placeholders::_1));
 }
 
 FileListModel::~FileListModel()
@@ -395,7 +399,8 @@ void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
 void FileListModel::onUploadFileProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end)
 {
     auto target_file = findFileInfoById(id);
-    if (target_file.first == -1)
+
+    if (target_file.second.file_status == FileStatus::StatusUploadCancel)
         return;
 
     // 更新状态和进度
@@ -443,8 +448,11 @@ void FileListModel::onUploadFileProgress(uint32_t id, uint8_t progress, uint32_t
 
 void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end)
 {
-
     auto target_file = findFileInfoById(id);
+
+    if (target_file.second.file_status == FileStatus::StatusRemoteDefault)
+        return;
+
     target_file.second.file_status = is_end ? FileStatus::StatusDownloadCompleted : FileStatus::StatusDownloading;
     target_file.second.progress = static_cast<int>(progress);
     if (auto_expand && is_end)
@@ -485,6 +493,20 @@ void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, uint32_t s
     QVector<int> roles = {FileStatusRole, FileProgressRole};
 
     emit dataChanged(model_index, model_index, roles);
+}
+
+void FileListModel::onHaveCancelFile(uint32_t id)
+{
+    for (int i = 0; i < file_list.size(); ++i)
+    {
+        if (file_list[i].id == id)
+        {
+            file_list[i].file_status = FileStatus::StatusDownloadCancel;
+            QModelIndex model_index = index(i, 0);
+            QVector<int> roles = {FileStatusRole};
+            emit dataChanged(model_index, model_index, roles);
+        }
+    }
 }
 
 void FileListModel::cleanTmpFiles()
@@ -553,5 +575,29 @@ void FileListModel::onSettingsChanged(Settings::Item item, QVariant value)
         break;
     default:
         return;
+    }
+}
+
+void FileListModel::cancelTransit(int i)
+{
+    FileInfo &info = file_list[i];
+    qDebug() << "cancel transit id: " << info.id;
+
+    if (info.file_status == FileStatus::StatusUploading)
+    {
+        EventBusManager::instance().publish("/file/cancel_transit_in_sender", static_cast<uint32_t>(info.id));
+
+        info.file_status = FileStatus::StatusUploadCancel;
+        QModelIndex model_index = index(i, 0);
+        QVector<int> roles = {FileStatusRole};
+        emit dataChanged(model_index, model_index, roles);
+    }
+    else if (info.file_status == FileStatus::StatusDownloading)
+    {
+        EventBusManager::instance().publish("/file/cancel_transit_in_receiver", static_cast<uint32_t>(info.id));
+    }
+    else
+    {
+        LOG_ERROR("Invalid file status: " << static_cast<int>(info.file_status));
     }
 }

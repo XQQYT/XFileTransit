@@ -18,6 +18,7 @@ FileParser::FileParser() : json_parser(std::make_unique<NlohmannJson>())
     type_parser_map["dir_header"] = std::bind(&FileParser::onDirHeader, this, std::placeholders::_1);
     type_parser_map["dir_item_header"] = std::bind(&FileParser::onDirItemHeader, this, std::placeholders::_1);
     type_parser_map["file_end"] = std::bind(&FileParser::onFileEnd, this, std::placeholders::_1);
+    type_parser_map["file_cancel"] = std::bind(&FileParser::onFileCancel, this, std::placeholders::_1);
 }
 
 uint8_t FileParser::calculateProgress()
@@ -94,6 +95,8 @@ void FileParser::onFileHeader(std::unique_ptr<Json::Parser> content_parser)
     std::wstring wide_filename = FileSystemUtils::utf8ToWide(GlobalStatusManager::getInstance().getFileName(id));
     std::wstring full_path = wide_tmp_dir + wide_filename;
 
+    file_path = FileStreamHelper::wstringToLocalPath(full_path);
+
     current_file_id = std::stoul(content_parser->getValue("id"));
 
     file_stream = FileStreamHelper::createOutputFileStream(full_path);
@@ -108,6 +111,7 @@ void FileParser::onFileHeader(std::unique_ptr<Json::Parser> content_parser)
     {
         start_time_point = std::chrono::steady_clock::now();
     }
+    is_folder = false;
 }
 
 void FileParser::onDirHeader(std::unique_ptr<Json::Parser> content_parser)
@@ -117,7 +121,7 @@ void FileParser::onDirHeader(std::unique_ptr<Json::Parser> content_parser)
     std::wstring wide_tmp_dir = FileSystemUtils::utf8ToWide(GlobalStatusManager::absolute_tmp_dir);
     std::wstring wide_filename = FileSystemUtils::utf8ToWide(GlobalStatusManager::getInstance().getFileName(id));
     std::wstring end = FileSystemUtils::utf8ToWide("/");
-    dir_path = wide_tmp_dir + wide_filename + end;
+    w_dir_path = wide_tmp_dir + wide_filename + end;
 
     auto leaf_paths = content_parser->getArray("leaf_paths");
     for (auto &i : leaf_paths)
@@ -128,7 +132,7 @@ void FileParser::onDirHeader(std::unique_ptr<Json::Parser> content_parser)
 #ifdef __linux__
             std::replace(a.begin(), a.end(), '\\', '/');
 #endif
-            std::string path_str = FileStreamHelper::wstringToLocalPath(dir_path + FileSystemUtils::utf8ToWide(a));
+            std::string path_str = FileStreamHelper::wstringToLocalPath(w_dir_path + FileSystemUtils::utf8ToWide(a));
 
             FileSystemUtils::createDirectoryRecursive(path_str);
         }
@@ -146,7 +150,7 @@ void FileParser::onDirItemHeader(std::unique_ptr<Json::Parser> content_parser)
     std::replace(arg_path.begin(), arg_path.end(), '\\', '/');
 #endif
     std::wstring file_relative_path = FileSystemUtils::utf8ToWide(arg_path);
-    std::wstring full_path = dir_path + file_relative_path;
+    std::wstring full_path = w_dir_path + file_relative_path;
 
     file_stream = FileStreamHelper::createOutputFileStream(full_path);
 
@@ -162,7 +166,6 @@ void FileParser::onDirItemHeader(std::unique_ptr<Json::Parser> content_parser)
         file_stream.reset();
         return;
     }
-    file_name = content_parser->getValue("path");
 }
 
 void FileParser::onFileEnd(std::unique_ptr<Json::Parser> content_parser)
@@ -178,5 +181,24 @@ void FileParser::onFileEnd(std::unique_ptr<Json::Parser> content_parser)
     {
         file_stream->flush();
         file_stream.reset();
+    }
+}
+
+void FileParser::onFileCancel(std::unique_ptr<Json::Parser> content_parser)
+{
+    EventBusManager::instance().publish("/file/have_cancel_transit", current_file_id);
+    received_size = 0;
+
+    static uint8_t progress_count = 0;
+    progress_count = 0;
+
+    if (file_stream)
+    {
+        file_stream->flush();
+        file_stream.reset();
+        if (is_folder)
+            FileSystemUtils::removeFileOrDirectory(FileStreamHelper::wstringToLocalPath(w_dir_path), true);
+        else
+            FileSystemUtils::removeFileOrDirectory(file_path, true);
     }
 }
