@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# ============================================
+# XFileTransit Deb 打包脚本
+# ============================================
+
 # 用法：
 # pwd: XFileTransit
 # bash ./tools/package/generate_release_deb.sh ./build-Linux-Debug/src/XFileTransit 1.1.0 /home/xqqyt/Qt6.8/6.8.3/gcc_64
@@ -54,7 +58,7 @@ Package: xfiletransit
 Version: $VERSION
 Architecture: amd64
 Maintainer: XQQYT<xqqyt0502@163.com>
-Depends: libc6 (>= 2.34), libstdc++6 (>= 11), libgcc-s1 (>= 4.2), libgl1, libxcb1, libx11-6
+Depends: libc6, libstdc++6, libgcc-s1, libgl1, libxcb1, libx11-6, libssl3, libpcre2-8-0
 Recommends: libxcb-xinerama0, libxcb-icccm4, libxcb-image0, libxcb-keysyms1, libxcb-randr0, libxcb-render-util0, libxcb-xkb1, libxkbcommon-x11-0
 Section: utils
 Priority: optional

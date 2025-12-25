@@ -1,8 +1,12 @@
 #!/bin/bash
 
+# ============================================
+# XFileTransit tar.gz 打包脚本
+# ============================================
+
 # 用法：
 # pwd: XFileTransit
-# bash ./tools/package/generate_release_deb.sh ./build-Linux-Debug/src/XFileTransit 1.1.0 /home/xqqyt/Qt6.8/6.8.3/gcc_64
+# bash ./tools/package/generate_release_tar_gz.sh ./build-Linux-Debug/src/XFileTransit 1.1.0 /home/xqqyt/Qt6.8/6.8.3/gcc_64
 
 EXECUTABLE="$1"
 VERSION="$2"
