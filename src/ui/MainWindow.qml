@@ -245,6 +245,42 @@ ApplicationWindow  {
         }
     }
 
+    function cancelTransit(fileStatus, index, removeFile)
+    {
+        if(fileStatus === 3 || fileStatus === 4 || fileStatus === 0)
+        {
+            if (generalDialogLoader.status === Loader.Ready) {
+                generalDialogLoader.item.iconType = generalDialogLoader.item.warning
+                generalDialogLoader.item.text = qsTr("文件正在传输中")
+                generalDialogLoader.item.buttons = generalDialogLoader.item.cancel | generalDialogLoader.item.cancelTransit
+                                                                        
+                var handler = function(btn){
+                    switch(btn){
+                        case generalDialogLoader.item.cancel:
+                            break
+                        case generalDialogLoader.item.cancelTransit:
+                            file_list_model.cancelTransit(index)
+                            if(removeFile)
+                            {
+                                file_list_model.removeFile(index)
+                            }
+                            break
+                        default:
+                            break
+                    }
+                    generalDialogLoader.item.onClicked.disconnect(handler)
+                    generalDialogLoader.item.close()
+                }
+                                    
+                generalDialogLoader.item.onClicked.connect(handler)
+                generalDialogLoader.item.show()
+                generalDialogLoader.item.requestActivate()
+            }  
+        } else {
+            file_list_model.removeFile(index)
+        }
+    }
+
     // 系统托盘图标
     SystemTrayIcon {
         id: trayIcon
@@ -488,10 +524,43 @@ ApplicationWindow  {
                         MenuSeparator {}
                         
                         MenuItem {
-                            text: qsTr("下载文件")
-                            enabled: model.isRemote && model.fileStatus !== 4 &&  model.fileStatus !== 7
+                            property int downloadItemStatus: -1
+                            text: {
+                                switch(model.fileStatus){
+                                    case 5:
+                                    case 6:
+                                    case 7:
+                                    case 8:
+                                    case 9:
+                                        downloadItemStatus = 0
+                                        return qsTr("重新下载")
+                                    case 0:
+                                    case 3:
+                                    case 4:
+                                        downloadItemStatus = 1
+                                        return qsTr("取消下载")
+                                    case 1:
+                                    case 2:
+                                        downloadItemStatus = 2
+                                        return qsTr("下载文件")
+                                }
+                            }
+                            enabled: true
                             onTriggered: {
-                                file_list_model.downloadFile(index)
+                                switch(downloadItemStatus){
+                                    case 0:
+                                        file_list_model.downloadFile(index)
+                                        break
+                                    case 1:
+                                        cancelTransit(model.fileStatus, index, false)
+                                        break
+                                    case 2:
+                                        file_list_model.downloadFile(index)
+                                        break
+                                    default:
+                                        return
+                                }
+                                
                             }
                         }
                         
@@ -500,19 +569,7 @@ ApplicationWindow  {
                         MenuItem {
                             text: qsTr("删除")
                             onTriggered: {
-                                // 检查是否正在传输
-                                if (model.fileStatus === 3 || model.fileStatus === 4) {
-                                    if (generalDialogLoader.status === Loader.Ready) {
-                                        generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                                        generalDialogLoader.item.text = qsTr("文件正在传输中")
-                                        generalDialogLoader.item.buttons = generalDialogLoader.item.ok
-                                        
-                                        generalDialogLoader.item.show()
-                                        generalDialogLoader.item.requestActivate()
-                                    }
-                                } else {
-                                    file_list_model.removeFile(index)
-                                }
+                                cancelTransit(model.fileStatus, index, true)
                             }
                         }
                     }
@@ -539,8 +596,14 @@ ApplicationWindow  {
                             color: "transparent"
                             
                             gradient: Gradient {
-                                GradientStop { position: 0.0; color: "#1E293B" }
-                                GradientStop { position: 1.0; color: "#0F172A" }
+                                GradientStop { 
+                                    position: 0.0; 
+                                    color: cardColor
+                                }
+                                GradientStop { 
+                                    position: 1.0; 
+                                    color: Qt.darker(cardColor, 1.2)
+                                }
                             }
                             
                             border.width: 1
@@ -552,7 +615,7 @@ ApplicationWindow  {
                             text: fileToolTip.text
                             font.pixelSize: 11
                             font.family: "Microsoft YaHei UI"
-                            color: "#E2E8F0"
+                            color: textPrimary
                             wrapMode: Text.WordWrap
                             maximumLineCount: 3
                             horizontalAlignment: Text.AlignHCenter
@@ -845,36 +908,9 @@ ApplicationWindow  {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             
-                        onClicked: {
-                            if(model.fileStatus === 3 || model.fileStatus === 4 || model.fileStatus === 0)
-                            {
-                                if (generalDialogLoader.status === Loader.Ready) {
-                                    generalDialogLoader.item.iconType = generalDialogLoader.item.warning
-                                    generalDialogLoader.item.text = qsTr("文件正在传输中")
-                                    generalDialogLoader.item.buttons = generalDialogLoader.item.cancel | generalDialogLoader.item.cancelTransit
-                                                                        
-                                    var handler = function(btn){
-                                        switch(btn){
-                                            case generalDialogLoader.item.cancel:
-                                                break
-                                            case generalDialogLoader.item.cancelTransit:
-                                                file_list_model.cancelTransit(index)
-                                                break
-                                            default:
-                                                break
-                                        }
-                                        generalDialogLoader.item.onClicked.disconnect(handler)
-                                        generalDialogLoader.item.close()
-                                    }
-                                    
-                                    generalDialogLoader.item.onClicked.connect(handler)
-                                    generalDialogLoader.item.show()
-                                    generalDialogLoader.item.requestActivate()
-                                }  
-                            } else {
-                                file_list_model.removeFile(index)
+                            onClicked: {
+                                cancelTransit(model.fileStatus, index, true)
                             }
-                        }
                             
                             onEntered: {
                                 deleteButton.children[0].requestPaint()
