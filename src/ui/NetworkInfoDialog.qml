@@ -455,7 +455,7 @@ Window {
             // 底部操作按钮
             Rectangle {
                 id: actionButton
-                width: 120
+                width: 125
                 height: 36
                 radius: 18
                 anchors.bottom: parent.bottom

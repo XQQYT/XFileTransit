@@ -5,30 +5,36 @@
     <name>ConnectRequestDialog</name>
     <message>
         <location filename="../ui/ConnectRequestDialog.qml" line="133"/>
+        <location filename="../ui/ConnectRequestDialog.qml" line="133"/>
         <source>连接请求</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/ConnectRequestDialog.qml" line="152"/>
         <location filename="../ui/ConnectRequestDialog.qml" line="152"/>
         <source>IP地址</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/ConnectRequestDialog.qml" line="181"/>
+        <location filename="../ui/ConnectRequestDialog.qml" line="181"/>
         <source>设备名称</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/ConnectRequestDialog.qml" line="208"/>
         <location filename="../ui/ConnectRequestDialog.qml" line="208"/>
         <source>是否允许此设备连接到您的计算机？</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/ConnectRequestDialog.qml" line="230"/>
+        <location filename="../ui/ConnectRequestDialog.qml" line="230"/>
         <source>拒绝</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/ConnectRequestDialog.qml" line="258"/>
         <location filename="../ui/ConnectRequestDialog.qml" line="258"/>
         <source>接受</source>
         <translation type="unfinished"></translation>
@@ -37,114 +43,138 @@
 <context>
     <name>DeviceListWindow</name>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="307"/>
+        <location filename="../ui/DeviceListWindow.qml" line="310"/>
+        <location filename="../ui/DeviceListWindow.qml" line="310"/>
         <source>扫描完成，发现 %1 个设备</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="308"/>
+        <location filename="../ui/DeviceListWindow.qml" line="311"/>
+        <location filename="../ui/DeviceListWindow.qml" line="311"/>
         <source>扫描完成，未发现设备</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="314"/>
+        <location filename="../ui/DeviceListWindow.qml" line="317"/>
+        <location filename="../ui/DeviceListWindow.qml" line="317"/>
         <source>扫描完成</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="418"/>
+        <location filename="../ui/DeviceListWindow.qml" line="421"/>
+        <location filename="../ui/DeviceListWindow.qml" line="421"/>
         <source>设备列表</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="427"/>
+        <location filename="../ui/DeviceListWindow.qml" line="430"/>
+        <location filename="../ui/DeviceListWindow.qml" line="430"/>
         <source>局域网设备发现</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="446"/>
+        <location filename="../ui/DeviceListWindow.qml" line="449"/>
+        <location filename="../ui/DeviceListWindow.qml" line="449"/>
         <source>停止</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="446"/>
+        <location filename="../ui/DeviceListWindow.qml" line="449"/>
+        <location filename="../ui/DeviceListWindow.qml" line="449"/>
         <source>扫描</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="544"/>
+        <location filename="../ui/DeviceListWindow.qml" line="547"/>
+        <location filename="../ui/DeviceListWindow.qml" line="547"/>
         <source>快速连接</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="720"/>
+        <location filename="../ui/DeviceListWindow.qml" line="723"/>
+        <location filename="../ui/DeviceListWindow.qml" line="723"/>
         <source>连接</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="747"/>
+        <location filename="../ui/DeviceListWindow.qml" line="750"/>
+        <location filename="../ui/DeviceListWindow.qml" line="750"/>
         <source>该IP为本地地址</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="768"/>
+        <location filename="../ui/DeviceListWindow.qml" line="771"/>
+        <location filename="../ui/DeviceListWindow.qml" line="771"/>
         <source>正在连接...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="768"/>
-        <location filename="../ui/DeviceListWindow.qml" line="981"/>
+        <location filename="../ui/DeviceListWindow.qml" line="771"/>
+        <location filename="../ui/DeviceListWindow.qml" line="984"/>
+        <location filename="../ui/DeviceListWindow.qml" line="771"/>
+        <location filename="../ui/DeviceListWindow.qml" line="984"/>
         <source>取消</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="774"/>
+        <location filename="../ui/DeviceListWindow.qml" line="777"/>
+        <location filename="../ui/DeviceListWindow.qml" line="777"/>
         <source>请输入有效的 IPv4 地址（如 192.168.1.100)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="808"/>
+        <location filename="../ui/DeviceListWindow.qml" line="811"/>
+        <location filename="../ui/DeviceListWindow.qml" line="811"/>
         <source>可用设备</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="823"/>
+        <location filename="../ui/DeviceListWindow.qml" line="826"/>
+        <location filename="../ui/DeviceListWindow.qml" line="826"/>
         <source>%1 个设备</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="847"/>
-        <location filename="../ui/DeviceListWindow.qml" line="1058"/>
+        <location filename="../ui/DeviceListWindow.qml" line="850"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1061"/>
+        <location filename="../ui/DeviceListWindow.qml" line="850"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1061"/>
         <source>未发现设备</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="863"/>
+        <location filename="../ui/DeviceListWindow.qml" line="866"/>
+        <location filename="../ui/DeviceListWindow.qml" line="866"/>
         <source>未知设备</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="864"/>
+        <location filename="../ui/DeviceListWindow.qml" line="867"/>
+        <location filename="../ui/DeviceListWindow.qml" line="867"/>
         <source>IP未知</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="865"/>
+        <location filename="../ui/DeviceListWindow.qml" line="868"/>
+        <location filename="../ui/DeviceListWindow.qml" line="868"/>
         <source>未知</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="981"/>
+        <location filename="../ui/DeviceListWindow.qml" line="984"/>
+        <location filename="../ui/DeviceListWindow.qml" line="984"/>
         <source>等待对方响应</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="1057"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1060"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1060"/>
         <source>正在扫描...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="1059"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1062"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1062"/>
         <source>发现 %1 个设备</source>
         <translation type="unfinished"></translation>
     </message>
@@ -152,52 +182,69 @@
 <context>
     <name>GeneralDialog</name>
     <message>
-        <location filename="../ui/GeneralDialog.qml" line="14"/>
-        <location filename="../ui/GeneralDialog.qml" line="171"/>
+        <location filename="../ui/GeneralDialog.qml" line="15"/>
+        <location filename="../ui/GeneralDialog.qml" line="177"/>
+        <location filename="../ui/GeneralDialog.qml" line="15"/>
+        <location filename="../ui/GeneralDialog.qml" line="177"/>
         <source>提示</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/GeneralDialog.qml" line="260"/>
+        <location filename="../ui/GeneralDialog.qml" line="335"/>
+        <location filename="../ui/GeneralDialog.qml" line="335"/>
         <source>取消</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/GeneralDialog.qml" line="260"/>
+        <location filename="../ui/GeneralDialog.qml" line="335"/>
+        <location filename="../ui/GeneralDialog.qml" line="335"/>
         <source>否</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/GeneralDialog.qml" line="287"/>
+        <location filename="../ui/GeneralDialog.qml" line="362"/>
+        <location filename="../ui/GeneralDialog.qml" line="362"/>
         <source>是</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/GeneralDialog.qml" line="287"/>
+        <location filename="../ui/GeneralDialog.qml" line="362"/>
+        <location filename="../ui/GeneralDialog.qml" line="362"/>
         <source>确定</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/GeneralDialog.qml" line="314"/>
+        <location filename="../ui/GeneralDialog.qml" line="389"/>
+        <location filename="../ui/GeneralDialog.qml" line="389"/>
         <source>最小化</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/GeneralDialog.qml" line="341"/>
+        <location filename="../ui/GeneralDialog.qml" line="416"/>
+        <location filename="../ui/GeneralDialog.qml" line="416"/>
         <source>关闭</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/GeneralDialog.qml" line="443"/>
+        <location filename="../ui/GeneralDialog.qml" line="443"/>
+        <source>取消传输</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>LoadingDialog</name>
     <message>
-        <location filename="../ui/LoadingDialog.qml" line="16"/>
-        <location filename="../ui/LoadingDialog.qml" line="230"/>
+        <location filename="../ui/LoadingDialog.qml" line="17"/>
+        <location filename="../ui/LoadingDialog.qml" line="328"/>
+        <location filename="../ui/LoadingDialog.qml" line="17"/>
+        <location filename="../ui/LoadingDialog.qml" line="328"/>
         <source>加载中...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/LoadingDialog.qml" line="17"/>
+        <location filename="../ui/LoadingDialog.qml" line="18"/>
+        <location filename="../ui/LoadingDialog.qml" line="18"/>
         <source>取消</source>
         <translation type="unfinished"></translation>
     </message>
@@ -206,144 +253,229 @@
     <name>MainWindow</name>
     <message>
         <location filename="../ui/MainWindow.qml" line="30"/>
+        <location filename="../ui/MainWindow.qml" line="30"/>
         <source>未连接</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="248"/>
-        <source>Xqqyt - 点击显示主窗口</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/MainWindow.qml" line="252"/>
-        <source>显示/隐藏主窗口</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/MainWindow.qml" line="263"/>
-        <source>退出</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/MainWindow.qml" line="452"/>
-        <source>打开文件</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/MainWindow.qml" line="467"/>
-        <source>复制文件名</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/MainWindow.qml" line="474"/>
-        <source>复制文件路径</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/MainWindow.qml" line="486"/>
-        <source>下载文件</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/MainWindow.qml" line="496"/>
-        <source>删除</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/MainWindow.qml" line="502"/>
-        <location filename="../ui/MainWindow.qml" line="844"/>
+        <location filename="../ui/MainWindow.qml" line="254"/>
+        <location filename="../ui/MainWindow.qml" line="254"/>
         <source>文件正在传输中</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="689"/>
+        <location filename="../ui/MainWindow.qml" line="289"/>
+        <location filename="../ui/MainWindow.qml" line="289"/>
+        <source>Xqqyt - 点击显示主窗口</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="293"/>
+        <location filename="../ui/MainWindow.qml" line="293"/>
+        <source>显示/隐藏主窗口</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="304"/>
+        <location filename="../ui/MainWindow.qml" line="304"/>
+        <source>退出</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="493"/>
+        <location filename="../ui/MainWindow.qml" line="493"/>
+        <source>打开文件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="508"/>
+        <location filename="../ui/MainWindow.qml" line="508"/>
+        <source>复制文件名</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="515"/>
+        <location filename="../ui/MainWindow.qml" line="515"/>
+        <source>复制文件路径</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="536"/>
+        <location filename="../ui/MainWindow.qml" line="536"/>
+        <source>重新下载</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="541"/>
+        <location filename="../ui/MainWindow.qml" line="764"/>
+        <location filename="../ui/MainWindow.qml" line="541"/>
+        <location filename="../ui/MainWindow.qml" line="764"/>
+        <source>取消下载</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="545"/>
+        <location filename="../ui/MainWindow.qml" line="545"/>
+        <source>下载文件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="570"/>
+        <location filename="../ui/MainWindow.qml" line="570"/>
+        <source>删除</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="759"/>
+        <location filename="../ui/MainWindow.qml" line="759"/>
         <source>等待中</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="690"/>
+        <location filename="../ui/MainWindow.qml" line="760"/>
+        <location filename="../ui/MainWindow.qml" line="760"/>
         <source>上传完毕</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="691"/>
+        <location filename="../ui/MainWindow.qml" line="761"/>
+        <location filename="../ui/MainWindow.qml" line="761"/>
         <source>下载完成</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="692"/>
-        <location filename="../ui/MainWindow.qml" line="707"/>
+        <location filename="../ui/MainWindow.qml" line="762"/>
+        <location filename="../ui/MainWindow.qml" line="779"/>
+        <location filename="../ui/MainWindow.qml" line="762"/>
+        <location filename="../ui/MainWindow.qml" line="779"/>
         <source>已失效</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="869"/>
+        <location filename="../ui/MainWindow.qml" line="763"/>
+        <location filename="../ui/MainWindow.qml" line="763"/>
+        <source>取消上传</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="929"/>
+        <location filename="../ui/MainWindow.qml" line="929"/>
         <source>📁 暂无文件，拖放文件到此处</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="903"/>
+        <location filename="../ui/MainWindow.qml" line="963"/>
+        <location filename="../ui/MainWindow.qml" line="963"/>
         <source>释放以添加文件</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="956"/>
+        <location filename="../ui/MainWindow.qml" line="1016"/>
+        <location filename="../ui/MainWindow.qml" line="1016"/>
         <source>断开</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="956"/>
+        <location filename="../ui/MainWindow.qml" line="1016"/>
+        <location filename="../ui/MainWindow.qml" line="1016"/>
         <source>连接</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="978"/>
+        <location filename="../ui/MainWindow.qml" line="1038"/>
+        <location filename="../ui/MainWindow.qml" line="1038"/>
         <source>确定断开连接？</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1013"/>
+        <location filename="../ui/MainWindow.qml" line="1073"/>
+        <location filename="../ui/MainWindow.qml" line="1073"/>
         <source>IP信息</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1055"/>
+        <location filename="../ui/MainWindow.qml" line="1115"/>
+        <location filename="../ui/MainWindow.qml" line="1115"/>
         <source>设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1136"/>
+        <location filename="../ui/MainWindow.qml" line="1196"/>
+        <location filename="../ui/MainWindow.qml" line="1196"/>
         <source>取消了连接</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1181"/>
-        <location filename="../ui/MainWindow.qml" line="1209"/>
+        <location filename="../ui/MainWindow.qml" line="1241"/>
+        <location filename="../ui/MainWindow.qml" line="1269"/>
+        <location filename="../ui/MainWindow.qml" line="1241"/>
+        <location filename="../ui/MainWindow.qml" line="1269"/>
         <source>是否同步当前文件</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1222"/>
+        <location filename="../ui/MainWindow.qml" line="1282"/>
+        <location filename="../ui/MainWindow.qml" line="1282"/>
         <source>连接成功</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1235"/>
+        <location filename="../ui/MainWindow.qml" line="1295"/>
+        <location filename="../ui/MainWindow.qml" line="1295"/>
         <source>连接被拒绝</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1267"/>
+        <location filename="../ui/MainWindow.qml" line="1327"/>
+        <location filename="../ui/MainWindow.qml" line="1327"/>
+        <source>下载全部</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="1367"/>
+        <location filename="../ui/MainWindow.qml" line="1367"/>
+        <source>停止全部</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="1382"/>
+        <location filename="../ui/MainWindow.qml" line="1382"/>
+        <source>确定停止所有文件的传输吗</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="1391"/>
+        <location filename="../ui/MainWindow.qml" line="1391"/>
+        <source>没有正在传输的文件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="1425"/>
+        <location filename="../ui/MainWindow.qml" line="1425"/>
         <source>清空</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1324"/>
+        <location filename="../ui/MainWindow.qml" line="1439"/>
+        <location filename="../ui/MainWindow.qml" line="1439"/>
+        <source>确定清空吗？传输中的文件也会中断</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="1439"/>
+        <location filename="../ui/MainWindow.qml" line="1439"/>
+        <source>确定清空吗？</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/MainWindow.qml" line="1493"/>
+        <location filename="../ui/MainWindow.qml" line="1493"/>
         <source>有文件正在传输中</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1333"/>
+        <location filename="../ui/MainWindow.qml" line="1502"/>
+        <location filename="../ui/MainWindow.qml" line="1502"/>
         <source>确定退出吗？</source>
         <translation type="unfinished"></translation>
     </message>
@@ -352,49 +484,99 @@
     <name>NetworkInfoDialog</name>
     <message>
         <location filename="../ui/NetworkInfoDialog.qml" line="6"/>
-        <location filename="../ui/NetworkInfoDialog.qml" line="176"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="175"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="6"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="175"/>
         <source>网络信息</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/NetworkInfoDialog.qml" line="82"/>
-        <location filename="../ui/NetworkInfoDialog.qml" line="468"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="81"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="467"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="81"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="467"/>
         <source>复制全部信息</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/NetworkInfoDialog.qml" line="185"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="184"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="184"/>
         <source>IP地址和网段信息</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/NetworkInfoDialog.qml" line="254"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="253"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="253"/>
         <source>网络信息列表</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/NetworkInfoDialog.qml" line="298"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="297"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="297"/>
         <source> 项</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/NetworkInfoDialog.qml" line="338"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="337"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="337"/>
         <source>IP地址</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/NetworkInfoDialog.qml" line="356"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="355"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="355"/>
         <source>网段(CIDR)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/NetworkInfoDialog.qml" line="381"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="380"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="380"/>
         <source>暂无网络信息</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/NetworkInfoDialog.qml" line="484"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="483"/>
+        <location filename="../ui/NetworkInfoDialog.qml" line="483"/>
         <source>已复制到剪切板</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SettingsModel</name>
+    <message>
+        <location filename="../source/model/SettingsModel.cpp" line="487"/>
+        <source>发现新版本</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../source/model/SettingsModel.cpp" line="491"/>
+        <source>当前已是最新版本</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../source/model/SettingsModel.cpp" line="507"/>
+        <location filename="../source/model/SettingsModel.cpp" line="634"/>
+        <source>更新源错误</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../source/model/SettingsModel.cpp" line="578"/>
+        <source>错误: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../source/model/SettingsModel.cpp" line="586"/>
+        <source>更新成功，请重启应用</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../source/model/SettingsModel.cpp" line="590"/>
+        <source>更新失败</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../source/model/SettingsModel.cpp" line="602"/>
+        <source>更新脚本启动失败</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -402,250 +584,332 @@
     <name>SettingsWindow</name>
     <message>
         <location filename="../ui/SettingsWindow.qml" line="12"/>
+        <location filename="../ui/SettingsWindow.qml" line="12"/>
         <source>设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="127"/>
+        <location filename="../ui/SettingsWindow.qml" line="130"/>
+        <location filename="../ui/SettingsWindow.qml" line="130"/>
         <source>是否立即退出</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="395"/>
+        <location filename="../ui/SettingsWindow.qml" line="375"/>
+        <location filename="../ui/SettingsWindow.qml" line="375"/>
         <source>迁移中</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="395"/>
-        <location filename="../ui/SettingsWindow.qml" line="2005"/>
-        <location filename="../ui/SettingsWindow.qml" line="2008"/>
+        <location filename="../ui/SettingsWindow.qml" line="375"/>
+        <location filename="../ui/SettingsWindow.qml" line="2059"/>
+        <location filename="../ui/SettingsWindow.qml" line="2068"/>
+        <location filename="../ui/SettingsWindow.qml" line="375"/>
+        <location filename="../ui/SettingsWindow.qml" line="2059"/>
+        <location filename="../ui/SettingsWindow.qml" line="2068"/>
         <source>取消</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="543"/>
+        <location filename="../ui/SettingsWindow.qml" line="523"/>
+        <location filename="../ui/SettingsWindow.qml" line="523"/>
         <source>控制中心</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="663"/>
+        <location filename="../ui/SettingsWindow.qml" line="644"/>
+        <location filename="../ui/SettingsWindow.qml" line="644"/>
         <source>用户设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="718"/>
+        <location filename="../ui/SettingsWindow.qml" line="699"/>
+        <location filename="../ui/SettingsWindow.qml" line="699"/>
         <source>基础设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="767"/>
+        <location filename="../ui/SettingsWindow.qml" line="748"/>
+        <location filename="../ui/SettingsWindow.qml" line="748"/>
         <source>主题切换</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="776"/>
+        <location filename="../ui/SettingsWindow.qml" line="757"/>
+        <location filename="../ui/SettingsWindow.qml" line="757"/>
         <source>切换应用的主题模式</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="807"/>
+        <location filename="../ui/SettingsWindow.qml" line="788"/>
+        <location filename="../ui/SettingsWindow.qml" line="788"/>
         <source>浅色</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="850"/>
+        <location filename="../ui/SettingsWindow.qml" line="834"/>
+        <location filename="../ui/SettingsWindow.qml" line="834"/>
         <source>深色</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="937"/>
+        <location filename="../ui/SettingsWindow.qml" line="924"/>
+        <location filename="../ui/SettingsWindow.qml" line="924"/>
         <source>语言切换</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="946"/>
+        <location filename="../ui/SettingsWindow.qml" line="933"/>
+        <location filename="../ui/SettingsWindow.qml" line="933"/>
         <source>选择界面显示语言</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1011"/>
+        <location filename="../ui/SettingsWindow.qml" line="1002"/>
+        <location filename="../ui/SettingsWindow.qml" line="1002"/>
         <source>当前语言: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1039"/>
+        <location filename="../ui/SettingsWindow.qml" line="1030"/>
+        <location filename="../ui/SettingsWindow.qml" line="1030"/>
         <source>文件设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1084"/>
+        <location filename="../ui/SettingsWindow.qml" line="1078"/>
+        <location filename="../ui/SettingsWindow.qml" line="1078"/>
         <source>退出时自动清理缓存</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1093"/>
+        <location filename="../ui/SettingsWindow.qml" line="1087"/>
+        <location filename="../ui/SettingsWindow.qml" line="1087"/>
         <source>应用退出时自动删除临时文件</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1105"/>
+        <location filename="../ui/SettingsWindow.qml" line="1098"/>
+        <location filename="../ui/SettingsWindow.qml" line="1098"/>
         <source>启用自动清理</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1167"/>
+        <location filename="../ui/SettingsWindow.qml" line="1162"/>
+        <location filename="../ui/SettingsWindow.qml" line="1162"/>
         <source>缓存目录</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1176"/>
-        <source>注意！！ 不要设置为根目录,home,C:,D:等路径，因为清理缓存会删除目录</source>
+        <location filename="../ui/SettingsWindow.qml" line="1171"/>
+        <location filename="../ui/SettingsWindow.qml" line="1171"/>
+        <source>下载文件的缓存目录</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1212"/>
+        <location filename="../ui/SettingsWindow.qml" line="1207"/>
+        <location filename="../ui/SettingsWindow.qml" line="1207"/>
         <source>更改</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1238"/>
+        <location filename="../ui/SettingsWindow.qml" line="1234"/>
+        <location filename="../ui/SettingsWindow.qml" line="1234"/>
         <source>已使用</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1259"/>
+        <location filename="../ui/SettingsWindow.qml" line="1255"/>
+        <location filename="../ui/SettingsWindow.qml" line="1255"/>
         <source>可用</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1280"/>
+        <location filename="../ui/SettingsWindow.qml" line="1276"/>
+        <location filename="../ui/SettingsWindow.qml" line="1276"/>
         <source>总大小</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1322"/>
+        <location filename="../ui/SettingsWindow.qml" line="1318"/>
+        <location filename="../ui/SettingsWindow.qml" line="1318"/>
         <source>缓存大小</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1351"/>
+        <location filename="../ui/SettingsWindow.qml" line="1347"/>
+        <location filename="../ui/SettingsWindow.qml" line="1347"/>
         <source>清理缓存</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1351"/>
+        <location filename="../ui/SettingsWindow.qml" line="1347"/>
+        <location filename="../ui/SettingsWindow.qml" line="1347"/>
         <source>已清除缓存</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1398"/>
+        <location filename="../ui/SettingsWindow.qml" line="1394"/>
+        <location filename="../ui/SettingsWindow.qml" line="1394"/>
         <source>传输设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1444"/>
+        <location filename="../ui/SettingsWindow.qml" line="1443"/>
+        <location filename="../ui/SettingsWindow.qml" line="1443"/>
         <source>文件自动下载</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1453"/>
+        <location filename="../ui/SettingsWindow.qml" line="1452"/>
+        <location filename="../ui/SettingsWindow.qml" line="1452"/>
         <source>小于50MB的文件自动开始下载</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1465"/>
+        <location filename="../ui/SettingsWindow.qml" line="1463"/>
+        <location filename="../ui/SettingsWindow.qml" line="1463"/>
         <source>启用自动下载</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/SettingsWindow.qml" line="1527"/>
         <location filename="../ui/SettingsWindow.qml" line="1527"/>
         <source>同时传输任务数</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/SettingsWindow.qml" line="1536"/>
+        <location filename="../ui/SettingsWindow.qml" line="1536"/>
         <source>设置最大并行传输任务数量</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/SettingsWindow.qml" line="1548"/>
         <location filename="../ui/SettingsWindow.qml" line="1548"/>
         <source>最大任务数:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/SettingsWindow.qml" line="1656"/>
+        <location filename="../ui/SettingsWindow.qml" line="1656"/>
         <source>通知与提醒</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1702"/>
+        <location filename="../ui/SettingsWindow.qml" line="1705"/>
+        <location filename="../ui/SettingsWindow.qml" line="1705"/>
         <source>有动作时展开</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1711"/>
+        <location filename="../ui/SettingsWindow.qml" line="1714"/>
+        <location filename="../ui/SettingsWindow.qml" line="1714"/>
         <source>检测到活动时自动显示通知</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1750"/>
+        <location filename="../ui/SettingsWindow.qml" line="1724"/>
+        <location filename="../ui/SettingsWindow.qml" line="1724"/>
         <source>启用智能展开</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1780"/>
+        <location filename="../ui/SettingsWindow.qml" line="1785"/>
+        <location filename="../ui/SettingsWindow.qml" line="1785"/>
         <source>关于软件</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1835"/>
+        <location filename="../ui/SettingsWindow.qml" line="1843"/>
+        <location filename="../ui/SettingsWindow.qml" line="1843"/>
         <source>文件中转站</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1850"/>
+        <location filename="../ui/SettingsWindow.qml" line="1858"/>
+        <location filename="../ui/SettingsWindow.qml" line="1858"/>
         <source>版本号: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1856"/>
+        <location filename="../ui/SettingsWindow.qml" line="1864"/>
+        <location filename="../ui/SettingsWindow.qml" line="1864"/>
         <source>https://github.com/XQQYT/XFileTransit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1889"/>
-        <location filename="../ui/SettingsWindow.qml" line="1991"/>
+        <location filename="../ui/SettingsWindow.qml" line="1896"/>
+        <location filename="../ui/SettingsWindow.qml" line="2042"/>
+        <location filename="../ui/SettingsWindow.qml" line="1896"/>
+        <location filename="../ui/SettingsWindow.qml" line="2042"/>
         <source>检查更新</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1898"/>
+        <location filename="../ui/SettingsWindow.qml" line="1905"/>
+        <location filename="../ui/SettingsWindow.qml" line="1905"/>
         <source>检查软件最新版本</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1910"/>
+        <location filename="../ui/SettingsWindow.qml" line="1915"/>
+        <location filename="../ui/SettingsWindow.qml" line="1915"/>
+        <source>自动检查更新</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/SettingsWindow.qml" line="1961"/>
+        <location filename="../ui/SettingsWindow.qml" line="1961"/>
         <source>更新源:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="1991"/>
+        <location filename="../ui/SettingsWindow.qml" line="2042"/>
+        <location filename="../ui/SettingsWindow.qml" line="2042"/>
         <source>更新</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="2005"/>
+        <location filename="../ui/SettingsWindow.qml" line="2059"/>
+        <location filename="../ui/SettingsWindow.qml" line="2059"/>
         <source>正在获取版本信息</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="2008"/>
+        <location filename="../ui/SettingsWindow.qml" line="2068"/>
+        <location filename="../ui/SettingsWindow.qml" line="2068"/>
         <source>0%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="2018"/>
+        <location filename="../ui/SettingsWindow.qml" line="2087"/>
+        <location filename="../ui/SettingsWindow.qml" line="2087"/>
+        <source>发现新版本: %1  发布时间: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/SettingsWindow.qml" line="2087"/>
+        <location filename="../ui/SettingsWindow.qml" line="2087"/>
         <source>当前已是最新版本</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>UpdateManager::GitDownloader</name>
+    <message>
+        <location filename="../source/model/UpdateManager.cpp" line="192"/>
+        <source>不支持的平台或无效的URL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../source/model/UpdateManager.cpp" line="282"/>
+        <source>下载失败: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../source/model/UpdateManager.cpp" line="294"/>
+        <source>请求超时 (20秒)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

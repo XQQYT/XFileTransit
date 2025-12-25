@@ -184,7 +184,7 @@ inline namespace AppVersion
     inline static constexpr const char *string = "v1.1.0";
     inline static constexpr const char *string_full = "v1.0.0.20251228";
 
-    inline static constexpr const char *change_log = R"(
+    inline static constexpr const char *zh_change_log = R"(
     当前版本
     新增:
     1. 局域网自动发现，无需服务器或繁琐配置，设备可自动互联。
@@ -198,6 +198,21 @@ inline namespace AppVersion
     9. 便捷设备管理与连接管理，适应局域网高效使用场景。
     10. 支持文件夹与文件的识别与处理，完整本地路径管理。 
     11. 查看本地网络信息)";
+
+    inline static constexpr const char *en_change_log = R"(
+    Current Version
+    New Features:
+    1. Automatic LAN Discovery - Devices can automatically connect without servers or complex configuration.
+    2. Drag-and-Drop Support - Simply drag files to the main window for one-click sending, supports multiple files simultaneously.
+    3. Real-time Transfer Progress - Multi-threaded task processing for improved performance and user experience.
+    4. Duplicate Removal & Batch Operations - Supports file list deduplication with batch sending and receiving capabilities.
+    5. Automatic File List Synchronization - Facilitates multi-user collaboration.
+    6. TLS + AES Encryption - Ensures secure file transfer with data protection.
+    7. Connection Status Monitoring - Automatic cleanup on disconnection for enhanced stability.
+    8. Dual-Directional File Requests - Supports both upload and download file requests.
+    9. Device & Connection Management - Optimized for efficient LAN usage scenarios.
+    10. Folder & File Recognition - Complete local path management with full support for directories.
+    11. Local Network Information Viewer - View detailed local network information.)";
 }
 
 #endif

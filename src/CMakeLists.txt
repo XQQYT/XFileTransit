@@ -15,59 +15,60 @@ set(APP_SOURCES
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/translations)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/res/translations)
 
-find_program(LUPDATE_EXECUTABLE 
-    NAMES 
-        lupdate
-    HINTS
-        ${Qt6_DIR}/../../../bin
-    REQUIRED
-)
+set(ZH_TS ${CMAKE_CURRENT_SOURCE_DIR}/translations/zh_CN.ts)
+set(EN_TS ${CMAKE_CURRENT_SOURCE_DIR}/translations/en.ts)
 
+set(ZH_QM ${CMAKE_CURRENT_SOURCE_DIR}/res/translations/zh_CN.qm)
+set(EN_QM ${CMAKE_CURRENT_SOURCE_DIR}/res/translations/en.qm)
+
+# 查找 lupdate
+find_program(LUPDATE_EXECUTABLE lupdate)
 if(LUPDATE_EXECUTABLE)
     message(STATUS "Found lupdate: ${LUPDATE_EXECUTABLE}")
     
     add_custom_target(update-translations
         COMMAND ${LUPDATE_EXECUTABLE}
-            ui
+            ${CMAKE_CURRENT_SOURCE_DIR}
             -recursive
-            -extensions qml
-            -ts translations/zh_CN.ts
-                 translations/en.ts
+            -extensions qml,cpp,h
+            -ts ${ZH_TS} ${EN_TS}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Extracting translatable strings..."
     )
 endif()
 
-find_program(LRELEASE_EXECUTABLE 
-    NAMES 
-        lrelease
-    HINTS
-        ${Qt6_DIR}/../../../bin
-    REQUIRED
-)
+# 查找 lrelease
+find_program(LRELEASE_EXECUTABLE lrelease)
 if(LRELEASE_EXECUTABLE)
+    message(STATUS "Found lrelease: ${LRELEASE_EXECUTABLE}")
+    
     add_custom_command(
-        OUTPUT 
-            res/translations/zh_CN.qm
-            res/translations/en.qm
-        COMMAND ${CMAKE_COMMAND} -E make_directory res/translations
+        OUTPUT ${ZH_QM}
         COMMAND ${LRELEASE_EXECUTABLE}
-            translations/zh_CN.ts -qm res/translations/zh_CN.qm
-        COMMAND ${LRELEASE_EXECUTABLE}
-            translations/en.ts -qm res/translations/en.qm
-        DEPENDS 
-            translations/zh_CN.ts
-            translations/en.ts
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Compiling translation files"
-        VERBATIM
+            ${ZH_TS} -qm ${ZH_QM}
+        DEPENDS ${ZH_TS}
+        COMMENT "Compiling Chinese translations"
     )
+    
+    add_custom_command(
+        OUTPUT ${EN_QM}
+        COMMAND ${LRELEASE_EXECUTABLE}
+            ${EN_TS} -qm ${EN_QM}
+        DEPENDS ${EN_TS}
+        COMMENT "Compiling English translations"
+    )
+    
     add_custom_target(compile-translations ALL
-    DEPENDS 
-        res/translations/zh_CN.qm
-        res/translations/en.qm
+        DEPENDS 
+            ${ZH_QM}
+            ${EN_QM}
     )
+    
+    if(TARGET ${PROJECT_NAME})
+        add_dependencies(${PROJECT_NAME} compile-translations)
+    endif()
 endif()
 
 set(QML_FILES

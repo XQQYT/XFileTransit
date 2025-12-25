@@ -27,6 +27,7 @@ class SettingsModel : public QObject
     Q_PROPERTY(bool expandOnAction READ expandOnAction WRITE setExpandOnAction NOTIFY expandOnActionChanged)
     Q_PROPERTY(QString appVersion READ appVersion CONSTANT)
     Q_PROPERTY(QString changeLog READ changeLog WRITE setChangeLog NOTIFY changeLogChanged)
+    Q_PROPERTY(QString releaseDate READ releaseDate WRITE setReleaseDate NOTIFY releaseDateChanged)
     Q_PROPERTY(QString newVersion READ newVersion WRITE setNewVersion NOTIFY newVersionChanged)
     Q_PROPERTY(bool isUpdateAvailable READ isUpdateAvailable WRITE setIsUpdateAvailable NOTIFY isUpdateAvailableChanged)
     Q_PROPERTY(QString updateSource READ updateSource WRITE setUpdateSource NOTIFY updateSourceChanged)
@@ -43,6 +44,7 @@ public:
     int concurrentTransfers() const { return concurrent_transfers; }
     bool expandOnAction() const { return expand_on_action; }
     QString appVersion() const { return app_version; }
+    QString releaseDate() const { return release_date; }
     QString changeLog() const { return changelog; }
     QString newVersion() const { return new_version; }
     bool isUpdateAvailable() const { return is_update_available; }
@@ -59,6 +61,7 @@ public:
     void setExpandOnAction(bool expand);
     void setChangeLog(const QString &log);
     void setNewVersion(const QString &new_version);
+    void setReleaseDate(const QString &time);
     void setIsUpdateAvailable(bool available);
     void setUpdateSource(const QString &us);
     void setAutoCheckUpdate(bool enable);
@@ -82,6 +85,7 @@ signals:
     void expandOnActionChanged(bool expand);
     void changeLogChanged(const QString &log);
     void newVersionChanged(const QString &new_version);
+    void releaseDateChanged(const QString &time);
     void isUpdateAvailableChanged(bool available);
     void updateSourceChanged(const QString &update_source);
     void autoCheckUpdateChanged(const bool enabel);
@@ -120,6 +124,7 @@ private:
     bool expand_on_action;
     const QString app_version = AppVersion::string;
     QString new_version;
+    QString release_date;
     QString changelog;
     bool is_update_available;
     QString update_source;

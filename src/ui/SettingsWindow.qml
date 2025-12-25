@@ -2084,7 +2084,7 @@ Window {
                                     }
                                     
                                     Text {
-                                        text: settings_model.newVersion != "" ? qsTr("发现新版本: " + settings_model.newVersion) : qsTr("当前已是最新版本")
+                                        text: settings_model.newVersion != "" ? qsTr("发现新版本: %1  发布时间: %2").arg(settings_model.newVersion).arg(settings_model.releaseDate) : qsTr("当前已是最新版本")
                                         font.pixelSize: 14
                                         color: settings_model.isUpdateAvailable ? accentOrange : accentGreen
                                         anchors.verticalCenter: parent.verticalCenter

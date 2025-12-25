@@ -999,7 +999,7 @@ ApplicationWindow  {
                 // 连接按钮
                 Rectangle {
                     id: switchButton
-                    Layout.preferredWidth: 55
+                    Layout.preferredWidth: 58
                     Layout.preferredHeight: 24
                     Layout.alignment: Qt.AlignVCenter
                     radius: 12

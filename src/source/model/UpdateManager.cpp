@@ -118,7 +118,6 @@ VersionInfo UpdateManager::VersionParser::parse(QByteArray version_json)
     VersionInfo version_info{};
 
     version_info.lastest_version = root_obj["latest_version"].toString();
-    version_info.update_time = root_obj["update_time"].toString();
 
     QJsonObject versions_obj = root_obj["versions"].toObject();
     if (!versions_obj.contains(version_info.lastest_version))
@@ -129,13 +128,23 @@ VersionInfo UpdateManager::VersionParser::parse(QByteArray version_json)
 
     QJsonObject lastest_version_obj = versions_obj[version_info.lastest_version].toObject();
 
+    version_info.release_date = lastest_version_obj["release_date"].toString();
+
     QStringList changelog_list;
-    QJsonArray changelog_array = lastest_version_obj["changelog"].toArray();
+    QJsonArray changelog_array = lastest_version_obj["zh_changelog"].toArray();
     for (const QJsonValue &item : changelog_array)
     {
         changelog_list.append(item.toString());
     }
-    version_info.changelog = changelog_list.join("\n");
+    version_info.zh_changelog = changelog_list.join("\n");
+
+    changelog_list.clear();
+    changelog_array = lastest_version_obj["en_changelog"].toArray();
+    for (const QJsonValue &item : changelog_array)
+    {
+        changelog_list.append(item.toString());
+    }
+    version_info.en_changelog = changelog_list.join("\n");
 
     QJsonObject download_url_obj = lastest_version_obj["downloads"].toObject();
 
@@ -180,7 +189,7 @@ void UpdateManager::GitDownloader::downloadFile(QString url)
 
     if (url.isEmpty())
     {
-        error_cb("不支持的平台或无效的URL");
+        error_cb(tr("不支持的平台或无效的URL"));
         return;
     }
 
@@ -270,7 +279,7 @@ void UpdateManager::GitDownloader::onReplyFinished()
     }
     else if (current_reply->error() != QNetworkReply::OperationCanceledError)
     {
-        error_cb(QString("下载失败: %1").arg(current_reply->errorString()));
+        error_cb(tr("下载失败: %1").arg(current_reply->errorString()));
     }
 
     current_reply->deleteLater();
@@ -282,7 +291,7 @@ void UpdateManager::GitDownloader::onTimeout()
     if (current_reply && current_reply->isRunning())
     {
         current_reply->abort();
-        error_cb("请求超时 (20秒)");
+        error_cb(tr("请求超时 (20秒)"));
     }
 }
 

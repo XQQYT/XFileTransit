@@ -15,7 +15,7 @@
 SettingsModel::SettingsModel(QObject *parent)
     : QObject(parent), translator(new QTranslator(this))
 {
-    changelog = AppVersion::change_log;
+    changelog = AppVersion::zh_change_log;
     EventBusManager::instance().subscribe("/settings/item_config_reslut", std::bind(
                                                                               &SettingsModel::onConfigResult,
                                                                               this,
@@ -85,6 +85,7 @@ void SettingsModel::setCurrentLanguage(int language)
             {
                 QApplication::installTranslator(translator);
             }
+            changelog = AppVersion::en_change_log;
         }
         else
         {
@@ -92,6 +93,7 @@ void SettingsModel::setCurrentLanguage(int language)
             {
                 QApplication::installTranslator(translator);
             }
+            changelog = AppVersion::zh_change_log;
         }
 
         if (qml_engine)
@@ -277,6 +279,18 @@ void SettingsModel::setNewVersion(const QString &nv)
     }
 }
 
+void SettingsModel::setReleaseDate(const QString &time)
+{
+    if (release_date != time)
+    {
+        release_date = time;
+        emit releaseDateChanged(release_date);
+        EventBusManager::instance().publish("/settings/update_settings_value",
+                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("release_date"), release_date.toStdString());
+        flush_config_timer->start();
+    }
+}
+
 void SettingsModel::setUpdateSource(const QString &us)
 {
     if (update_source != us)
@@ -412,6 +426,7 @@ void SettingsModel::setAboutConfig(std::shared_ptr<std::unordered_map<std::strin
     if (update_avaible)
     {
         setNewVersion(QString::fromStdString((*config)["new_version"]));
+        setReleaseDate(QString::fromStdString((*config)["release_date"]));
     }
     // 不采用配置文件中的值，为了用户每次都需要检查更新，防止新版本过时
     is_update_available = false;
@@ -466,13 +481,14 @@ void SettingsModel::checkUpdate()
     {
         new_version_info = version_info;
         setIsUpdateAvailable(true);
-        setChangeLog(version_info.changelog);
+        setChangeLog(current_language ? version_info.zh_changelog : version_info.en_changelog);
         setNewVersion(version_info.lastest_version);
-        emit versionInfoShow("发现新版本");
+        setReleaseDate(version_info.release_date);
+        emit versionInfoShow(tr("发现新版本"));
     }
         else
     {
-        emit versionInfoShow("当前已是最新版本");
+        emit versionInfoShow(tr("当前已是最新版本"));
     } });
 
     connect(&update_manager, &UpdateManager::downloadError, [=](const QString &error_msg)
@@ -488,7 +504,7 @@ void SettingsModel::checkUpdate()
     }
     else
     {
-        emit versionInfoShow("更新源错误");
+        emit versionInfoShow(tr("更新源错误"));
     }
 }
 
@@ -516,7 +532,7 @@ void SettingsModel::onPackageDownloadDone(QString path)
 #ifdef _WIN32
     if (!QFile::exists(path))
     {
-        qWarning() << "文件不存在:" << path;
+        LOG_ERROR("文件不存在:" << path.toStdString());
         return;
     }
     QProcess::startDetached(path);
@@ -559,7 +575,7 @@ void SettingsModel::onPackageDownloadDone(QString path)
             {
             QString error = QString::fromLocal8Bit(process->readAllStandardError());
             if (!error.trimmed().isEmpty()) {
-                emit updateOutput("错误: " + error);
+                emit updateOutput(tr("错误: %1").arg(error));
             } });
 
     connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
@@ -567,11 +583,11 @@ void SettingsModel::onPackageDownloadDone(QString path)
             {
                 if (exitStatus == QProcess::NormalExit && exitCode == 0)
                 {
-                    emit updateOutput("更新成功，请重启应用");
+                    emit updateOutput(tr("更新成功，请重启应用"));
                 }
                 else
                 {
-                    emit updateOutput("更新失败");
+                    emit updateOutput(tr("更新失败"));
                 }
 
                 process->deleteLater();
@@ -583,7 +599,7 @@ void SettingsModel::onPackageDownloadDone(QString path)
 
     if (!process->waitForStarted(5000))
     {
-        emit updateOutput("更新脚本启动失败");
+        emit updateOutput(tr("更新脚本启动失败"));
     }
 #endif
 }
@@ -615,7 +631,7 @@ void SettingsModel::updateSoftware()
     }
     else
     {
-        emit versionInfoShow("更新源错误");
+        emit versionInfoShow(tr("更新源错误"));
     }
 }
 

@@ -33,8 +33,11 @@
     "v1.2.0": {
       "version": "v1.2.0",
       "release_date": "2025-12-18",
-      "changelog": [
+      "zh_changelog": [
         "测试v1.2.0版本"
+      ],
+      "en_changelog": [
+        "test v1.2.0 version"
       ],
       "downloads": {
         "windows": {

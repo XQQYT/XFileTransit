@@ -17,8 +17,9 @@ enum class GitPlatform
 struct VersionInfo
 {
     QString lastest_version;
-    QString update_time;
-    QString changelog;
+    QString zh_changelog;
+    QString en_changelog;
+    QString release_date;
     QString win_github_url;
     QString linux_github_url;
     QString win_gitee_url;
@@ -37,6 +38,7 @@ public:
                      const QString &repo, const QString &branch,
                      const QString &file_path) const;
     void cancelDownload();
+
 private:
     class GitDownloader;
     class VersionParser;
