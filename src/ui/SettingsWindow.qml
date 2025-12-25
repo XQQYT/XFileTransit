@@ -2046,12 +2046,28 @@ Window {
                                     }
                                     
                                     Rectangle {
+                                        id: updateSourceToggle
                                         width: 120
                                         height: 40
                                         radius: 8
                                         color: backgroundColor
                                         border.color: borderColor
                                         border.width: 1
+                                        
+                                        opacity: settings_model.isUpdateAvailable ? 0.5 : 1
+                                        enabled: !settings_model.isUpdateAvailable
+                                        
+                                        ToolTip.visible: settings_model.isUpdateAvailable && hoverArea.containsMouse
+                                        ToolTip.text: qsTr("检测到新版本，请先完成更新")
+                                        ToolTip.delay: 500
+                                        
+                                        MouseArea {
+                                            id: hoverArea
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            enabled: settings_model.isUpdateAvailable
+                                            cursorShape: settings_model.isUpdateAvailable ? Qt.ForbiddenCursor : Qt.ArrowCursor
+                                        }
                                         
                                         Row {
                                             anchors.fill: parent
@@ -2074,8 +2090,13 @@ Window {
                                                     anchors.fill: parent
                                                     cursorShape: Qt.PointingHandCursor
                                                     hoverEnabled: true
+                                                    enabled: !settings_model.isUpdateAvailable
                                                     onClicked: settings_model.updateSource = "github"
-                                                    onEntered: parent.opacity = parent.color !== primaryColor ? 0.9 : 1
+                                                    onEntered: {
+                                                        if (!settings_model.isUpdateAvailable) {
+                                                            parent.opacity = parent.color !== primaryColor ? 0.9 : 1
+                                                        }
+                                                    }
                                                     onExited: parent.opacity = 1
                                                 }
                                             }
@@ -2097,11 +2118,24 @@ Window {
                                                     anchors.fill: parent
                                                     cursorShape: Qt.PointingHandCursor
                                                     hoverEnabled: true
+                                                    enabled: !settings_model.isUpdateAvailable
                                                     onClicked: settings_model.updateSource = "gitee"
-                                                    onEntered: parent.opacity = parent.color !== primaryColor ? 0.9 : 1
+                                                    onEntered: {
+                                                        if (!settings_model.isUpdateAvailable) {
+                                                            parent.opacity = parent.color !== primaryColor ? 0.9 : 1
+                                                        }
+                                                    }
                                                     onExited: parent.opacity = 1
                                                 }
                                             }
+                                        }
+                                        
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            radius: parent.radius
+                                            color: settings_model.isUpdateAvailable ? "#40000000" : "transparent"
+                                            visible: settings_model.isUpdateAvailable
+                                            z: 10
                                         }
                                     }
                                 }

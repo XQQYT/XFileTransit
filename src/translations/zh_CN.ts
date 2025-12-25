@@ -602,11 +602,11 @@
     </message>
     <message>
         <location filename="../ui/SettingsWindow.qml" line="375"/>
-        <location filename="../ui/SettingsWindow.qml" line="2140"/>
-        <location filename="../ui/SettingsWindow.qml" line="2149"/>
+        <location filename="../ui/SettingsWindow.qml" line="2178"/>
+        <location filename="../ui/SettingsWindow.qml" line="2187"/>
         <location filename="../ui/SettingsWindow.qml" line="375"/>
-        <location filename="../ui/SettingsWindow.qml" line="2140"/>
-        <location filename="../ui/SettingsWindow.qml" line="2149"/>
+        <location filename="../ui/SettingsWindow.qml" line="2178"/>
+        <location filename="../ui/SettingsWindow.qml" line="2187"/>
         <source>取消</source>
         <translation type="unfinished"></translation>
     </message>
@@ -858,9 +858,9 @@
     </message>
     <message>
         <location filename="../ui/SettingsWindow.qml" line="1977"/>
-        <location filename="../ui/SettingsWindow.qml" line="2123"/>
+        <location filename="../ui/SettingsWindow.qml" line="2161"/>
         <location filename="../ui/SettingsWindow.qml" line="1977"/>
-        <location filename="../ui/SettingsWindow.qml" line="2123"/>
+        <location filename="../ui/SettingsWindow.qml" line="2161"/>
         <source>检查更新</source>
         <translation type="unfinished"></translation>
     </message>
@@ -883,32 +883,38 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="2123"/>
-        <location filename="../ui/SettingsWindow.qml" line="2123"/>
+        <location filename="../ui/SettingsWindow.qml" line="2063"/>
+        <location filename="../ui/SettingsWindow.qml" line="2063"/>
+        <source>检测到新版本，请先完成更新</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/SettingsWindow.qml" line="2161"/>
+        <location filename="../ui/SettingsWindow.qml" line="2161"/>
         <source>更新</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="2140"/>
-        <location filename="../ui/SettingsWindow.qml" line="2140"/>
+        <location filename="../ui/SettingsWindow.qml" line="2178"/>
+        <location filename="../ui/SettingsWindow.qml" line="2178"/>
         <source>正在获取版本信息</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="2149"/>
-        <location filename="../ui/SettingsWindow.qml" line="2149"/>
+        <location filename="../ui/SettingsWindow.qml" line="2187"/>
+        <location filename="../ui/SettingsWindow.qml" line="2187"/>
         <source>0%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="2168"/>
-        <location filename="../ui/SettingsWindow.qml" line="2168"/>
+        <location filename="../ui/SettingsWindow.qml" line="2206"/>
+        <location filename="../ui/SettingsWindow.qml" line="2206"/>
         <source>发现新版本: %1  发布时间: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/SettingsWindow.qml" line="2168"/>
-        <location filename="../ui/SettingsWindow.qml" line="2168"/>
+        <location filename="../ui/SettingsWindow.qml" line="2206"/>
+        <location filename="../ui/SettingsWindow.qml" line="2206"/>
         <source>当前已是最新版本</source>
         <translation type="unfinished"></translation>
     </message>
