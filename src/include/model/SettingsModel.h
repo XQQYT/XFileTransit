@@ -19,6 +19,7 @@ class SettingsModel : public QObject
     // 定义所有属性
     Q_PROPERTY(int currentTheme READ currentTheme WRITE setCurrentTheme NOTIFY currentThemeChanged)
     Q_PROPERTY(int currentLanguage READ currentLanguage WRITE setCurrentLanguage NOTIFY currentLanguageChanged)
+    Q_PROPERTY(bool autoStart READ autoStart WRITE setAutoStart NOTIFY autoStartChanged)
     Q_PROPERTY(QString cachePath READ cachePath WRITE setCachePath NOTIFY cachePathChanged)
     Q_PROPERTY(bool autoClearCache READ autoClearCache WRITE setAutoClearCache NOTIFY autoClearCacheChanged)
     Q_PROPERTY(QString cacheSize READ cacheSize WRITE setCacheSize NOTIFY cacheSizeChanged)
@@ -37,6 +38,7 @@ public:
     explicit SettingsModel(QObject *parent = nullptr);
     int currentTheme() const { return current_theme; }
     int currentLanguage() const { return current_language; }
+    bool autoStart() const {return auto_start;}
     QString cachePath() const { return cache_path; }
     QString cacheSize() const { return cache_size; }
     bool autoClearCache() const { return auto_clear_cache; }
@@ -53,6 +55,7 @@ public:
 
     void setCurrentTheme(int theme);
     void setCurrentLanguage(int language);
+    void setAutoStart(const bool enable);
     void setCachePath(const QUrl &url);
     void setCacheSize(const QString &size);
     void setAutoClearCache(bool enable);
@@ -77,6 +80,7 @@ public:
 signals:
     void currentThemeChanged(int theme);
     void currentLanguageChanged(int language);
+    void autoStartChanged(bool enable);
     void cachePathChanged(const QString &path);
     void cacheSizeChanged(const QString &size);
     void autoClearCacheChanged(bool enable);
@@ -111,10 +115,13 @@ private:
     void onPackageDownloadDone(QString path);
     void beginLoadConfig(Settings::SettingsGroup group);
     void endLoadConfig(Settings::SettingsGroup group);
+    void setAutoStartImpl(const bool enable);
+    bool checkAutoStart();
 
 private:
     int current_theme;    // 0: light, 1: dark
     int current_language; // 0: English, 1: Chinese
+    bool auto_start;
     QUrl cache_url;
     QString cache_path;
     QString cache_size;

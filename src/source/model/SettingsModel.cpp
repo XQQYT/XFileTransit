@@ -10,7 +10,7 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QThread>
 #include <QtCore/QProcess>
-#include <QtCore/QTemporaryFile>
+#include <QtCore/QSettings>
 
 SettingsModel::SettingsModel(QObject *parent)
     : QObject(parent), translator(new QTranslator(this))
@@ -110,6 +110,117 @@ void SettingsModel::setCurrentLanguage(int language)
             flush_config_timer->start();
         }
     }
+}
+
+void SettingsModel::setAutoStart(bool enable)
+{
+    if (enable != auto_start)
+    {
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::General)])
+        {
+            setAutoStartImpl(enable);
+        }
+        auto_start = enable;
+        emit autoStartChanged(auto_start);
+
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::General)])
+        {
+            bool exec_result = checkAutoStart();
+            if (auto_start != exec_result)
+            {
+                auto_start = exec_result;
+                emit autoStartChanged(auto_start);
+            }
+        }
+    }
+}
+
+bool SettingsModel::checkAutoStart()
+{
+    QString app_name = QCoreApplication::applicationName();
+#ifdef _WIN32
+    QSettings settings("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
+
+    QString current_path = QCoreApplication::applicationFilePath();
+
+    QString windows_path = QDir::toNativeSeparators(current_path);
+
+    QString registered_path = settings.value(app_name).toString();
+
+    QString normalized_registered_path = QDir::fromNativeSeparators(registered_path);
+    QString normalized_current_path = QDir::fromNativeSeparators(windows_path);
+
+    if (normalized_registered_path.startsWith('"') && normalized_registered_path.endsWith('"'))
+    {
+        normalized_registered_path = normalized_registered_path.mid(1, normalized_registered_path.length() - 2);
+    }
+
+    return (normalized_registered_path.compare(normalized_current_path, Qt::CaseInsensitive) == 0);
+#else
+    QString auto_start_path = QDir::homePath() + "/.config/autostart/" + app_name + ".desktop";
+    return QFile::exists(auto_start_path);
+#endif
+}
+
+void SettingsModel::setAutoStartImpl(const bool enable)
+{
+    QString app_name = QCoreApplication::applicationName();
+#ifdef _WIN32
+    QString app_path = QCoreApplication::applicationFilePath();
+
+    QString windows_path = QDir::toNativeSeparators(app_path);
+    if (!windows_path.startsWith('"') && !windows_path.endsWith('"'))
+    {
+        windows_path = "\"" + windows_path + "\"";
+    }
+
+    QSettings settings("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
+
+    if (enable)
+    {
+        settings.setValue(app_name, windows_path);
+    }
+    else
+    {
+        settings.remove(app_name);
+    }
+
+    settings.sync();
+#else
+    QString auto_start_dir = QDir::homePath() + "/.config/autostart";
+    QString auto_start_path = auto_start_dir + "/" + app_name + ".desktop";
+
+    if (enable)
+    {
+        QDir dir(auto_start_dir);
+        if (!dir.exists())
+        {
+            dir.mkpath(".");
+        }
+
+        QFile desktop_file(auto_start_path);
+        if (desktop_file.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            QTextStream out(&desktop_file);
+            out << "[Desktop Entry]\n";
+            out << "Type=Application\n";
+            out << "Name=" << app_name << "\n";
+            out << "Exec=" << QCoreApplication::applicationFilePath() << "\n";
+            out << "Icon=icon.png" << "\n";
+            out << "Comment=Auto start " << app_name << "\n";
+            out << "X-GNOME-Autostart-enabled=true\n";
+            out << "Hidden=false\n";
+            desktop_file.close();
+        }
+    }
+    else
+    {
+        if (QFile::exists(auto_start_path))
+        {
+            QFile::remove(auto_start_path);
+        }
+    }
+#endif
 }
 
 void SettingsModel::updateCacheDiskInfo()
@@ -363,6 +474,7 @@ void SettingsModel::setGeneralConfig(std::shared_ptr<std::unordered_map<std::str
 {
     beginLoadConfig(Settings::SettingsGroup::General);
 
+    setAutoStart(checkAutoStart());
     setCurrentLanguage(std::stoi((*config)["language"]));
     setCurrentTheme(std::stoi((*config)["theme"]));
 

@@ -722,6 +722,87 @@ Window {
                         width: parent.width
                         spacing: 20
                         
+                        Rectangle {
+                            width: generalContentColumn.width
+                            height: 140
+                            radius: 16
+                            color: cardColor
+                            border.color: borderColor
+                            border.width: 2
+                            
+                            Column {
+                                anchors.fill: parent
+                                anchors.margins: 20
+                                spacing: 20
+                                
+                                Row {
+                                    width: parent.width
+                                    spacing: 12
+                                    
+                                    Column {
+                                        spacing: 2
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        
+                                        Text {
+                                            text: qsTr("启动设置")
+                                            font {
+                                                pixelSize: 18
+                                                weight: Font.Bold
+                                            }
+                                            color: textPrimary
+                                        }
+                                        
+                                        Text {
+                                            text: qsTr("每次开机将自动启动该应用")
+                                            font.pixelSize: 13
+                                            color: textSecondary
+                                        }
+                                    }
+                                }
+                                
+                                Row {
+                                    spacing: 20
+                                    Text {
+                                        text: qsTr("开机自启")
+                                        font.pixelSize: 16
+                                        color: textPrimary
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                    Rectangle {
+                                        id: expandSwitch
+                                        width: 60
+                                        height: 30
+                                        radius: 15
+                                        color: (settings_model && settings_model.autoStart) ? primaryColor : switchOffColor
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        
+                                        Rectangle {
+                                            x: (settings_model && settings_model.autoStart) ? parent.width - width - 3 : 3
+                                            y: 3
+                                            width: 24
+                                            height: 24
+                                            radius: 12
+                                            color: switchHandleColor
+                                            
+                                            Behavior on x {
+                                                NumberAnimation { duration: 200 }
+                                            }
+                                        }
+                                        
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                settings_model.autoStart = !settings_model.autoStart
+                                            }
+                                        }
+                                    }
+                                    
+                                    
+                                }
+                            }
+                        }
+
                         // 主题切换卡片
                         Rectangle {
                             width: generalContentColumn.width

@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setApplicationName("XFileTransit");
     app.setOrganizationName("Xqqyt");
-    app.setWindowIcon(QIcon(":/logo/logo/logo_small.ico"));
+    app.setWindowIcon(QIcon(":/logo/logo_small.ico"));
 
     QQuickStyle::setStyle("Basic");
 
