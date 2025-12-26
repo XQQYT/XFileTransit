@@ -69,7 +69,6 @@ void FileParser::parse(std::unique_ptr<NetworkInterface::UserMsg> msg)
         auto parser = json_parser->getParser();
         std::string json_str = std::string(msg->data.data(), msg->data.data() + msg->data.size());
         parser->loadJson(json_str);
-        LOG_INFO("File Msg  " << std::string(msg->data.data(), msg->data.data() + msg->data.size()));
         auto parser_func = type_parser_map.find(parser->getValue("type"));
         if (parser_func != type_parser_map.end())
         {
