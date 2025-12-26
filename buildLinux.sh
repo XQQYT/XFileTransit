@@ -36,6 +36,7 @@ build_config() {
     # 配置CMake
     cmake -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
           -DQt6_DIR="$Qt6_PATH/lib/cmake/Qt6" \
+          -DQt6_PATH="$Qt6_PATH" \
           "$PROJECT_ROOT"
     
     if [ $? -eq 0 ]; then
