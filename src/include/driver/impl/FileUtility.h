@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <climits>
+#include <utility>
 #include "common/DebugOutputer.h"
 
 // 平台特定的头文件
@@ -17,6 +18,7 @@
 #elif defined(__linux__)
 #include <unistd.h> // 这个头文件用于 readlink
 #include <limits.h> // 这个头文件用于 PATH_MAX
+#include <sys/statvfs.h>
 #endif
 
 namespace fs = std::filesystem;
@@ -134,6 +136,28 @@ public:
         }
         oss << "]";
         return oss.str();
+    }
+
+    static std::string formatFileSize(uint64_t bytes)
+    {
+        const char *suffixes[] = {"B", "KB", "MB", "GB", "TB", "PB"};
+        double size = static_cast<double>(bytes);
+        int i = 0;
+        while (size >= 1024 && i < 5)
+        {
+            size /= 1024;
+            ++i;
+        }
+        if (i == 0)
+        {
+            return std::to_string(static_cast<uint64_t>(size)) + " " + suffixes[i];
+        }
+        else
+        {
+            std::stringstream ss;
+            ss << std::fixed << std::setprecision(2) << size << " " << suffixes[i];
+            return ss.str();
+        }
     }
 
     static std::string absoluteToRelativePath(const std::string &absolutePath, const std::string &referenceDir)
@@ -495,25 +519,63 @@ public:
     }
 
     // 删除文件或目录
-    static bool removeFileOrDirectory(const std::string &path)
+    static bool removeFileOrDirectory(const std::string &path, bool delete_dir)
     {
         try
         {
             std::error_code ec;
             uintmax_t count = fs::remove_all(path, ec);
-
             if (ec)
             {
                 LOG_ERROR("删除错误: " << ec.message().c_str());
                 return false;
             }
-
+            if (!delete_dir)
+                fs::create_directory(path);
             return count > 0;
         }
         catch (const std::exception &e)
         {
             LOG_ERROR("删除异常: " << e.what());
             return false;
+        }
+    }
+
+    static std::pair<uint64_t, uint64_t> getDiskSpaceForFolder(const std::string &folderPath)
+    {
+        return getDiskSpace(folderPath);
+    }
+
+    // 拷贝目录
+    static void copyDirectory(const std::string &source, const std::string &destination)
+    {
+        fs::path src(source);
+        fs::path dst(destination);
+
+        if (!fs::exists(src) || !fs::is_directory(src))
+        {
+            LOG_ERROR("拷贝失败" << source << " to " << destination);
+        }
+        if (fs::is_empty(src))
+        {
+            LOG_WARN("拷贝目录为空" << source << " to " << destination);
+        }
+
+        fs::create_directories(dst);
+
+        for (const auto &entry : fs::recursive_directory_iterator(src))
+        {
+            fs::path relative = fs::relative(entry.path(), src);
+            fs::path target = dst / relative;
+
+            if (entry.is_directory())
+            {
+                fs::create_directories(target);
+            }
+            else if (entry.is_regular_file())
+            {
+                fs::copy_file(entry.path(), target, fs::copy_options::overwrite_existing);
+            }
         }
     }
 
@@ -547,6 +609,43 @@ private:
             LOG_ERROR("访问路径错误: " << currentPath.string() << " - " << ex.what());
         }
     }
+
+    static std::pair<uint64_t, uint64_t> getDiskSpace(const std::string &path)
+    {
+#ifdef _WIN32
+        return getDiskSpaceWindows(path);
+#else
+        return getDiskSpaceLinux(path);
+#endif
+    }
+#ifdef _WIN32
+    static std::pair<uint64_t, uint64_t> getDiskSpaceWindows(const std::string &path)
+    {
+        ULARGE_INTEGER freeBytesAvailable, totalBytes, totalFreeBytes;
+
+        if (GetDiskFreeSpaceExA(path.c_str(),
+                                &freeBytesAvailable,
+                                &totalBytes,
+                                &totalFreeBytes))
+        {
+            return {totalBytes.QuadPart, freeBytesAvailable.QuadPart};
+        }
+        return {0, 0};
+    }
+#else
+    static std::pair<uint64_t, uint64_t> getDiskSpaceLinux(const std::string &path)
+    {
+        struct statvfs vfs;
+
+        if (statvfs(path.c_str(), &vfs) == 0)
+        {
+            uint64_t total = static_cast<uint64_t>(vfs.f_blocks) * vfs.f_frsize;
+            uint64_t available = static_cast<uint64_t>(vfs.f_bavail) * vfs.f_frsize;
+            return {total, available};
+        }
+        return {0, 0};
+    }
+#endif
 };
 
 #endif // FILEUTILITY_H

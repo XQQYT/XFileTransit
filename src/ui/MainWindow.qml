@@ -27,7 +27,7 @@ ApplicationWindow  {
     // 连接状态属性
     property string current_device: ""
     property bool isConnected: false
-    property string connectionStatus: isConnected ? current_device : "未连接"
+    property string connectionStatus: isConnected ? current_device : qsTr("未连接")
 
     property var currentAcceptHandler: null
     property var currentRejectHandler: null
@@ -45,7 +45,51 @@ ApplicationWindow  {
     property color borderColor: "#E2E8F0"
     property color textPrimary: "#1E293B"
     property color textSecondary: "#64748B"
-    property color textLight: "#94A3B8"
+    property color textLight: '#d3d4d5'
+
+
+    // 主题切换函数
+    function setTheme(theme_index) {
+        switch(theme_index)
+        {
+            case 0:
+                //浅色主题
+                primaryColor = "#6366F1"
+                secondaryColor = "#8B5CF6"
+                accentColor = "#EC4899"
+                successColor = "#10B981"
+                warningColor = "#F59E0B"
+                dangerColor = "#EF4444"
+                infoColor = "#3B82F6"
+                
+                bgColor = "#FFFFFF"
+                cardColor = "#F8FAFC"
+                borderColor = "#E2E8F0"
+                textPrimary = "#1E293B"
+                textSecondary = "#64748B"
+                textLight = '#d3d4d5'
+                break
+            case 1:
+                //深色主题
+                primaryColor = "#6366F1"
+                secondaryColor = "#8B5CF6"
+                accentColor = "#EC4899"
+                successColor = "#10B981"
+                warningColor = "#F59E0B"
+                dangerColor = "#EF4444"
+                infoColor = "#3B82F6"
+                
+                bgColor = "#1F2937"
+                cardColor = "#374151"
+                borderColor = "#4B5563"
+                textPrimary = "#F9FAFB"
+                textSecondary = "#D1D5DB"
+                textLight = "#6B7280"
+                break
+            default:
+                return
+        }
+    }
 
     Behavior on height {
         NumberAnimation {
@@ -74,17 +118,6 @@ ApplicationWindow  {
             }
         }
         
-        Connections {
-            target: root
-            function onExpandedChanged() {
-                if (!root.expanded) {
-                    showBlueBarTimer.start()
-                } else {
-                    blueBarWindow.visible = false
-                    blueBarWindow.opacity = 0
-                }
-            }
-        }
         
         // 延迟显示蓝条（等待主窗口收缩完成
         Timer {
@@ -150,75 +183,48 @@ ApplicationWindow  {
     
     Loader {
         id: deviceWindowLoader
-        source: "qrc:/qml/ui/DeviceListWindow.qml"
+        source: "qrc:/ui/DeviceListWindow.qml"
         
         onLoaded: {
             item.deviceModel = device_list_model
+            item.transientParent = root
         }
     }
     
     Loader {
         id: connectRequestLoader  
-        source: "qrc:/qml/ui/ConnectRequestDialog.qml"
+        source: "qrc:/ui/ConnectRequestDialog.qml"
         
         onLoaded: {
             item.connection_model = connection_manager
+            item.transientParent = root
         }
     }
 
     Loader {
         id: networkInfoDialogLoader  
-        source: "qrc:/qml/ui/NetworkInfoDialog.qml"
+        source: "qrc:/ui/NetworkInfoDialog.qml"
         
         onLoaded: {
             item.networkInfoModel = net_info_list_model
-        }
-    }
-
-    Connections {
-        target: connection_manager
-        enabled: connectRequestLoader.status === Loader.Ready
-        
-        function onHaveConnectError(message) {
-            if (deviceWindowLoader.status === Loader.Ready) {
-                deviceWindowLoader.item.closeLoadingDialog()
-            }
-            if (generalDialogLoader.status === Loader.Ready) {
-                generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                generalDialogLoader.item.text = message
-                generalDialogLoader.item.buttons = generalDialogLoader.item.ok
-                generalDialogLoader.item.show()
-                generalDialogLoader.item.requestActivate()
-            }
-        }
-        
-        function onHaveRecvError(message) {
-            if (generalDialogLoader.status === Loader.Ready) {
-                generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                generalDialogLoader.item.text = message
-                generalDialogLoader.item.buttons = generalDialogLoader.item.ok
-                generalDialogLoader.item.show()
-                generalDialogLoader.item.requestActivate()
-                resetStatus()
-            }
-        }
-        
-        function onPeerClosed() {
-            if (generalDialogLoader.status === Loader.Ready && isConnected) {
-                generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                generalDialogLoader.item.text = "对方断开连接"
-                generalDialogLoader.item.buttons = generalDialogLoader.item.ok
-                generalDialogLoader.item.show()
-                generalDialogLoader.item.requestActivate()
-                resetStatus()
-            }
-            resetStatus()
+            item.transientParent = root
         }
     }
 
     Loader {
+        id: settingsWindowLoader  
+        source: "qrc:/ui/SettingsWindow.qml"
+        
+        onLoaded: {
+            item.settings_model = settings_model
+            item.transientParent = root
+        }
+    }
+
+
+    Loader {
         id: generalDialogLoader
-        source: "qrc:/qml/ui/GeneralDialog.qml"
+        source: "qrc:/ui/GeneralDialog.qml"
         onLoaded: {
             item.accepted.connect(function() {
                 if (currentAcceptHandler) {
@@ -235,6 +241,43 @@ ApplicationWindow  {
                 currentAcceptHandler = null
                 currentRejectHandler = null
             })
+            item.transientParent = root
+        }
+    }
+
+    function cancelTransit(fileStatus, index, removeFile)
+    {
+        if(fileStatus === 3 || fileStatus === 4 || fileStatus === 0)
+        {
+            if (generalDialogLoader.status === Loader.Ready) {
+                generalDialogLoader.item.iconType = generalDialogLoader.item.warning
+                generalDialogLoader.item.text = qsTr("文件正在传输中")
+                generalDialogLoader.item.buttons = generalDialogLoader.item.cancel | generalDialogLoader.item.cancelTransit
+                                                                        
+                var handler = function(btn){
+                    switch(btn){
+                        case generalDialogLoader.item.cancel:
+                            break
+                        case generalDialogLoader.item.cancelTransit:
+                            file_list_model.cancelTransit(index)
+                            if(removeFile)
+                            {
+                                file_list_model.removeFile(index)
+                            }
+                            break
+                        default:
+                            break
+                    }
+                    generalDialogLoader.item.onClicked.disconnect(handler)
+                    generalDialogLoader.item.close()
+                }
+                                    
+                generalDialogLoader.item.onClicked.connect(handler)
+                generalDialogLoader.item.show()
+                generalDialogLoader.item.requestActivate()
+            }  
+        } else {
+            file_list_model.removeFile(index)
         }
     }
 
@@ -242,7 +285,7 @@ ApplicationWindow  {
     SystemTrayIcon {
         id: trayIcon
         visible: true
-        icon.source: "qrc:/logo/logo/logo_small.ico"
+        icon.source: "qrc:/logo/logo_small.ico"
         tooltip: qsTr("Xqqyt - 点击显示主窗口")
 
         menu: Menu {
@@ -307,13 +350,16 @@ ApplicationWindow  {
             id: mainBackground
             anchors.fill: parent
             radius: 20
-            color: dragActive ? "#E0E7FF" : bgColor
+            color: dragActive ? "transparent" : bgColor
             border.color: dragActive ? primaryColor : borderColor
             border.width: 1
-            
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: dragActive ? "#E0E7FF" : "#F8FAFC" }
-                GradientStop { position: 1.0; color: dragActive ? "#C7D2FE" : bgColor }
+
+            gradient: dragActive ? draggingGradient : null
+
+            Gradient {
+                id: draggingGradient
+                GradientStop { position: 0.0; color: bgColor }
+                GradientStop { position: 1.0; color: "#757373" }
             }
         }
 
@@ -425,8 +471,8 @@ ApplicationWindow  {
                         id: fileCard
                         anchors.fill: parent
                         radius: 12
-                        color: index % 2 === 0 ? Qt.lighter(primaryColor, 3.5) : cardColor
-                        border.color: index % 2 === 0 ? Qt.darker(primaryColor, 1.2) : borderColor
+                        color: index % 2 === 0 ? bgColor : cardColor
+                        border.color: borderColor
                         border.width: 1
                         
                         Rectangle {
@@ -444,8 +490,8 @@ ApplicationWindow  {
                     Menu {
                         id: contextMenu
                         MenuItem {
-                            text: "打开文件"
-                            enabled: model.fileStatus === 6 | !model.isRemote
+                            text: qsTr("打开文件")
+                            enabled: model.fileStatus === 6 || !model.isRemote
                             onTriggered: {
                                 if (model.fileUrl) {
                                     Qt.openUrlExternally(model.fileUrl)
@@ -459,14 +505,14 @@ ApplicationWindow  {
                         MenuSeparator {}
                         
                         MenuItem {
-                            text: "复制文件名"
+                            text: qsTr("复制文件名")
                             onTriggered: {
                                 file_list_model.copyText(model.fileName)
                             }
                         }
                         
                         MenuItem {
-                            text: "复制文件路径"
+                            text: qsTr("复制文件路径")
                             enabled: !model.isRemote || model.fileStatus === 6
                             onTriggered: {
                                 if (model.filePath) {
@@ -478,31 +524,52 @@ ApplicationWindow  {
                         MenuSeparator {}
                         
                         MenuItem {
-                            text: "下载文件"
-                            enabled: model.isRemote && model.fileStatus !== 4 &&  model.fileStatus !== 7
+                            property int downloadItemStatus: -1
+                            text: {
+                                switch(model.fileStatus){
+                                    case 5:
+                                    case 6:
+                                    case 7:
+                                    case 8:
+                                    case 9:
+                                        downloadItemStatus = 0
+                                        return qsTr("重新下载")
+                                    case 0:
+                                    case 3:
+                                    case 4:
+                                        downloadItemStatus = 1
+                                        return qsTr("取消下载")
+                                    case 1:
+                                    case 2:
+                                        downloadItemStatus = 2
+                                        return qsTr("下载文件")
+                                }
+                            }
+                            enabled: true
                             onTriggered: {
-                                file_list_model.downloadFile(index)
+                                switch(downloadItemStatus){
+                                    case 0:
+                                        file_list_model.downloadFile(index)
+                                        break
+                                    case 1:
+                                        cancelTransit(model.fileStatus, index, false)
+                                        break
+                                    case 2:
+                                        file_list_model.downloadFile(index)
+                                        break
+                                    default:
+                                        return
+                                }
+                                
                             }
                         }
                         
                         MenuSeparator {}
                         
                         MenuItem {
-                            text: "删除"
+                            text: qsTr("删除")
                             onTriggered: {
-                                // 检查是否正在传输
-                                if (model.fileStatus === 3 || model.fileStatus === 4) {
-                                    if (generalDialogLoader.status === Loader.Ready) {
-                                        generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                                        generalDialogLoader.item.text = "文件正在传输中"
-                                        generalDialogLoader.item.buttons = generalDialogLoader.item.ok
-                                        
-                                        generalDialogLoader.item.show()
-                                        generalDialogLoader.item.requestActivate()
-                                    }
-                                } else {
-                                    file_list_model.removeFile(index)
-                                }
+                                cancelTransit(model.fileStatus, index, true)
                             }
                         }
                     }
@@ -529,8 +596,14 @@ ApplicationWindow  {
                             color: "transparent"
                             
                             gradient: Gradient {
-                                GradientStop { position: 0.0; color: "#1E293B" }
-                                GradientStop { position: 1.0; color: "#0F172A" }
+                                GradientStop { 
+                                    position: 0.0; 
+                                    color: cardColor
+                                }
+                                GradientStop { 
+                                    position: 1.0; 
+                                    color: Qt.darker(cardColor, 1.2)
+                                }
                             }
                             
                             border.width: 1
@@ -542,7 +615,7 @@ ApplicationWindow  {
                             text: fileToolTip.text
                             font.pixelSize: 11
                             font.family: "Microsoft YaHei UI"
-                            color: "#E2E8F0"
+                            color: textPrimary
                             wrapMode: Text.WordWrap
                             maximumLineCount: 3
                             horizontalAlignment: Text.AlignHCenter
@@ -566,9 +639,7 @@ ApplicationWindow  {
                             width: 42
                             height: 42
                             radius: 8
-                            color: index % 2 === 0 ? Qt.rgba(255, 255, 255, 0.9) : Qt.rgba(99, 102, 241, 0.1)
-                            border.color: index % 2 === 0 ? Qt.rgba(99, 102, 241, 0.3) : Qt.rgba(99, 102, 241, 0.2)
-                            border.width: 1
+                            color: "transparent"
                             anchors.horizontalCenter: parent.horizontalCenter
                             anchors.topMargin: 4
 
@@ -621,6 +692,8 @@ ApplicationWindow  {
                                         case 5: return secondaryColor
                                         case 6: return successColor
                                         case 7: return dangerColor  // 失效时为红色
+                                        case 8: return dangerColor
+                                        case 9: return dangerColor
                                         default: return textLight
                                     }
                                 }
@@ -683,10 +756,12 @@ ApplicationWindow  {
                                         id: normalStatusText
                                         text: {
                                             switch(model.fileStatus) {
-                                                case 0: return "等待中"
-                                                case 5: return "上传完毕"
-                                                case 6: return "下载完成"
-                                                case 7: return "已失效"
+                                                case 0: return qsTr("等待中")
+                                                case 5: return qsTr("上传完毕")
+                                                case 6: return qsTr("下载完成")
+                                                case 7: return qsTr("已失效")
+                                                case 8: return qsTr("取消上传")
+                                                case 9: return qsTr("取消下载")
                                                 default: return ""
                                             }
                                         }
@@ -701,7 +776,7 @@ ApplicationWindow  {
                                 // 失效状态文本
                                 Text {
                                     id: expiredText
-                                    text: "已失效"
+                                    text: qsTr("已失效")
                                     font.pixelSize: 9
                                     font.bold: true
                                     color: dangerColor
@@ -834,19 +909,7 @@ ApplicationWindow  {
                             cursorShape: Qt.PointingHandCursor
                             
                             onClicked: {
-                                // 检查是否正在传输
-                                if (model.fileStatus === 3 || model.fileStatus === 4) {
-                                    if (generalDialogLoader.status === Loader.Ready) {
-                                        generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                                        generalDialogLoader.item.text = "文件正在传输中"
-                                        generalDialogLoader.item.buttons = generalDialogLoader.item.ok
-                                        
-                                        generalDialogLoader.item.show()
-                                        generalDialogLoader.item.requestActivate()
-                                    }
-                                } else {
-                                    file_list_model.removeFile(index)
-                                }
+                                cancelTransit(model.fileStatus, index, true)
                             }
                             
                             onEntered: {
@@ -863,7 +926,7 @@ ApplicationWindow  {
                 // 空列表提示
                 Text {
                     anchors.centerIn: parent
-                    text: "📁 暂无文件，拖放文件到此处"
+                    text: qsTr("📁 暂无文件，拖放文件到此处")
                     font.pixelSize: 14
                     color: "#7f8c8d"
                     visible: fileGridView.count === 0
@@ -888,7 +951,7 @@ ApplicationWindow  {
                 }
                 
                 Image {
-                    source: "qrc:/logo/logo/logo_small.png"
+                    source: "qrc:/logo/logo_small.png"
                     width: 18
                     height: 18
                     anchors.verticalCenter: parent.verticalCenter
@@ -897,7 +960,7 @@ ApplicationWindow  {
                 
                 Text {
                     id: titleText
-                    text: dragActive ? "释放以添加文件" : "XFileTransit"
+                    text: dragActive ? qsTr("释放以添加文件") : "XFileTransit"
                     font.pixelSize: 14
                     font.bold: true
                     color: textPrimary
@@ -936,13 +999,13 @@ ApplicationWindow  {
                 // 连接按钮
                 Rectangle {
                     id: switchButton
-                    Layout.preferredWidth: 55
+                    Layout.preferredWidth: 58
                     Layout.preferredHeight: 24
                     Layout.alignment: Qt.AlignVCenter
                     radius: 12
                     color: switchMouseArea.containsMouse ? 
                         (root.isConnected ? dangerColor : successColor) : 
-                        "#F1F5F9"
+                        bgColor
                     border.color: switchMouseArea.containsMouse ? 
                                 Qt.darker(root.isConnected ? dangerColor : successColor, 1.2) : 
                                 borderColor
@@ -950,8 +1013,8 @@ ApplicationWindow  {
                     enabled: root.expanded 
                     
                     Text {
-                        text: isConnected ? "断开" : "连接"
-                        font.pixelSize: 11
+                        text: isConnected ? qsTr("断开") : qsTr("连接")
+                        font.pixelSize: 12
                         font.bold: true
                         color: switchMouseArea.containsMouse ? "white" : textSecondary
                         anchors.centerIn: parent
@@ -972,7 +1035,7 @@ ApplicationWindow  {
                             } else {
                                 if (generalDialogLoader.status === Loader.Ready) {
                                     generalDialogLoader.item.iconType = generalDialogLoader.item.info
-                                    generalDialogLoader.item.text = "确定断开连接？"
+                                    generalDialogLoader.item.text = qsTr("确定断开连接？")
                                     generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
                                     
                                     root.currentAcceptHandler = function() {
@@ -1000,18 +1063,18 @@ ApplicationWindow  {
                     Layout.preferredHeight: 24
                     Layout.alignment: Qt.AlignVCenter
                     radius: 12
-                    color: ipInfoMouse.containsMouse ? "#f0f9ff" : "#f8fafc"
-                    border.color: ipInfoMouse.containsMouse ? "#7dd3fc" : "#e2e8f0"
+                    color: ipInfoMouse.containsMouse ? textLight : bgColor
+                    border.color: borderColor
                     border.width: 1.5
                     enabled: root.expanded 
 
                     Text {
                         anchors.centerIn: parent
-                        text: "IP信息"
-                        font.pixelSize: 11
+                        text: qsTr("IP信息")
+                        font.pixelSize: 12
                         font.family: "Microsoft YaHei UI"
                         font.weight: Font.Medium
-                        color: "#0369a1"
+                        color: textSecondary
                     }
                         
                     MouseArea {
@@ -1034,9 +1097,88 @@ ApplicationWindow  {
                         }
                     }
                 }
-                    
+
+                // 设置按钮
+                Rectangle {
+                    id: settingsButton
+                    Layout.preferredWidth: 55
+                    Layout.preferredHeight: 24
+                    Layout.alignment: Qt.AlignVCenter
+                    radius: 12
+                    color: settingsMouse.containsMouse ? textLight : bgColor
+                    border.color: borderColor
+                    border.width: 1.5
+                    enabled: root.expanded 
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: qsTr("设置")
+                        font.pixelSize: 12
+                        font.family: "Microsoft YaHei UI"
+                        font.weight: Font.Medium
+                        color: textSecondary
+                    }
+                        
+                    MouseArea {
+                        id: settingsMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (settingsWindowLoader.status === Loader.Ready) 
+                            {
+                                settingsWindowLoader.item.show()
+                                settingsWindowLoader.item.requestActivate()
+                            }
+                        }
+                        onEntered: {
+                            mouseIsInWindow = true
+                        }
+                        onExited: {
+                            mouseIsInWindow = false
+                        }
+                    }
+                }
                 Connections {
                     target: connection_manager
+                    enabled: connectRequestLoader.status === Loader.Ready
+                    
+                    function onHaveConnectError(message) {
+                        if (deviceWindowLoader.status === Loader.Ready) {
+                            deviceWindowLoader.item.closeLoadingDialog()
+                        }
+                        if (generalDialogLoader.status === Loader.Ready) {
+                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                            generalDialogLoader.item.text = message
+                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
+                        }
+                    }
+                    
+                    function onHaveRecvError(message) {
+                        if (generalDialogLoader.status === Loader.Ready) {
+                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                            generalDialogLoader.item.text = message
+                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
+                            resetStatus()
+                        }
+                    }
+                    
+                    function onPeerClosed() {
+                        if (generalDialogLoader.status === Loader.Ready && isConnected) {
+                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                            generalDialogLoader.item.text = "对方断开连接"
+                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
+                            resetStatus()
+                        }
+                        resetStatus()
+                    }
+                
                     function onHaveConRequest(device_ip, device_name) {
                         if (connectRequestLoader.status === Loader.Ready) {
                             connectRequestLoader.item.device_ip = device_ip
@@ -1047,15 +1189,11 @@ ApplicationWindow  {
                             console.error("连接请求对话框未正确加载:", connectRequestLoader.status)
                         }
                     }
-                }
-
-                Connections {
-                    target: connection_manager
                     function onConRequestCancel(device_ip, device_name) {
                         connectRequestLoader.item.close()
                         if (generalDialogLoader.status === Loader.Ready) {
                             generalDialogLoader.item.iconType = generalDialogLoader.item.info
-                            generalDialogLoader.item.text = device_ip + "(" + device_name + ")"+"取消了连接"
+                            generalDialogLoader.item.text = device_ip + "(" + device_name + ")"+qsTr("取消了连接")
                             generalDialogLoader.item.buttons = generalDialogLoader.item.ok
                                     
                             generalDialogLoader.item.show()
@@ -1063,7 +1201,33 @@ ApplicationWindow  {
                         }
                     }
                 }
-                
+                Connections {
+                    target: root
+                    function onExpandedChanged() {
+                        if (!root.expanded) {
+                            showBlueBarTimer.start()
+                        } else {
+                            blueBarWindow.visible = false
+                            blueBarWindow.opacity = 0
+                        }
+                    }
+                }
+                Connections{
+                    target: file_list_model
+                    function onThemeChanged(theme_index) {
+                        setTheme(theme_index)
+                        deviceWindowLoader.item.setTheme(theme_index)
+                        connectRequestLoader.item.setTheme(theme_index)
+                        networkInfoDialogLoader.item.setTheme(theme_index)
+                        generalDialogLoader.item.setTheme(theme_index)
+                    }
+                    function onMainWinExpand() {
+                        if(!root.expanded){
+                            collapseTimer.stop()
+                            root.expanded = true
+                        }
+                    }
+                }
                 Connections {
                     target: connectRequestLoader.item
                     enabled: connectRequestLoader.status === Loader.Ready
@@ -1074,7 +1238,7 @@ ApplicationWindow  {
                         if(fileGridView.count){
                             if (generalDialogLoader.status === Loader.Ready) {
                                 generalDialogLoader.item.iconType = generalDialogLoader.item.info
-                                generalDialogLoader.item.text = "是否同步当前文件"
+                                generalDialogLoader.item.text = qsTr("是否同步当前文件")
                                 generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
                                     
                                 root.currentAcceptHandler = function() {
@@ -1102,7 +1266,7 @@ ApplicationWindow  {
                                 // 有文件时询问是否同步
                                 if (generalDialogLoader.status === Loader.Ready) {
                                     generalDialogLoader.item.iconType = generalDialogLoader.item.info
-                                    generalDialogLoader.item.text = "是否同步当前文件"
+                                    generalDialogLoader.item.text = qsTr("是否同步当前文件")
                                     generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
                                     
                                     root.currentAcceptHandler = function() {
@@ -1115,7 +1279,7 @@ ApplicationWindow  {
                                 // 没有文件时显示连接成功提示
                                 if (generalDialogLoader.status === Loader.Ready) {
                                     generalDialogLoader.item.iconType = generalDialogLoader.item.success
-                                    generalDialogLoader.item.text = "连接成功"
+                                    generalDialogLoader.item.text = qsTr("连接成功")
                                     generalDialogLoader.item.buttons = generalDialogLoader.item.ok
                                     
                                     root.currentAcceptHandler = null
@@ -1128,7 +1292,7 @@ ApplicationWindow  {
                         }else{
                             if (generalDialogLoader.status === Loader.Ready) {
                                 generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                                generalDialogLoader.item.text = "连接被拒绝"
+                                generalDialogLoader.item.text = qsTr("连接被拒绝")
                                 generalDialogLoader.item.buttons = generalDialogLoader.item.ok
                                     
                                 root.currentAcceptHandler = null
@@ -1139,8 +1303,106 @@ ApplicationWindow  {
                             }
                         }
                     }
-                }
+                }          
             }        
+
+            // 开始全部下载按钮
+            Rectangle {
+                id: downloadAllButton
+                width: 55
+                height: 24
+                radius: 12
+                color: downloadAllMouseArea.containsMouse ? dangerColor : borderColor
+                border.color: downloadAllMouseArea.containsMouse ? Qt.darker(dangerColor, 1.2) : borderColor
+                border.width: 1
+                visible: root.expanded && fileGridView.count > 0
+                anchors {
+                    right: cancelAllButton.left
+                    rightMargin: 15
+                    verticalCenter: parent.verticalCenter
+                }
+                enabled: root.expanded 
+                
+                Text {
+                    text: qsTr("下载全部")
+                    font.pixelSize: 11
+                    font.bold: true
+                    color: downloadAllMouseArea.containsMouse ? "white" : textSecondary
+                    anchors.centerIn: parent
+                }
+                
+                MouseArea {
+                    id: downloadAllMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: {
+                        file_list_model.downloadAll()
+                    }
+                    onEntered: {
+                        mouseIsInWindow = true
+                    }
+                    onExited: {
+                        mouseIsInWindow = false
+                    }
+                }
+            }
+            // 取消全部下载按钮
+            Rectangle {
+                id: cancelAllButton
+                width: 55
+                height: 24
+                radius: 12
+                color: cancelAllMouseArea.containsMouse ? dangerColor : borderColor
+                border.color: cancelAllMouseArea.containsMouse ? Qt.darker(dangerColor, 1.2) : borderColor
+                border.width: 1
+                visible: root.expanded && fileGridView.count > 0
+                anchors {
+                    right: clearButton.left
+                    rightMargin: 15
+                    verticalCenter: parent.verticalCenter
+                }
+                enabled: root.expanded 
+                
+                Text {
+                    text: qsTr("停止全部")
+                    font.pixelSize: 11
+                    font.bold: true
+                    color: cancelAllMouseArea.containsMouse ? "white" : textSecondary
+                    anchors.centerIn: parent
+                }
+                
+                MouseArea {
+                    id: cancelAllMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: {
+                        if (generalDialogLoader.status === Loader.Ready) {
+                            if(file_list_model.isTransferring()){
+                                generalDialogLoader.item.iconType = generalDialogLoader.item.info
+                                generalDialogLoader.item.text = qsTr("确定停止所有文件的传输吗")
+                                generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
+                                        
+                                root.currentAcceptHandler = function() {
+                                    file_list_model.cancelAllTransit()
+                                }
+                            }
+                            else{
+                                generalDialogLoader.item.iconType = generalDialogLoader.item.info
+                                generalDialogLoader.item.text = qsTr("没有正在传输的文件")
+                                generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                            }
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
+                        }
+                    }
+                    onEntered: {
+                        mouseIsInWindow = true
+                    }
+                    onExited: {
+                        mouseIsInWindow = false
+                    }
+                }
+            }
 
             // 清空按钮
             Rectangle {
@@ -1148,7 +1410,7 @@ ApplicationWindow  {
                 width: 55
                 height: 24
                 radius: 12
-                color: clearMouseArea.containsMouse ? dangerColor : "#F1F5F9"
+                color: clearMouseArea.containsMouse ? dangerColor : borderColor
                 border.color: clearMouseArea.containsMouse ? Qt.darker(dangerColor, 1.2) : borderColor
                 border.width: 1
                 visible: root.expanded && fileGridView.count > 0
@@ -1160,7 +1422,7 @@ ApplicationWindow  {
                 enabled: root.expanded 
                 
                 Text {
-                    text: "清空"
+                    text: qsTr("清空")
                     font.pixelSize: 11
                     font.bold: true
                     color: clearMouseArea.containsMouse ? "white" : textSecondary
@@ -1172,7 +1434,18 @@ ApplicationWindow  {
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked: {
-                        file_list_model.clearAll()
+                        if (generalDialogLoader.status === Loader.Ready) {
+                            generalDialogLoader.item.iconType = generalDialogLoader.item.info
+                            generalDialogLoader.item.text = file_list_model.isTransferring() ? qsTr("确定清空吗？传输中的文件也会中断") : qsTr("确定清空吗？")
+                            generalDialogLoader.item.buttons = generalDialogLoader.item.yes | generalDialogLoader.item.no
+                                    
+                            root.currentAcceptHandler = function() {
+                                file_list_model.clearAll()
+                            }
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
+                        }
+                        
                     }
                     onEntered: {
                         mouseIsInWindow = true
@@ -1189,7 +1462,7 @@ ApplicationWindow  {
                 width: 24
                 height: 24
                 radius: 12
-                color: closeMouseArea.containsMouse ? dangerColor : "#F1F5F9"
+                color: closeMouseArea.containsMouse ? dangerColor : bgColor
                 border.color: closeMouseArea.containsMouse ? Qt.darker(dangerColor, 1.2) : borderColor
                 border.width: 1
                 visible: root.expanded
@@ -1217,7 +1490,7 @@ ApplicationWindow  {
                         if (file_list_model.isTransferring()) {
                             if (generalDialogLoader.status === Loader.Ready) {
                                 generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                                generalDialogLoader.item.text = "有文件正在传输中"
+                                generalDialogLoader.item.text = qsTr("有文件正在传输中")
                                 generalDialogLoader.item.buttons = generalDialogLoader.item.ok
                                 
                                 generalDialogLoader.item.show()
@@ -1226,15 +1499,24 @@ ApplicationWindow  {
                         } else {
                             if (generalDialogLoader.status === Loader.Ready) {
                                 generalDialogLoader.item.iconType = generalDialogLoader.item.warning
-                                generalDialogLoader.item.text = "确定退出吗？"
-                                generalDialogLoader.item.buttons = generalDialogLoader.item.closeWin | generalDialogLoader.item.hideWin
+                                generalDialogLoader.item.text = qsTr("确定退出吗？")
+                                generalDialogLoader.item.buttons = generalDialogLoader.item.cancel | generalDialogLoader.item.closeWin | generalDialogLoader.item.hideWin
                                 
-                                root.currentAcceptHandler = function() {
-                                    Qt.quit()
-                                }
-                                root.currentRejectHandler = function() {
-                                    root.hide()
-                                }
+                                generalDialogLoader.item.onClicked.connect(function(btn){
+                                    switch(btn){
+                                        case generalDialogLoader.item.cancel:
+                                            generalDialogLoader.item.close()
+                                            break
+                                        case generalDialogLoader.item.closeWin:
+                                            Qt.quit()
+                                            break
+                                        case generalDialogLoader.item.hideWin:
+                                            root.hide()
+                                            break
+                                        default:
+                                            break
+                                    }
+                                });
 
                                 generalDialogLoader.item.show()
                                 generalDialogLoader.item.requestActivate()

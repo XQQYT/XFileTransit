@@ -31,7 +31,7 @@ QUrl FileIconManager::getFileIcon(const QString &file_url, bool is_folder)
 {
     if (is_folder)
     {
-        return QUrl("qrc:/file_icon/FileIcons/folder.svg");
+        return QUrl("qrc:/FileIcons/folder.svg");
     }
 
     // 生成缓存键
@@ -60,7 +60,7 @@ QUrl FileIconManager::getFileIcon(const QString &file_url, bool is_folder)
     else
     {
         // 如果获取系统图标失败，使用默认图标
-        icon_cache[cache_key] = QUrl("qrc:/file_icon/FileIcons/unknow_file.svg");
+        icon_cache[cache_key] = QUrl("qrc:/FileIcons/unknow_file.svg");
     }
 
     return icon_url;
@@ -99,7 +99,7 @@ QUrl FileIconManager::getFileIconBySuffix(const QString &suffix, bool is_folder)
 {
     if (is_folder)
     {
-        return QUrl("qrc:/file_icon/FileIcons/folder.svg");
+        return QUrl("qrc:/FileIcons/folder.svg");
     }
 
     // 生成缓存键
@@ -127,7 +127,7 @@ QUrl FileIconManager::getFileIconBySuffix(const QString &suffix, bool is_folder)
     else
     {
         // 如果获取系统图标失败，使用默认图标
-        icon_cache[cache_key] = QUrl("qrc:/file_icon/FileIcons/unknow_file.svg");
+        icon_cache[cache_key] = QUrl("qrc:/FileIcons/unknow_file.svg");
     }
 
     return icon_url;

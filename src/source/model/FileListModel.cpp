@@ -2,12 +2,12 @@
 #include "model/ModelManager.h"
 #include "control/EventBusManager.h"
 #include "control/GlobalStatusManager.h"
-#include "driver/impl/FileUtility.h"
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
 #include <QtCore/QUrl>
 #include <QtWidgets/QApplication>
 #include <QtGui/QClipboard>
+#include <QtCore/QThread>
 
 FileListModel::FileListModel(QObject *parent) : QAbstractListModel(parent)
 {
@@ -44,6 +44,10 @@ FileListModel::FileListModel(QObject *parent) : QAbstractListModel(parent)
                                                     std::placeholders::_2,
                                                     std::placeholders::_3,
                                                     std::placeholders::_4));
+    EventBusManager::instance().subscribe("/file/have_cancel_transit",
+                                          std::bind(&FileListModel::onHaveCancelFile,
+                                                    this,
+                                                    std::placeholders::_1));
 }
 
 FileListModel::~FileListModel()
@@ -151,6 +155,10 @@ void FileListModel::addFiles(const QList<QString> &files, bool is_remote_file)
         beginInsertRows(QModelIndex(), file_list.size(), file_list.size() + unique_files.size() - 1);
         file_list.append(unique_files);
         endInsertRows();
+        if (auto_expand)
+        {
+            emit mainWinExpand();
+        }
     }
 
     if (GlobalStatusManager::getInstance().getConnectStatus() && !files_to_send.empty())
@@ -175,12 +183,19 @@ void FileListModel::addRemoteFiles(std::vector<std::vector<std::string>> files)
         beginInsertRows(QModelIndex(), file_list.size(), file_list.size() + remote_files.size() - 1);
         file_list.append(remote_files);
         endInsertRows();
-    }
-    for (int i = 0; i < file_list.size(); ++i)
-    {
-        if (file_list[i].file_size <= auto_download_file_size && file_list[i].file_status == StatusRemoteDefault)
+        if (auto_expand)
         {
-            downloadFile(i);
+            emit mainWinExpand();
+        }
+    }
+    if (auto_download)
+    {
+        for (int i = 0; i < file_list.size(); ++i)
+        {
+            if (file_list[i].file_size <= auto_download_file_size && file_list[i].file_status == StatusRemoteDefault)
+            {
+                downloadFile(i);
+            }
         }
     }
 }
@@ -213,7 +228,9 @@ void FileListModel::clearAll()
 {
     if (file_list.isEmpty())
         return;
-
+    cancelAllTransit();
+    for (int i = 0; i < file_list.size(); ++i)
+        deleteFile(i);
     beginResetModel();
     file_list.clear();
     endResetModel();
@@ -313,6 +330,11 @@ void FileListModel::removeFileById(std::vector<std::string> id)
             if (file_list[i].id == target_id)
             {
                 indicesToRemove.push_back(i);
+                GlobalStatusManager::getInstance().removeFile(target_id);
+                if (file_list[i].file_status == FileStatus::StatusPending)
+                {
+                    EventBusManager::instance().publish("/file/cancel_file_send", static_cast<uint32_t>(file_list[i].id));
+                }
                 break;
             }
         }
@@ -324,11 +346,14 @@ void FileListModel::removeFileById(std::vector<std::string> id)
     {
         if (index >= 0 && index < file_list.size())
         {
-            deleteFile(index);
             beginRemoveRows(QModelIndex(), index, index);
             file_list.removeAt(index);
             endRemoveRows();
         }
+    }
+    if (auto_expand)
+    {
+        emit mainWinExpand();
     }
 }
 void FileListModel::downloadFile(int i)
@@ -373,12 +398,17 @@ void FileListModel::haveDownLoadRequest(std::vector<std::string> file_ids)
 void FileListModel::onUploadFileProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end)
 {
     auto target_file = findFileInfoById(id);
-    if (target_file.first == -1)
+
+    if (target_file.second.file_status == FileStatus::StatusUploadCancel)
         return;
 
     // 更新状态和进度
     target_file.second.file_status = is_end ? FileStatus::StatusUploadCompleted : FileStatus::StatusUploading;
     target_file.second.progress = static_cast<quint8>(progress);
+    if (auto_expand && is_end)
+    {
+        emit mainWinExpand();
+    }
 
     // 使用移动平均计算速度
     if (!is_end)
@@ -417,11 +447,17 @@ void FileListModel::onUploadFileProgress(uint32_t id, uint8_t progress, uint32_t
 
 void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end)
 {
-
     auto target_file = findFileInfoById(id);
+
+    if (target_file.second.file_status == FileStatus::StatusRemoteDefault)
+        return;
+
     target_file.second.file_status = is_end ? FileStatus::StatusDownloadCompleted : FileStatus::StatusDownloading;
     target_file.second.progress = static_cast<int>(progress);
-
+    if (auto_expand && is_end)
+    {
+        emit mainWinExpand();
+    }
     // 使用移动平均计算速度
     if (!is_end)
     {
@@ -458,8 +494,35 @@ void FileListModel::onDownLoadProgress(uint32_t id, uint8_t progress, uint32_t s
     emit dataChanged(model_index, model_index, roles);
 }
 
+void FileListModel::onHaveCancelFile(uint32_t id)
+{
+    for (int i = 0; i < file_list.size(); ++i)
+    {
+        auto &file_item = file_list[i];
+        if (file_item.id == id)
+        {
+            if (!file_item.is_remote_file && file_item.file_status == FileStatus::StatusUploading)
+            {
+                EventBusManager::instance().publish("/file/cancel_transit_in_sender", static_cast<uint32_t>(file_item.id));
+            }
+            else if (!file_item.is_remote_file && file_item.file_status == FileStatus::StatusPending)
+            {
+                EventBusManager::instance().publish("/file/cancel_file_send", static_cast<uint32_t>(file_item.id));
+            }
+            file_item.file_status = file_item.is_remote_file ? FileStatus::StatusDownloadCancel : FileStatus::StatusUploadCancel;
+            QModelIndex model_index = index(i, 0);
+            QVector<int> roles = {FileStatusRole};
+            emit dataChanged(model_index, model_index, roles);
+        }
+    }
+}
+
 void FileListModel::cleanTmpFiles()
 {
+    if (!auto_clear_cache)
+    {
+        return;
+    }
     QDir dir(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir));
 
     if (!dir.exists())
@@ -468,6 +531,7 @@ void FileListModel::cleanTmpFiles()
     }
 
     dir.removeRecursively();
+    QDir().mkpath(QString::fromStdString(GlobalStatusManager::absolute_tmp_dir));
 }
 
 bool FileListModel::isTransferring()
@@ -480,4 +544,110 @@ bool FileListModel::isTransferring()
         }
     }
     return false;
+}
+
+void FileListModel::updateFilePath(QString new_path)
+{
+    for (auto &i : file_list)
+    {
+        if (i.is_remote_file)
+        {
+            i.source_path = new_path + i.file_name;
+            i.file_url = QUrl::fromLocalFile(i.source_path);
+        }
+    }
+}
+
+void FileListModel::setAutoDownload(bool enable)
+{
+    auto_download = enable;
+}
+
+void FileListModel::onSettingsChanged(Settings::Item item, QVariant value)
+{
+    switch (item)
+    {
+    case Settings::Item::Theme:
+        emit themeChanged(value.toInt());
+        break;
+    case Settings::Item::CachePath:
+        updateFilePath(value.toString());
+        break;
+    case Settings::Item::AutoDownload:
+        setAutoDownload(value.toBool());
+    case Settings::Item::ExpandOnAction:
+        auto_expand = value.toBool();
+        break;
+    case Settings::Item::AutoClearCache:
+        auto_clear_cache = value.toBool();
+        break;
+    default:
+        return;
+    }
+}
+
+void FileListModel::cancelTransit(int i)
+{
+    FileInfo &info = file_list[i];
+
+    if (info.file_status == FileStatus::StatusUploading)
+    {
+        EventBusManager::instance().publish("/file/cancel_transit_in_sender", static_cast<uint32_t>(info.id));
+
+        info.file_status = FileStatus::StatusUploadCancel;
+        QModelIndex model_index = index(i, 0);
+        QVector<int> roles = {FileStatusRole};
+        emit dataChanged(model_index, model_index, roles);
+    }
+    else if (info.file_status == FileStatus::StatusDownloading)
+    {
+        EventBusManager::instance().publish("/file/send_cancel_file_send", static_cast<uint32_t>(info.id));
+    }
+    else if (info.file_status == FileStatus::StatusPending)
+    {
+        if (!info.is_remote_file)
+        {
+            // 本地文件说明是发送方，需要通知文件引擎移除等待文件
+            EventBusManager::instance().publish("/file/cancel_file_send", static_cast<uint32_t>(info.id));
+        }
+        // 同步
+        EventBusManager::instance().publish("/file/send_cancel_file_send", static_cast<uint32_t>(info.id));
+        info.file_status = info.is_remote_file ? FileStatus::StatusDownloadCancel : FileStatus::StatusUploadCancel;
+        QModelIndex model_index = index(i, 0);
+        QVector<int> roles = {FileStatusRole};
+        emit dataChanged(model_index, model_index, roles);
+    }
+    else
+    {
+        LOG_ERROR("Invalid file status: " << static_cast<int>(info.file_status));
+    }
+}
+
+void FileListModel::cancelAllTransit()
+{
+    QList<int> transfing_index;
+    transfing_index.reserve(file_list.size());
+    for (int i = 0; i < file_list.size(); ++i)
+    {
+        if (file_list[i].file_status == FileStatus::StatusPending)
+        {
+            cancelTransit(i);
+            continue;
+        }
+        transfing_index.append(i);
+    }
+    for (auto i : transfing_index)
+    {
+        if (file_list[i].file_status == FileStatus::StatusDownloading || file_list[i].file_status == FileStatus::StatusUploading)
+            cancelTransit(i);
+    }
+}
+
+void FileListModel::downloadAll()
+{
+    for (int i = 0; i < file_list.size(); ++i)
+    {
+        if (file_list[i].file_status == FileStatus::StatusRemoteDefault || file_list[i].file_status == FileStatus::StatusDownloadCancel)
+            downloadFile(i);
+    }
 }

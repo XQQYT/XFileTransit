@@ -1,28 +1,29 @@
-import QtQuick 2.15
-import QtQuick.Window 2.15
-import QtQuick.Layouts 1.15
+import QtQuick
+import QtQuick.Window
+import QtQuick.Layouts
+import QtQuick.Controls
 
 Window {
     id: root
     width: 400
-    height: 180
+    height: contentContainer.height
     modality: Qt.ApplicationModal
     flags: Qt.FramelessWindowHint | Qt.Dialog
     color: "transparent"
     visible: false
     
-    property string title: "提示"
+    property string title: qsTr("提示")
     property string text: ""
     property int buttons: root.ok
     property int iconType: root.info
     
-    // 按钮类型枚举（修正：使用2的幂次方进行位运算）
     readonly property int ok: 0x0001        // 1
     readonly property int cancel: 0x0002    // 2
     readonly property int yes: 0x0004       // 4
     readonly property int no: 0x0008        // 8
     readonly property int closeWin: 0x0010  // 16
     readonly property int hideWin: 0x0020   // 32
+    readonly property int cancelTransit: 0x0040   // 64
     
     // 图标类型枚举
     readonly property int none: 0
@@ -30,6 +31,86 @@ Window {
     readonly property int success: 2
     readonly property int error: 3
     readonly property int warning: 4
+    
+    property color windowBg: "#ffffff"
+    property color windowBorder: "#e5e7eb"
+    property int windowRadius: 8
+    
+    property color textPrimary: "#111827"
+    property color textSecondary: "#6b7280"
+    property color textOnPrimary: "white"
+    
+    property color cancelButtonBg: "#f9fafb"
+    property color cancelButtonBgHover: "#f3f4f6"
+    property color cancelButtonBorder: "#d1d5db"
+    property color cancelButtonText: "#374151"
+    
+    property color closeButtonBg: "#6b7280"
+    property color closeButtonBgHover: "#4b5563"
+    property color closeButtonText: "white"
+    
+    property color successIcon: "#10b981"
+    property color errorIcon: "#ef4444"
+    property color warningIcon: "#f59e0b"
+    property color infoIcon: "#3b82f6"
+    property color defaultIcon: "#6b7280"
+    
+    property int buttonRadius: 4
+    
+    // 主题切换函数
+    function setTheme(theme_index) {
+        switch(theme_index)
+        {
+            case 0:
+                //浅色主题
+                windowBg = "#ffffff"
+                windowBorder = "#e5e7eb"
+                
+                textPrimary = "#111827"
+                textSecondary = "#6b7280"
+                
+                cancelButtonBg = "#f9fafb"
+                cancelButtonBgHover = "#f3f4f6"
+                cancelButtonBorder = "#d1d5db"
+                cancelButtonText = "#374151"
+                
+                closeButtonBg = "#6b7280"
+                closeButtonBgHover = "#4b5563"
+                closeButtonText = "white"
+                
+                successIcon = "#10b981"
+                errorIcon = "#ef4444"
+                warningIcon = "#f59e0b"
+                infoIcon = "#3b82f6"
+                defaultIcon = "#6b7280"
+                break
+            case 1:
+                //深色主题
+                windowBg = "#1f2937"
+                windowBorder = "#374151"
+                
+                textPrimary = "#f9fafb"
+                textSecondary = "#d1d5db"
+                
+                cancelButtonBg = "#374151"
+                cancelButtonBgHover = "#4b5563"
+                cancelButtonBorder = "#4b5563"
+                cancelButtonText = "#d1d5db"
+                
+                closeButtonBg = "#6b7280"
+                closeButtonBgHover = "#4b5563"
+                closeButtonText = "white"
+                
+                successIcon = "#10b981"
+                errorIcon = "#ef4444"
+                warningIcon = "#f59e0b"
+                infoIcon = "#3b82f6"
+                defaultIcon = "#6b7280"
+                break
+            default:
+                return
+        }
+    }
     
     // 信号
     signal accepted()
@@ -47,6 +128,10 @@ Window {
             centerOnScreen()
         }
     }
+    
+    // 当text或title改变时，重新计算大小
+    onTextChanged: Qt.callLater(root.adjustWindowSize)
+    onTitleChanged: Qt.callLater(root.adjustWindowSize)
     
     function centerOnScreen() {
         Qt.callLater(function() {
@@ -89,10 +174,13 @@ Window {
     
     // 外部调用接口
     function showDialog(title, text, iconType, buttons) {
-        root.title = title || "提示"
+        root.title = title || qsTr("提示")
         root.text = text || ""
         root.iconType = iconType || root.info
         root.buttons = buttons || root.ok
+        
+        // 调整窗口大小以适应内容
+        adjustWindowSize()
         
         // 居中并显示
         centerOnScreen()
@@ -104,18 +192,44 @@ Window {
     function closeDialog() {
         root.close()
     }
+    
+    // 调整窗口大小以适应内容
+    function adjustWindowSize() {
+        if (!contentContainer.visible) return
+        
+        // 计算文本所需的高度
+        var textHeight = messageText.contentHeight
+        var textWidth = messageText.contentWidth
+        
+        // 计算合适的宽度
+        var maxTextWidth = Math.max(280, Math.min(500, textWidth + 80))
+        var containerWidth = Math.max(320, Math.min(600, maxTextWidth))
+        
+        // 计算合适的高度
+        var maxTextHeight = Math.min(400, textHeight) // 限制最大文本高度
+        var containerHeight = Math.max(140, Math.min(500, 
+            maxTextHeight + 120 + buttonArea.height)) // 120=标题区+边距
+        
+        // 设置容器大小
+        contentContainer.width = containerWidth
+        contentContainer.height = containerHeight
+        
+        // 设置窗口大小
+        root.width = contentContainer.width
+        root.height = contentContainer.height
+    }
 
-    // 对话框主体
+    // 对话框主体容器
     Rectangle {
+        id: contentContainer
         anchors.centerIn: parent
-        width: 360
-        height: 160
-        radius: 8
-        color: "#ffffff"
-        border.color: "#e5e7eb"
+        radius: windowRadius
+        color: windowBg
+        border.color: windowBorder
         border.width: 1
         
         ColumnLayout {
+            id: mainLayout
             anchors.fill: parent
             anchors.margins: 20
             spacing: 16
@@ -123,6 +237,7 @@ Window {
             // 标题行
             RowLayout {
                 spacing: 12
+                Layout.fillWidth: true
                 
                 // 图标
                 Rectangle {
@@ -135,7 +250,7 @@ Window {
                         anchors.centerIn: parent
                         text: getIconText()
                         font.pixelSize: 16
-                        color: "white"
+                        color: textOnPrimary
                         font.bold: true
                     }
                 }
@@ -145,42 +260,81 @@ Window {
                     text: root.title
                     font.pixelSize: 16
                     font.bold: true
-                    color: "#111827"
+                    color: textPrimary
                     Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                    elide: Text.ElideRight
                 }
             }
             
-            // 消息内容
-            Text {
-                text: root.text
-                font.pixelSize: 18
-                color: "#6b7280"
-                wrapMode: Text.Wrap
-                lineHeight: 1.4
+            // 消息内容区域
+            ScrollView {
+                id: scrollView
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.preferredHeight: Math.min(400, messageText.contentHeight + 20)
+                clip: true
+                
+                TextArea {
+                    id: messageText
+                    width: scrollView.width - 20
+                    text: root.text
+                    font.pixelSize: getFontSize()
+                    color: textSecondary
+                    wrapMode: Text.Wrap
+                    readOnly: true
+                    selectByMouse: false
+                    background: Rectangle {
+                        color: "transparent"
+                    }
+                    
+                    // 计算合适的字体大小
+                    function getFontSize() {
+                        var lines = text.split('\n').length
+                        var charsPerLine = text.length / Math.max(1, lines)
+                        
+                        if (lines > 15 || charsPerLine > 80) {
+                            return 12
+                        } else if (lines > 10 || charsPerLine > 60) {
+                            return 13
+                        } else {
+                            return 14
+                        }
+                    }
+                    
+                    // 文本改变时调整
+                    onTextChanged: {
+                        Qt.callLater(root.adjustWindowSize)
+                    }
+                    
+                    // 内容大小改变时调整
+                    onContentHeightChanged: {
+                        Qt.callLater(root.adjustWindowSize)
+                    }
+                }
             }
             
             // 按钮区域
             Row {
+                id: buttonArea
                 spacing: 8
-                Layout.alignment: Qt.AlignRight
+                Layout.alignment: Qt.AlignRight | Qt.AlignBottom
                 
                 // 取消按钮
                 Rectangle {
                     width: 72
                     height: 32
-                    radius: 4
-                    color: cancelArea.containsMouse ? "#f3f4f6" : "#f9fafb"
-                    border.color: "#d1d5db"
+                    radius: buttonRadius
+                    color: cancelArea.containsMouse ? cancelButtonBgHover : cancelButtonBg
+                    border.color: cancelButtonBorder
                     border.width: 1
                     visible: (root.buttons & root.cancel) || (root.buttons & root.no)
                     
                     Text {
                         anchors.centerIn: parent
-                        text: (root.buttons & root.cancel) ? "取消" : "否"
+                        text: (root.buttons & root.cancel) ? qsTr("取消") : qsTr("否")
                         font.pixelSize: 13
-                        color: "#374151"
+                        color: cancelButtonText
                     }
                     
                     MouseArea {
@@ -199,15 +353,15 @@ Window {
                 Rectangle {
                     width: 72
                     height: 32
-                    radius: 4
+                    radius: buttonRadius
                     color: okArea.containsMouse ? Qt.darker(getIconColor(), 1.1) : getIconColor()
                     visible: (root.buttons & root.yes) || (root.buttons & root.ok)
                     
                     Text {
                         anchors.centerIn: parent
-                        text: (root.buttons & root.yes) ? "是" : "确定"
+                        text: (root.buttons & root.yes) ? qsTr("是") : qsTr("确定")
                         font.pixelSize: 13
-                        color: "white"
+                        color: textOnPrimary
                     }
                     
                     MouseArea {
@@ -221,19 +375,20 @@ Window {
                         }
                     }
                 }
+                
                 // 隐藏按钮
                 Rectangle {
-                    width: 120
+                    width: 72
                     height: 32
-                    radius: 4
-                    color: closeArea.containsMouse ? Qt.darker(getIconColor(), 1.1) : getIconColor()
+                    radius: buttonRadius
+                    color: hideArea.containsMouse ? Qt.darker(getIconColor(), 1.1) : getIconColor()
                     visible: root.buttons & root.hideWin
                     
                     Text {
                         anchors.centerIn: parent
-                        text: "最小化到托盘"
+                        text: qsTr("最小化")
                         font.pixelSize: 13
-                        color: "white"
+                        color: textOnPrimary
                     }
                     
                     MouseArea {
@@ -247,19 +402,20 @@ Window {
                         }
                     }
                 }
+                
                 // 关闭按钮
                 Rectangle {
                     width: 72
                     height: 32
-                    radius: 4
-                    color: hideArea.containsMouse ? Qt.darker("#6b7280", 1.1) : "#6b7280"
+                    radius: buttonRadius
+                    color: closeArea.containsMouse ? closeButtonBgHover : closeButtonBg
                     visible: root.buttons & root.closeWin
                     
                     Text {
                         anchors.centerIn: parent
-                        text: "关闭"
+                        text: qsTr("关闭")
                         font.pixelSize: 13
-                        color: "white"
+                        color: closeButtonText
                     }
                     
                     MouseArea {
@@ -273,17 +429,44 @@ Window {
                         }
                     }
                 }
+
+                // 取消传输按钮
+                Rectangle {
+                    width: 72
+                    height: 32
+                    radius: buttonRadius
+                    color: cancelTransitArea.containsMouse ? closeButtonBgHover : closeButtonBg
+                    visible: root.buttons & root.cancelTransit
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: qsTr("取消传输")
+                        font.pixelSize: 13
+                        color: textOnPrimary
+                    }
+                    
+                    MouseArea {
+                        id: cancelTransitArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: {
+                            root.clicked(root.cancelTransit)
+                            root.accepted()
+                            root.close()
+                        }
+                    }
+                }
             }
         }
     }
     
     function getIconColor() {
         switch(root.iconType) {
-            case root.success: return "#10b981"
-            case root.error: return "#ef4444"
-            case root.warning: return "#f59e0b"
-            case root.info: return "#3b82f6"
-            default: return "#6b7280"
+            case root.success: return successIcon
+            case root.error: return errorIcon
+            case root.warning: return warningIcon
+            case root.info: return infoIcon
+            default: return defaultIcon
         }
     }
     

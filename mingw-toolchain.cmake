@@ -7,6 +7,12 @@ if(WIN32)
     # 指定编译器
     set(CMAKE_C_COMPILER "D:/Qt6.8/Tools/mingw1310_64/bin/gcc.exe")
     set(CMAKE_CXX_COMPILER "D:/Qt6.8/Tools/mingw1310_64/bin/g++.exe")
+
+    # 指定64位的windres（资源编译器）
+    set(CMAKE_RC_COMPILER "D:/Qt6.8/Tools/mingw1310_64/bin/windres.exe")
+
+    # 设置资源编译器标志，指定64位架构
+    set(CMAKE_RC_FLAGS "-F pe-x86-64")
     # 设置编译器标志
     set(CMAKE_CXX_FLAGS_INIT "-static-libgcc -static-libstdc++")
 endif()

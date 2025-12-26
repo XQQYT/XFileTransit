@@ -1,19 +1,20 @@
 <!DOCTYPE RCC>
 <RCC>
-  <qresource prefix="/qml">
+  <qresource prefix="/">
     <file>../ui/MainWindow.qml</file>
     <file>../ui/DeviceListWindow.qml</file>
     <file>../ui/LoadingDialog.qml</file>
     <file>../ui/ConnectRequestDialog.qml</file>
     <file>../ui/GeneralDialog.qml</file>
     <file>../ui/NetworkInfoDialog.qml</file>
-  </qresource>
-  <qresource prefix="/file_icon">
+    <file>../ui/SettingsWindow.qml</file>
     <file>FileIcons/unknow_file.svg</file>
     <file>FileIcons/folder.svg</file>
-  </qresource>
-  <qresource prefix="/logo">
     <file>logo/logo_small.png</file>
     <file>logo/logo_small.ico</file>
+    <file>translations/zh_CN.qm</file>
+    <file>translations/en.qm</file>
+    <file>settings/settings.json</file>
+    <file>tools/updateLinux.sh</file>
   </qresource>
 </RCC>

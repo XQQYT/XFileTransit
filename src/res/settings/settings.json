@@ -1,0 +1,25 @@
+{
+  "General": {
+    "language": "0",
+    "theme": "0"
+  },
+  "File": {
+    "auto_clear_cache": "0",
+    "default_save_url": ""
+  },
+  "Transfer": {
+    "auto_download": "1",
+    "concurrent_task": "4"
+  },
+  "Notification": {
+    "auto_expand": "1"
+  },
+  "About": {
+    "last_check_update":"0",
+    "auto_check_update":"1",
+    "update_is_avaible":"0",
+    "new_version":"",
+    "release_date":"",
+    "update_source":"gitee"
+  }
+}

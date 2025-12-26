@@ -14,6 +14,80 @@ set(APP_SOURCES
     main.cpp
 )
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/translations)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/res/translations)
+
+set(ZH_TS ${CMAKE_CURRENT_SOURCE_DIR}/translations/zh_CN.ts)
+set(EN_TS ${CMAKE_CURRENT_SOURCE_DIR}/translations/en.ts)
+
+set(ZH_QM ${CMAKE_CURRENT_SOURCE_DIR}/res/translations/zh_CN.qm)
+set(EN_QM ${CMAKE_CURRENT_SOURCE_DIR}/res/translations/en.qm)
+
+# 查找 lupdate
+find_program(LUPDATE_EXECUTABLE lupdate)
+if(LUPDATE_EXECUTABLE)
+    message(STATUS "Found lupdate: ${LUPDATE_EXECUTABLE}")
+    
+    add_custom_target(update-translations
+        COMMAND ${LUPDATE_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}
+            -recursive
+            -extensions qml,cpp,h
+            -ts ${ZH_TS} ${EN_TS}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Extracting translatable strings..."
+    )
+endif()
+
+# 查找 lrelease
+find_program(LRELEASE_EXECUTABLE lrelease)
+if(LRELEASE_EXECUTABLE)
+    message(STATUS "Found lrelease: ${LRELEASE_EXECUTABLE}")
+    
+    add_custom_command(
+        OUTPUT ${ZH_QM}
+        COMMAND ${LRELEASE_EXECUTABLE}
+            ${ZH_TS} -qm ${ZH_QM}
+        DEPENDS ${ZH_TS}
+        COMMENT "Compiling Chinese translations"
+    )
+    
+    add_custom_command(
+        OUTPUT ${EN_QM}
+        COMMAND ${LRELEASE_EXECUTABLE}
+            ${EN_TS} -qm ${EN_QM}
+        DEPENDS ${EN_TS}
+        COMMENT "Compiling English translations"
+    )
+    
+    add_custom_target(compile-translations ALL
+        DEPENDS 
+            ${ZH_QM}
+            ${EN_QM}
+    )
+    
+    if(TARGET ${PROJECT_NAME})
+        add_dependencies(${PROJECT_NAME} compile-translations)
+    endif()
+endif()
+
+set(QML_FILES
+    ui/ConnectRequestDialog.qml
+    ui/DeviceListWindow.qml
+    ui/GeneralDialog.qml
+    ui/LoadingDialog.qml
+    ui/MainWindow.qml
+    ui/NetworkInfoDialog.qml
+    ui/SettingsWindow.qml
+)
+
+qt_add_translation(QM_FILES
+    ${QML_FILES}
+    TS_FILES 
+        translations/zh_CN.ts
+        translations/en.ts
+)
+
 qt6_add_resources(APP_RES
     ${CMAKE_CURRENT_SOURCE_DIR}/res/res.qrc
 )
@@ -30,6 +104,9 @@ add_executable(${PROJECT_NAME}
     ${APP_SOURCES}
     ${APP_RES}
 )
+if(LUPDATE_EXECUTABLE)
+    add_dependencies(${PROJECT_NAME} update-translations)
+endif()
 
 # Windows 特有的资源文件
 if(WIN32)

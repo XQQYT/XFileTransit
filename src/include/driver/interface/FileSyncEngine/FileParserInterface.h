@@ -9,6 +9,7 @@ class FileParserInterface
 {
 public:
     virtual void parse(std::unique_ptr<NetworkInterface::UserMsg> msg) = 0;
+    virtual ~FileParserInterface() = default;
 };
 
 #endif

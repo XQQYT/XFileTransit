@@ -8,12 +8,13 @@
 #include <utility>
 #include <functional>
 #include <optional>
+#include <iostream>
 
 class FileSenderInterface
 {
 public:
-    FileSenderInterface(const std::string& addr, const std::string& p, std::shared_ptr<SecurityInterface> inst) :
-        address(addr), port(p), security_instance(inst) {
+    FileSenderInterface(const std::string &addr, const std::string &p, std::shared_ptr<SecurityInterface> inst) : address(addr), port(p), security_instance(inst)
+    {
     }
     virtual ~FileSenderInterface() = default;
     virtual bool initialize() = 0;
@@ -21,8 +22,16 @@ public:
     virtual void stop() = 0;
     virtual void setCondition(std::shared_ptr<std::condition_variable> queue_cv) { cv = queue_cv; }
     virtual void setCheckQueue(std::function<bool()> check_cb) { check_queue_cb = check_cb; }
+    virtual std::optional<uint32_t> getCurrentFileID() { return current_file_id; }
+    virtual void cancelSending()
+    {
+        cancel = true;
+        std::cout << "cancel: " << cancel << std::endl;
+    }
+
 protected:
-    static OuterMsgBuilderInterface& getOuterMsgBuilder() {
+    static OuterMsgBuilderInterface &getOuterMsgBuilder()
+    {
         static OuterMsgBuilder instance;
         return instance;
     }
@@ -31,7 +40,9 @@ protected:
     std::string port;
     std::shared_ptr<std::condition_variable> cv;
     std::function<bool()> check_queue_cb;
-    bool running{ false };
+    bool running{false};
+    bool cancel{false};
+    std::optional<uint32_t> current_file_id;
 };
 
 #endif

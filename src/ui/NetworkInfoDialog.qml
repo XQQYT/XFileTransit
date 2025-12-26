@@ -1,15 +1,14 @@
-import QtQuick 2.15
-import QtQuick.Layouts 1.15
+import QtQuick
+import QtQuick.Layouts
 
 Window {
     id: ipInfoDialog
-    title: "网络信息"
+    title: qsTr("网络信息")
     width: 400
     height: 350
     minimumWidth: 300
     minimumHeight: 250
-    flags: Qt.Dialog | Qt.FramelessWindowHint
-    modality: Qt.ApplicationModal
+    flags: Qt.FramelessWindowHint
     color: "transparent"
     visible: false
     
@@ -19,9 +18,56 @@ Window {
     property color borderColor: "#E2E8F0"
     property color textPrimary: "#1E293B"
     property color textSecondary: "#64748B"
+    property color textLight: "#9ca3af"
+    property color successColor: "#065F46"
+    property color buttonTextColor: "white"
+    property color buttonHoverColor: Qt.darker(primaryColor, 1.1)
+    property color iconGradientStart: "#6366f1"
+    property color iconGradientEnd: "#8b5cf6"
+    property color iconGlow: "#40ffffff"
     
     property var networkInfoModel: null
     
+    // 主题切换函数
+    function setTheme(theme_index) {
+        switch (theme_index) {
+            case 0:
+                // 浅色主题
+                primaryColor = "#6366F1"
+                bgColor = "#FFFFFF"
+                cardColor = "#F8FAFC"
+                borderColor = "#E2E8F0"
+                textPrimary = "#1E293B"
+                textSecondary = "#64748B"
+                textLight = "#9ca3af"
+                successColor = "#065F46"
+                buttonTextColor = "white"
+                buttonHoverColor = Qt.darker(primaryColor, 1.1)
+                iconGradientStart = "#6366f1"
+                iconGradientEnd = "#8b5cf6"
+                iconGlow = "#40ffffff"
+                break
+            case 1:
+                // 深色主题
+                primaryColor = "#6366F1"
+                bgColor = "#1F2937"
+                cardColor = "#374151"
+                borderColor = "#4B5563"
+                textPrimary = "#F9FAFB"
+                textSecondary = "#D1D5DB"
+                textLight = "#94a3b8"
+                successColor = "#10B981"
+                buttonTextColor = "white"
+                buttonHoverColor = Qt.darker(primaryColor, 1.1)
+                iconGradientStart = "#6366f1"
+                iconGradientEnd = "#8b5cf6"
+                iconGlow = "#20ffffff"
+                break
+            default:
+                return
+        }
+    }
+     
     // 居中显示
     function centerOnScreen() {
         var screenWidth = Screen.width > 0 ? Screen.width : 1920
@@ -32,7 +78,7 @@ Window {
     }
     
     onVisibleChanged: {
-        copyBtn.text = "复制全部信息"
+        copyBtn.text = qsTr("复制全部信息")
         if (visible) {
             centerOnScreen()
             requestActivate()
@@ -46,15 +92,16 @@ Window {
     }
     
     Rectangle {
+        id: windowBackground
         anchors.fill: parent
         radius: 16
-        color: "#ffffff"
+        color: bgColor
         
         Rectangle {
             anchors.fill: parent
             radius: parent.radius
             color: "transparent"
-            border.color: "#f0f0f0"
+            border.color: borderColor
             border.width: 1
             
             // 鼠标区域用于拖动
@@ -97,8 +144,8 @@ Window {
                     height: 44
                     radius: 12
                     gradient: Gradient {
-                        GradientStop { position: 0.0; color: "#6366f1" }
-                        GradientStop { position: 1.0; color: "#8b5cf6" }
+                        GradientStop { position: 0.0; color: iconGradientStart }
+                        GradientStop { position: 1.0; color: iconGradientEnd }
                     }
                     
                     Text {
@@ -113,7 +160,7 @@ Window {
                         width: parent.width
                         height: parent.height * 0.3
                         radius: 6
-                        color: "#40ffffff"
+                        color: iconGlow
                         anchors.top: parent.top
                     }
                 }
@@ -125,19 +172,19 @@ Window {
                     spacing: 2
                     
                     Text {
-                        text: "网络信息"
+                        text: qsTr("网络信息")
                         font.pixelSize: 20
                         font.bold: true
                         font.family: "Microsoft YaHei UI"
-                        color: "#1f2937"
+                        color: textPrimary
                     }
                     
                     Text {
                         id: subtitleText
-                        text: "IP地址和网段信息"
+                        text: qsTr("IP地址和网段信息")
                         font.pixelSize: 13
                         font.family: "Microsoft YaHei UI"
-                        color: "#9ca3af"
+                        color: textLight
                     }
                 }
                 
@@ -147,13 +194,13 @@ Window {
                     width: 28
                     height: 28
                     radius: 14
-                    color: minimizeMouse.containsMouse ? "#f3f4f6" : "transparent"
+                    color: minimizeMouse.containsMouse ? Qt.darker(bgColor, 1.1) : "transparent"
                     
                     Text {
                         anchors.centerIn: parent
                         text: "−"
                         font.pixelSize: 20
-                        color: minimizeMouse.containsMouse ? "#6b7280" : "#9ca3af"
+                        color: minimizeMouse.containsMouse ? textSecondary : textLight
                     }
                     
                     MouseArea {
@@ -173,13 +220,13 @@ Window {
                     width: 28
                     height: 28
                     radius: 14
-                    color: closeMouse.containsMouse ? "#f3f4f6" : "transparent"
+                    color: closeMouse.containsMouse ? Qt.darker(bgColor, 1.1) : "transparent"
                     
                     Text {
                         anchors.centerIn: parent
                         text: "×"
                         font.pixelSize: 20
-                        color: closeMouse.containsMouse ? "#6b7280" : "#9ca3af"
+                        color: closeMouse.containsMouse ? textSecondary : textLight
                     }
                     
                     MouseArea {
@@ -202,12 +249,12 @@ Window {
                 spacing: 5
 
                 Text {
-                    id: titleText
-                    text: "网络信息列表"
+                    id: listTitleText
+                    text: qsTr("网络信息列表")
                     font.pixelSize: 13
                     font.family: "Microsoft YaHei UI"
                     font.weight: Font.Medium
-                    color: "#64748b"
+                    color: textSecondary
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 
@@ -217,14 +264,14 @@ Window {
                     width: 24
                     height: 24
                     radius: 6
-                    color: refreshMouseArea.containsMouse ? "#f1f5f9" : "transparent"
+                    color: refreshMouseArea.containsMouse ? Qt.darker(cardColor, 1.1) : "transparent"
                     anchors.verticalCenter: parent.verticalCenter
                     
                     Text {
                         anchors.centerIn: parent
                         text: "↻"
                         font.pixelSize: 20
-                        color: refreshMouseArea.containsMouse ? "#3b82f6" : "#94a3b8"
+                        color: refreshMouseArea.containsMouse ? primaryColor : textLight
                     }
                     
                     MouseArea {
@@ -239,17 +286,18 @@ Window {
                         }
                     }
                 }
+                
                 Item { 
-                    width: parent.width - listCountText.width - titleText.width - refreshButton.width
+                    width: parent.width - listCountText.width - listTitleText.width - refreshButton.width
                     height: 1
                 }
                 
                 Text {
                     id: listCountText
-                    text: networkListView.count + " 项"
+                    text: networkListView.count + qsTr(" 项")
                     font.pixelSize: 12
                     font.family: "Microsoft YaHei UI"
-                    color: "#94a3b8"
+                    color: textLight
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
@@ -262,8 +310,8 @@ Window {
                 anchors.top: listHeader.bottom
                 anchors.topMargin: 8
                 radius: 12
-                color: "#f8fafc"
-                border.color: "#e2e8f0"
+                color: cardColor
+                border.color: borderColor
                 border.width: 1
                 
                 // 表头列标题
@@ -271,7 +319,7 @@ Window {
                     id: columnHeaders
                     width: parent.width - 2
                     height: 40
-                    color: "#f8fafc"
+                    color: cardColor
                     anchors.top: parent.top
                     anchors.topMargin: 1
                     anchors.left: parent.left
@@ -286,7 +334,7 @@ Window {
                         // IP地址列标题
                         Text {
                             width: 150
-                            text: "IP地址"
+                            text: qsTr("IP地址")
                             font.pixelSize: 12
                             font.bold: true
                             font.family: "Microsoft YaHei UI"
@@ -304,7 +352,7 @@ Window {
                         // 网段列标题
                         Text {
                             width: parent.width - 150 - 8 - 1
-                            text: "网段（CIDR）"
+                            text: qsTr("网段(CIDR)")
                             font.pixelSize: 12
                             font.bold: true
                             font.family: "Microsoft YaHei UI"
@@ -329,8 +377,8 @@ Window {
                     // 空状态提示
                     Text {
                         anchors.centerIn: parent
-                        text: "暂无网络信息"
-                        color: "#94a3b8"
+                        text: qsTr("暂无网络信息")
+                        color: textLight
                         font.pixelSize: 14
                         visible: networkListView.count === 0
                     }
@@ -340,9 +388,8 @@ Window {
                         id: networkItem
                         width: networkListView.width - 2
                         height: 60
-                        color: index % 2 === 0 ? "#FFFFFF" : "#F8FAFC"
+                        color: index % 2 === 0 ? Qt.darker(cardColor, 1.05) : cardColor
                         radius: 8
-                        // anchors.horizontalCenter: parent.horizontalCenter
 
                         RowLayout {
                             anchors.fill: parent
@@ -383,7 +430,7 @@ Window {
                                     font.pixelSize: 14
                                     font.bold: true
                                     font.family: "Microsoft YaHei UI"
-                                    color: "#065F46"
+                                    color: successColor
                                     width: parent.width
                                     elide: Text.ElideRight
                                 }
@@ -400,7 +447,6 @@ Window {
                             
                             onEntered: containsMouse = true
                             onExited: containsMouse = false
-                            
                         }
                     }
                 }
@@ -409,20 +455,20 @@ Window {
             // 底部操作按钮
             Rectangle {
                 id: actionButton
-                width: 120
+                width: 125
                 height: 36
                 radius: 18
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
-                color: copyAllMouse.containsMouse ? Qt.darker(primaryColor, 1.1) : primaryColor
+                color: copyAllMouse.containsMouse ? buttonHoverColor : primaryColor
                     
                 Text {
                     id: copyBtn
-                    text: "复制全部信息"
+                    text: qsTr("复制全部信息")
                     font.pixelSize: 13
                     font.bold: true
                     font.family: "Microsoft YaHei UI"
-                    color: "white"
+                    color: buttonTextColor
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
@@ -434,7 +480,7 @@ Window {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         networkInfoModel.copyNetInfoText()
-                        copyBtn.text = "已复制到剪切板"
+                        copyBtn.text = qsTr("已复制到剪切板")
                     }
                 }
             }
