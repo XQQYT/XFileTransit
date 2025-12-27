@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [v1.1.0] - 2025-12-28
+
+## Added
+
+- 增加设置窗口,
+- 支持开机自启选项
+- 支持深浅主题切换
+- 支持中英语言切换
+- 支持自动清理缓存
+- .支持选择缓存路径
+- 支持手动清理缓存
+- 支持自动展开
+- 支持选择自动下载
+- 支持设置并行任务数
+- 支持检查更新，在线更新
+- 优化传输体验
+- 支持取消传输任务
+- 支持停止正在传输的任务
+- 增加下载全部，停止全部按钮
+
 ## [v1.0.0] - 2025-12-05
 
 ## Added
@@ -23,3 +44,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 XFileTransit 致力于让局域网内文件传输变得极简高效，欢迎体验首个正式版本并提出宝贵建议！
 
 [v1.0.0]: https://github.com/XQQYT/XFileTransit/tree/v1.0.0
+[v1.1.0]: https://github.com/XQQYT/XFileTransit/tree/v1.1.0

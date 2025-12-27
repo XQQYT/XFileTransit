@@ -608,11 +608,11 @@ void SettingsModel::checkUpdate()
 
     if (update_source == "github")
     {
-        update_manager.downloadVersionJson(GitPlatform::Github, "XQQYT", "XFileTransit", "feature/add_settings_widget", "src/res/version/version.json");
+        update_manager.downloadVersionJson(GitPlatform::Github, "XQQYT", "XFileTransit", "master", "src/res/version/version.json");
     }
     else if (update_source == "gitee")
     {
-        update_manager.downloadVersionJson(GitPlatform::Gitee, "XQQYT", "XFileTransit", "feature/add_settings_widget", "src/res/version/version.json");
+        update_manager.downloadVersionJson(GitPlatform::Gitee, "XQQYT", "XFileTransit", "master", "src/res/version/version.json");
     }
     else
     {

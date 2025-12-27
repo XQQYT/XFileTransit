@@ -187,32 +187,40 @@ inline namespace AppVersion
     inline static constexpr const char *zh_change_log = R"(
     当前版本
     新增:
-    1. 局域网自动发现，无需服务器或繁琐配置，设备可自动互联。
-    2. 文件拖拽到主窗口即可一键发送，支持多文件同时添加和传输。
-    3. 实时显示传输进度，任务多线程处理，提升性能与体验。
-    4. 支持文件列表去重与批量发送、批量接收。
-    5. 支持自动同步当前文件列表，便于多用户协同。
-    6. 实现文件传输的 TLS +ES 加密，保障数据安全。
-    7. 提供连接状态检测及断开自动清理，确保稳定性。
-    8. 支持传入和下载文件的请求。
-    9. 便捷设备管理与连接管理，适应局域网高效使用场景。
-    10. 支持文件夹与文件的识别与处理，完整本地路径管理。 
-    11. 查看本地网络信息)";
+    一. 增加设置窗口,
+      1.支持开机自启选项
+      2.支持深浅主题切换
+      3.支持中英语言切换
+      4.支持自动清理缓存
+      5.支持选择缓存路径
+      6.支持手动清理缓存
+      7.支持自动展开
+      8.支持选择自动下载
+      9.支持设置并行任务数
+      10.支持检查更新，在线更新
+    二.优化传输体验
+      1.支持取消传输任务
+      2.支持停止正在传输的任务
+      3.增加下载全部，停止全部按钮)";
 
     inline static constexpr const char *en_change_log = R"(
     Current Version
     New Features:
-    1. Automatic LAN Discovery - Devices can automatically connect without servers or complex configuration.
-    2. Drag-and-Drop Support - Simply drag files to the main window for one-click sending, supports multiple files simultaneously.
-    3. Real-time Transfer Progress - Multi-threaded task processing for improved performance and user experience.
-    4. Duplicate Removal & Batch Operations - Supports file list deduplication with batch sending and receiving capabilities.
-    5. Automatic File List Synchronization - Facilitates multi-user collaboration.
-    6. TLS + AES Encryption - Ensures secure file transfer with data protection.
-    7. Connection Status Monitoring - Automatic cleanup on disconnection for enhanced stability.
-    8. Dual-Directional File Requests - Supports both upload and download file requests.
-    9. Device & Connection Management - Optimized for efficient LAN usage scenarios.
-    10. Folder & File Recognition - Complete local path management with full support for directories.
-    11. Local Network Information Viewer - View detailed local network information.)";
+     一、Add Settings Window
+      1. Support startup on boot option
+      2. Support light/dark theme switching
+      3. Support Chinese/English language switching
+      4. Support automatic cache cleanup
+      5. Support selecting cache path
+      6. Support manual cache cleanup
+      7. Support auto-expand
+      8. Support selecting automatic download
+      9. Support setting the number of parallel tasks
+      10. Support update check and online updates
+    二、Optimize Transfer Experience
+      1. Support canceling transfer tasks
+      2. Support stopping ongoing transfer tasks
+      3. Add Download All and Stop All buttons)";
 }
 
 #endif

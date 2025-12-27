@@ -82,7 +82,6 @@ NetworkController::NetworkController() : control_msg_network_driver(std::make_un
                                             {
             control_msg_network_driver->recvMsg([this](std::unique_ptr<NetworkInterface::UserMsg> msg)
                 {
-                    LOG_INFO("recv msg -> " << std::string(msg->data.data(), msg->data.data() + msg->data.size()));
                     json_parser->parse(std::move(msg));
                 });
             return true; });

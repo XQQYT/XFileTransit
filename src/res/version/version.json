@@ -1,8 +1,8 @@
 {
   "app_name": "XFileTransit",
   "description": "局域网文件传输工具",
-  "latest_version": "v1.2.0",
-  "update_time": "2025-12-18",
+  "latest_version": "v1.1.0",
+  "update_time": "2025-12-28",
   "versions": {
     "v1.0.0": {
       "version": "v1.0.0",
@@ -30,24 +30,52 @@
         }
       }
     },
-    "v1.2.0": {
-      "version": "v1.2.0",
-      "release_date": "2025-12-18",
+    "v1.1.0": {
+      "version": "v1.1.0",
+      "release_date": "2025-12-28",
       "zh_changelog": [
-        "测试v1.2.0版本"
+        " 一. 增加设置窗口",
+        "  1.支持开机自启选项",
+        "  2.支持深浅主题切换",
+        "  3.支持中英语言切换",
+        "  4.支持自动清理缓存",
+        "  5.支持选择缓存路径",
+        "  6.支持手动清理缓存",
+        "  7.支持自动展开",
+        "  8.支持选择自动下载",
+        "  9.支持设置并行任务数",
+        "  10.支持检查更新，在线更新",
+        "二.优化传输体验",
+        "  1.支持取消传输任务",
+        "  2.支持停止正在传输的任务",
+        "  3.增加下载全部，停止全部按钮"
       ],
       "en_changelog": [
-        "test v1.2.0 version"
+       " 一、Add Settings Window",
+       "  1. Support startup on boot option",
+       "  2. Support light/dark theme switching",
+       "  3. Support Chinese/English language switching",
+       "  4. Support automatic cache cleanup",
+       "  5. Support selecting cache path",
+       "  6. Support manual cache cleanup",
+       "  7. Support auto-expand",
+       "  8. Support selecting automatic download",
+       "  9. Support setting the number of parallel tasks",
+       "  10. Support update check and online updates",
+       "二、Optimize Transfer Experience",
+       "  1. Support canceling transfer tasks",
+       "  2. Support stopping ongoing transfer tasks",
+       "  3. Add Download All and Stop All buttons"
       ],
       "downloads": {
         "windows": {
-            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.2.0/XFileTransit.exe",
-            "gitee_url": "https://gitee.com/XQQYT/XFileTransit/releases/download/v1.2.0/XFileTransit.tar.gz"
+            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit.exe",
+            "gitee_url": "https://gitee.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit.exe"
 
         },
         "linux": {
-            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.2.0/XFileTransit",
-            "gitee_url": "https://gitee.com/XQQYT/XFileTransit/releases/download/v1.2.0/XFileTransit.tar.gz"
+            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit.tar.gz",
+            "gitee_url": "https://gitee.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit.tar.gz"
         }
       }
     }
