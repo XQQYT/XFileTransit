@@ -6,7 +6,7 @@ XFileTransit 是一款基于 C++ 和 Qt 开发的跨平台局域网文件传输�
 
 [点此进入官网](https://xqqyt.top/) | [版本发布视频](https://www.bilibili.com/video/BV13R2XBJEgG/?share_source=copy_web)
 
-[环境搭建视频](https://b23.tv/YJRrY3s) | [项目文档](https://github.com/XQQYT/XFileTransit/wiki)
+[环境搭建视频](https://b23.tv/YJRrY3s) | [开发指南](https://github.com/XQQYT/XFileTransit/wiki/%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97) | [使用指南，必看！！](https://github.com/XQQYT/XFileTransit/wiki/%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
 
 ## 功能特点
 
