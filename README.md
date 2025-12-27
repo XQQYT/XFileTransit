@@ -29,6 +29,7 @@ XFileTransit 是一款基于 C++ 和 Qt 开发的跨平台局域网文件传输�
 
 3. ##### Linux
    ```
+   sudo apt-get install libxcb-cursor0
    # 编辑 buildLinux.sh，将 Qt6_PATH 设置为你的 Qt 安装路径
    # 运行构建脚本
    bash buildLinux.sh
