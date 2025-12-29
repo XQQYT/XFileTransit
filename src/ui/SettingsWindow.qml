@@ -2243,13 +2243,13 @@ Window {
                                                 width: parent.width / 2
                                                 height: parent.height
                                                 radius: 7
-                                                color: settings_model.updateSource === "gitee" ? primaryColor : "transparent"
+                                                color: settings_model.updateSource === "gitcode" ? primaryColor : "transparent"
                                                 
                                                 Text {
-                                                    text: "Gitee"
+                                                    text: "GitCode"
                                                     anchors.centerIn: parent
                                                     font.pixelSize: 14
-                                                    color: settings_model.updateSource === "gitee" ? whiteColor : textPrimary
+                                                    color: settings_model.updateSource === "gitcode" ? whiteColor : textPrimary
                                                 }
                                                 
                                                 MouseArea {
@@ -2257,7 +2257,7 @@ Window {
                                                     cursorShape: Qt.PointingHandCursor
                                                     hoverEnabled: true
                                                     enabled: !settings_model.isUpdateAvailable
-                                                    onClicked: settings_model.updateSource = "gitee"
+                                                    onClicked: settings_model.updateSource = "gitcode"
                                                     onEntered: {
                                                         if (!settings_model.isUpdateAvailable) {
                                                             parent.opacity = parent.color !== primaryColor ? 0.9 : 1

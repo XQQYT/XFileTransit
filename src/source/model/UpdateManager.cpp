@@ -25,8 +25,8 @@ QString UpdateManager::buildUrl(const GitPlatform platform, const QString &owner
             .arg(repo)
             .arg(branch)
             .arg(file_path);
-    case GitPlatform::Gitee:
-        return QString("https://gitee.com/%1/%2/raw/%3/%4")
+    case GitPlatform::GitCode:
+        return QString("https://raw.gitcode.com/%1/%2/raw/%3/%4")
             .arg(owner)
             .arg(repo)
             .arg(branch)
@@ -152,7 +152,7 @@ VersionInfo UpdateManager::VersionParser::parse(QByteArray version_json)
     {
         QJsonObject windows_obj = download_url_obj["windows"].toObject();
         version_info.win_github_url = windows_obj["github_url"].toString();
-        version_info.win_gitee_url = windows_obj["gitee_url"].toString();
+        version_info.win_gitcode_url = windows_obj["gitcode_url"].toString();
     }
     else
     {
@@ -163,7 +163,7 @@ VersionInfo UpdateManager::VersionParser::parse(QByteArray version_json)
     {
         QJsonObject linux_obj = download_url_obj["linux"].toObject();
         version_info.linux_github_url = linux_obj["github_url"].toString();
-        version_info.linux_gitee_url = linux_obj["gitee_url"].toString();
+        version_info.linux_gitcode_url = linux_obj["gitcode_url"].toString();
     }
     else
     {

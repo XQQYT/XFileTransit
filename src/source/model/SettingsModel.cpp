@@ -610,7 +610,7 @@ void SettingsModel::checkUpdate(bool show_in_new)
     {
         new_version_info = version_info;
         setIsUpdateAvailable(true);
-        setChangeLog(current_language ? version_info.zh_changelog : version_info.en_changelog);
+        setChangeLog(current_language ? version_info.en_changelog : version_info.zh_changelog);
         setNewVersion(version_info.lastest_version);
         setReleaseDate(version_info.release_date);
         emit versionInfoShow(tr("发现新版本"));
@@ -628,11 +628,11 @@ void SettingsModel::checkUpdate(bool show_in_new)
 
     if (update_source == "github")
     {
-        update_manager.downloadVersionJson(GitPlatform::Github, "XQQYT", "XFileTransit", "master", "src/res/version/version.json");
+        update_manager.downloadVersionJson(GitPlatform::Github, "XQQYT", "XFileTransit", "dev", "src/res/version/version.json");
     }
-    else if (update_source == "gitee")
+    else if (update_source == "gitcode")
     {
-        update_manager.downloadVersionJson(GitPlatform::Gitee, "XQQYT", "XFileTransit", "master", "src/res/version/version.json");
+        update_manager.downloadVersionJson(GitPlatform::GitCode, "XQQYT", "XFileTransit", "dev", "src/res/version/version.json");
     }
     else
     {
@@ -674,6 +674,7 @@ void SettingsModel::onPackageDownloadDone(QString path)
     QString tempScriptPath = QDir::tempPath() + "/updateXFileTransit.sh";
     QFile temp_script(tempScriptPath);
 
+    QFile::remove(tempScriptPath);
     scriptFile.copy(tempScriptPath);
     temp_script.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
 
@@ -684,16 +685,6 @@ void SettingsModel::onPackageDownloadDone(QString path)
     if (dir.cdUp())
     {
         installDir = dir.absolutePath();
-    }
-
-    QString sudoCmd = "pkexec";
-    if (QProcess::execute("which", {"gksu"}) == 0)
-    {
-        sudoCmd = "gksu";
-    }
-    else if (QProcess::execute("which", {"kdesudo"}) == 0)
-    {
-        sudoCmd = "kdesudo";
     }
 
     QProcess *process = new QProcess();
@@ -724,8 +715,7 @@ void SettingsModel::onPackageDownloadDone(QString path)
 
                 process->deleteLater();
             });
-
-    process->setProgram(sudoCmd);
+    process->setProgram("/bin/bash");
     process->setArguments({tempScriptPath, updatePackage, installDir});
     process->start();
 
@@ -753,12 +743,12 @@ void SettingsModel::updateSoftware()
         update_manager.downloadPackage(new_version_info.linux_github_url);
 #endif
     }
-    else if (update_source == "gitee")
+    else if (update_source == "gitcode")
     {
 #ifdef _WIN32
-        update_manager.downloadPackage(new_version_info.win_gitee_url);
+        update_manager.downloadPackage(new_version_info.win_gitcode_url);
 #else
-        update_manager.downloadPackage(new_version_info.linux_gitee_url);
+        update_manager.downloadPackage(new_version_info.linux_gitcode_url);
 #endif
     }
     else

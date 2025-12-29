@@ -69,13 +69,13 @@
       ],
       "downloads": {
         "windows": {
-            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit.exe",
-            "gitee_url": "https://gitee.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit.exe"
+            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit-1.1.0_x64.exe",
+            "gitcode_url": "https://gitcode.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit-1.1.0_x64.exe"
 
         },
         "linux": {
-            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit.tar.gz",
-            "gitee_url": "https://gitee.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit.tar.gz"
+            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit-1.1.0_amd64.tar.gz",
+            "gitcode_url": "https://gitcode.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit-1.1.0_amd64.tar.gz"
         }
       }
     }

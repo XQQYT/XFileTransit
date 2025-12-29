@@ -11,7 +11,7 @@
 
 enum class GitPlatform
 {
-    Gitee,
+    GitCode,
     Github
 };
 struct VersionInfo
@@ -22,8 +22,8 @@ struct VersionInfo
     QString release_date;
     QString win_github_url;
     QString linux_github_url;
-    QString win_gitee_url;
-    QString linux_gitee_url;
+    QString win_gitcode_url;
+    QString linux_gitcode_url;
 };
 class UpdateManager : public QObject
 {

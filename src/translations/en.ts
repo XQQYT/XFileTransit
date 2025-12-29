@@ -555,27 +555,27 @@
     </message>
     <message>
         <location filename="../source/model/SettingsModel.cpp" line="639"/>
-        <location filename="../source/model/SettingsModel.cpp" line="766"/>
+        <location filename="../source/model/SettingsModel.cpp" line="756"/>
         <source>更新源错误</source>
         <translation>Update source error</translation>
     </message>
     <message>
-        <location filename="../source/model/SettingsModel.cpp" line="710"/>
+        <location filename="../source/model/SettingsModel.cpp" line="701"/>
         <source>错误: %1</source>
         <translation>Error: %1</translation>
     </message>
     <message>
-        <location filename="../source/model/SettingsModel.cpp" line="718"/>
+        <location filename="../source/model/SettingsModel.cpp" line="709"/>
         <source>更新成功，请重启应用</source>
         <translation>Update successful, please restart the application</translation>
     </message>
     <message>
-        <location filename="../source/model/SettingsModel.cpp" line="722"/>
+        <location filename="../source/model/SettingsModel.cpp" line="713"/>
         <source>更新失败</source>
         <translation>Update failed</translation>
     </message>
     <message>
-        <location filename="../source/model/SettingsModel.cpp" line="734"/>
+        <location filename="../source/model/SettingsModel.cpp" line="724"/>
         <source>更新脚本启动失败</source>
         <translation>Update script failed to start</translation>
     </message>

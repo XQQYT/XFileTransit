@@ -164,6 +164,10 @@ for qml_module in "${QML_MODULES[@]}"; do
     fi
 done
 
+mkdir "$TAR_ROOT/tmp_file"
+GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o "$TAR_ROOT"/tmp_file/ConfigMergerLinux ./tools/update/configMerger.go
+cp "src/res/settings/settings.json" "$TAR_ROOT/tmp_file/settings.json"
+
 # 设置 RPATH 的函数
 function set_rpath() {
     local target_file="$1"

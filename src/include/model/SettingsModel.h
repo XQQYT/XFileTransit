@@ -124,7 +124,7 @@ private:
 
 private:
     int current_theme;    // 0: light, 1: dark
-    int current_language; // 0: English, 1: Chinese
+    int current_language; // 0: Chinese, 1: English
     bool auto_start;
     QUrl cache_url;
     QString cache_path;

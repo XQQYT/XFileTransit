@@ -90,8 +90,19 @@ fi
 
 chmod 755 /opt/XFileTransit/XFileTransit 2>/dev/null || true
 
-echo "XFileTransit $1 安装完成！"
-echo "您可以在应用程序菜单中找到它，或直接运行: /opt/XFileTransit/XFileTransit"
+if [ -f "/opt/XFileTransit/tmp_file/settings.json" ] && [ -f "/opt/XFileTransit/tmp_file/ConfigMergerLinux" ]; then
+    echo "Merging configuration files..."
+    chmod +x /opt/XFileTransit/tmp_file/ConfigMergerLinux 2>/dev/null || true
+    cd /opt/XFileTransit
+    ./tmp_file/ConfigMergerLinux -new ./tmp_file/settings.json -current ./settings.json 2>/dev/null || true
+    
+    rm -rf /opt/XFileTransit/tmp_file 2>/dev/null || true
+else
+    echo "No configuration to merge."
+fi
+
+echo "XFileTransit $1 installation completed!"
+echo "You can find it in the application menu, or run directly: /opt/XFileTransit/XFileTransit"
 EOF
 chmod 755 "$DEB_ROOT/DEBIAN/postinst"
 
@@ -107,7 +118,7 @@ if [ -d "$desktop_path" ]; then
     rm -f "$desktop_path/XFileTransit.desktop"
 fi
 
-echo "正在卸载 XFileTransit..."
+echo "Removing XFileTransit..."
 EOF
 
 chmod 755 "$DEB_ROOT/DEBIAN/prerm"
@@ -120,6 +131,10 @@ else
     echo "错误: 找不到可执行文件: $EXECUTABLE"
     exit 1
 fi
+
+mkdir "$DEB_ROOT/opt/XFileTransit/tmp_file"
+GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o "$DEB_ROOT/opt/XFileTransit/tmp_file/ConfigMergerLinux" ./tools/update/configMerger.go
+cp "src/res/settings/settings.json" "$DEB_ROOT/opt/XFileTransit/tmp_file/settings.json"
 
 echo "复制应用程序图标..."
 ICON_SOURCES=(
