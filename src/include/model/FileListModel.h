@@ -18,7 +18,7 @@ class FileListModel : public QAbstractListModel
   Q_OBJECT
 
 public:
-  static inline const uint32_t auto_download_file_size = 50 * 1024 * 1024; // 50MB
+  static inline uint32_t auto_download_file_size = 50 * 1024 * 1024; // 50MB
   enum FileStatus
   {
     StatusPending = 0,       // 等待
@@ -89,13 +89,14 @@ private:
   void onDownLoadProgress(uint32_t id, uint8_t progress, uint32_t speed, bool is_end);
   void onHaveCancelFile(uint32_t id);
   std::pair<int, FileInfo &> findFileInfoById(uint32_t id);
-  bool auto_expand;
-  bool auto_clear_cache;
+  void refreshAutoDownloadSize(int size); // 单位B
 
 private:
   QList<FileInfo> file_list;
   QHash<uint32_t, QVector<uint32_t>> speed_history;
   bool auto_download{true};
+  bool auto_expand;
+  bool auto_clear_cache;
 };
 
 struct FileInfo

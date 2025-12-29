@@ -1500,7 +1500,7 @@ Window {
                         
                         Rectangle {
                             width: transferContentColumn.width
-                            height: 140
+                            height: settings_model.autoDownload ? 200 : 140
                             radius: 16
                             color: cardColor
                             border.color: borderColor
@@ -1514,7 +1514,6 @@ Window {
                                 Row {
                                     width: parent.width
                                     spacing: 12
-                                    
                                     
                                     Column {
                                         spacing: 2
@@ -1530,7 +1529,7 @@ Window {
                                         }
                                         
                                         Text {
-                                            text: qsTr("小于50MB的文件自动开始下载")
+                                            text: qsTr("小于 %0 MB的文件自动开始下载").arg(settings_model.autoDownloadThreshold)
                                             font.pixelSize: 13
                                             color: textSecondary
                                         }
@@ -1575,6 +1574,145 @@ Window {
                                             cursorShape: Qt.PointingHandCursor
                                             onClicked: {
                                                 settings_model.autoDownload = !settings_model.autoDownload
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                // 片段选择器
+                                Column {
+                                    width: parent.width
+                                    spacing: 12
+                                    visible: settings_model.autoDownload  // 只在启用自动下载时显示
+                                    
+                                    Rectangle {
+                                        width: parent.width
+                                        height: 48
+                                        radius: 12
+                                        color: Qt.lighter(cardColor, 1.1)
+                                        border.color: Qt.darker(cardColor, 1.1)
+                                        border.width: 1
+                                        
+                                        Row {
+                                            anchors.fill: parent
+                                            anchors.margins: 4
+                                            spacing: 0
+                                            
+                                            // 20MB
+                                            Rectangle {
+                                                width: parent.width / 4
+                                                height: parent.height
+                                                radius: 8
+                                                color: settings_model.autoDownloadThreshold === 20 ? primaryColor : "transparent"
+                                                
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: "20MB"
+                                                    font.pixelSize: 14
+                                                    font.weight: settings_model.autoDownloadThreshold === 20 ? Font.Bold : Font.Normal
+                                                    color: settings_model.autoDownloadThreshold === 20 ? "white" : textPrimary
+                                                }
+                                                
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: {
+                                                        settings_model.autoDownloadThreshold = 20
+                                                    }
+                                                }
+                                            }
+                                            
+                                            Rectangle {
+                                                width: 1
+                                                height: parent.height * 0.6
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                color: Qt.darker(cardColor, 1.2)
+                                            }
+                                            
+                                            // 50MB
+                                            Rectangle {
+                                                width: parent.width / 4
+                                                height: parent.height
+                                                radius: 8
+                                                color: settings_model.autoDownloadThreshold === 50 ? primaryColor : "transparent"
+                                                
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: "50MB"
+                                                    font.pixelSize: 14
+                                                    font.weight: settings_model.autoDownloadThreshold === 50 ? Font.Bold : Font.Normal
+                                                    color: settings_model.autoDownloadThreshold === 50 ? "white" : textPrimary
+                                                }
+                                                
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: {
+                                                        settings_model.autoDownloadThreshold = 50
+                                                    }
+                                                }
+                                            }
+                                            
+                                            Rectangle {
+                                                width: 1
+                                                height: parent.height * 0.6
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                color: Qt.darker(cardColor, 1.2)
+                                            }
+                                            
+                                            // 100MB
+                                            Rectangle {
+                                                width: parent.width / 4
+                                                height: parent.height
+                                                radius: 8
+                                                color: settings_model.autoDownloadThreshold === 100 ? primaryColor : "transparent"
+                                                
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: "100MB"
+                                                    font.pixelSize: 14
+                                                    font.weight: settings_model.autoDownloadThreshold === 100 ? Font.Bold : Font.Normal
+                                                    color: settings_model.autoDownloadThreshold === 100 ? "white" : textPrimary
+                                                }
+                                                
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: {
+                                                        settings_model.autoDownloadThreshold = 100
+                                                    }
+                                                }
+                                            }
+                                            
+                                            Rectangle {
+                                                width: 1
+                                                height: parent.height * 0.6
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                color: Qt.darker(cardColor, 1.2)
+                                            }
+                                            
+                                            // 200MB
+                                            Rectangle {
+                                                width: parent.width / 4
+                                                height: parent.height
+                                                radius: 8
+                                                color: settings_model.autoDownloadThreshold === 200 ? primaryColor : "transparent"
+                                                
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: "200MB"
+                                                    font.pixelSize: 14
+                                                    font.weight: settings_model.autoDownloadThreshold === 200 ? Font.Bold : Font.Normal
+                                                    color: settings_model.autoDownloadThreshold === 200 ? "white" : textPrimary
+                                                }
+                                                
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: {
+                                                        settings_model.autoDownloadThreshold = 200
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -1648,7 +1786,7 @@ Window {
                                     Item { width: 20; height: 1 }
                                     
                                     Rectangle {
-                                        id: sliderTrack
+                                        id: sliderTrack2
                                         width: 200
                                         height: 8
                                         radius: 4
@@ -1664,7 +1802,7 @@ Window {
                                         }
                                         
                                         Rectangle {
-                                            id: sliderHandle
+                                            id: sliderHandle2
                                             width: 20
                                             height: 20
                                             radius: 10
@@ -1683,8 +1821,8 @@ Window {
                                             property bool isDragging: false
                                             
                                             function updateValue(mouseX) {
-                                                var pos = Math.max(0, Math.min(mouseX, sliderTrack.width))
-                                                var ratio = pos / sliderTrack.width
+                                                var pos = Math.max(0, Math.min(mouseX, sliderTrack2.width))
+                                                var ratio = pos / sliderTrack2.width
                                                 var newValue = Math.round(ratio * 9) + 1
                                                 settings_model.concurrentTransfers = newValue
                                             }

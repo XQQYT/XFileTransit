@@ -314,6 +314,22 @@ void SettingsModel::setAutoDownload(bool enable)
     }
 }
 
+void SettingsModel::setAutoDownloadThreshold(int threshold)
+{
+    if (auto_download_threshold != threshold)
+    {
+        auto_download_threshold = threshold;
+        emit autoDownloadThresholdChanged(auto_download_threshold);
+        emit settingsChanged(Settings::Item::AutoDownloadThreshold, auto_download_threshold);
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::Transfer)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::Transfer), std::string("auto_download_threshold"), std::to_string(threshold));
+            flush_config_timer->start();
+        }
+    }
+}
+
 void SettingsModel::setConcurrentTransfers(int transfers)
 {
     if (concurrent_transfers != transfers)
@@ -514,6 +530,7 @@ void SettingsModel::setTransitConfig(std::shared_ptr<std::unordered_map<std::str
     beginLoadConfig(Settings::SettingsGroup::Transfer);
 
     setAutoDownload(std::stoi((*config)["auto_download"]));
+    setAutoDownloadThreshold(std::stoi((*config)["auto_download_threshold"]));
     setConcurrentTransfers(std::stoi((*config)["concurrent_task"]));
 
     endLoadConfig(Settings::SettingsGroup::Transfer);

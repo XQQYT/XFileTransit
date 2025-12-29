@@ -24,6 +24,7 @@ class SettingsModel : public QObject
     Q_PROPERTY(bool autoClearCache READ autoClearCache WRITE setAutoClearCache NOTIFY autoClearCacheChanged)
     Q_PROPERTY(QString cacheSize READ cacheSize WRITE setCacheSize NOTIFY cacheSizeChanged)
     Q_PROPERTY(bool autoDownload READ autoDownload WRITE setAutoDownload NOTIFY autoDownloadChanged)
+    Q_PROPERTY(int autoDownloadThreshold READ autoDownloadThreshold WRITE setAutoDownloadThreshold NOTIFY autoDownloadThresholdChanged)
     Q_PROPERTY(int concurrentTransfers READ concurrentTransfers WRITE setConcurrentTransfers NOTIFY concurrentTransfersChanged)
     Q_PROPERTY(bool expandOnAction READ expandOnAction WRITE setExpandOnAction NOTIFY expandOnActionChanged)
     Q_PROPERTY(QString appVersion READ appVersion CONSTANT)
@@ -43,6 +44,7 @@ public:
     QString cacheSize() const { return cache_size; }
     bool autoClearCache() const { return auto_clear_cache; }
     bool autoDownload() const { return auto_download; }
+    int autoDownloadThreshold() const { return auto_download_threshold; }
     int concurrentTransfers() const { return concurrent_transfers; }
     bool expandOnAction() const { return expand_on_action; }
     QString appVersion() const { return app_version; }
@@ -60,6 +62,7 @@ public:
     void setCacheSize(const QString &size);
     void setAutoClearCache(bool enable);
     void setAutoDownload(bool enable);
+    void setAutoDownloadThreshold(int threshold);
     void setConcurrentTransfers(int transfers);
     void setExpandOnAction(bool expand);
     void setChangeLog(const QString &log);
@@ -85,6 +88,7 @@ signals:
     void cacheSizeChanged(const QString &size);
     void autoClearCacheChanged(bool enable);
     void autoDownloadChanged(bool enable);
+    void autoDownloadThresholdChanged(int threshold);
     void concurrentTransfersChanged(int transfers);
     void expandOnActionChanged(bool expand);
     void changeLogChanged(const QString &log);
@@ -127,6 +131,7 @@ private:
     QString cache_size;
     bool auto_clear_cache;
     bool auto_download;
+    int auto_download_threshold;
     int concurrent_transfers;
     bool expand_on_action;
     const QString app_version = AppVersion::string;

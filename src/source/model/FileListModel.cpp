@@ -563,6 +563,18 @@ void FileListModel::setAutoDownload(bool enable)
     auto_download = enable;
 }
 
+void FileListModel::refreshAutoDownloadSize(int size)
+{
+    auto_download_file_size = size;
+    for (int i = 0; i < file_list.size(); ++i)
+    {
+        if (file_list[i].file_status == FileStatus::StatusRemoteDefault && file_list[i].file_size <= size)
+        {
+            downloadFile(i);
+        }
+    }
+}
+
 void FileListModel::onSettingsChanged(Settings::Item item, QVariant value)
 {
     switch (item)
@@ -580,6 +592,9 @@ void FileListModel::onSettingsChanged(Settings::Item item, QVariant value)
         break;
     case Settings::Item::AutoClearCache:
         auto_clear_cache = value.toBool();
+        break;
+    case Settings::Item::AutoDownloadThreshold:
+        refreshAutoDownloadSize(value.toInt() * 1024 * 1024);
         break;
     default:
         return;

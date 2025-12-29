@@ -9,6 +9,7 @@
   },
   "Transfer": {
     "auto_download": "1",
+    "auto_download_threshold": "50",
     "concurrent_task": "4"
   },
   "Notification": {

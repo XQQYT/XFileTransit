@@ -132,6 +132,7 @@ namespace Settings
         CachePath,
         AutoClearCache,
         AutoDownload,
+        AutoDownloadThreshold,
         ConcurrentTransfers,
         ExpandOnAction,
         AppVersion,
