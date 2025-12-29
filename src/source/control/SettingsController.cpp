@@ -5,8 +5,11 @@
 
 SettingsController::SettingsController() : settings_driver(std::make_unique<SettingsFile>())
 {
-    settings_driver->load(Settings::config_file);
+}
 
+void SettingsController::loadSettingsFromFile()
+{
+    settings_driver->load(Settings::config_file);
     general_config = std::make_shared<std::unordered_map<std::string, std::string>>(
         settings_driver->getConfig(Settings::SettingsGroup::General));
 

@@ -9,6 +9,7 @@ class SettingsController
 {
 public:
     SettingsController();
+    void loadSettingsFromFile();
     void onGetConfig(std::vector<uint8_t> groups);
     void onUpdateValue(uint8_t group, std::string key, std::string value);
     void onFlushConfig();

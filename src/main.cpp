@@ -16,6 +16,7 @@
 // common
 #include "common/DebugOutputer.h"
 
+#include "thirdparty/nlohmann/json.hpp"
 #include <QtGui/QFont>
 
 static const QString settingsPath = "settings.json";
@@ -90,24 +91,22 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/settings/write_into_file");
 }
 
-void checkSettingsFile()
+void repairSettingsFile()
 {
-    if (!QFile::exists(settingsPath))
+    QFile res_file(":/settings/settings.json");
+    if (res_file.exists())
     {
-        QFile res_file(":/settings/settings.json");
-        if (res_file.exists())
-        {
-            if (res_file.copy(settingsPath))
-            {
-                QFile::setPermissions(settingsPath,
-                                      QFile::ReadOwner | QFile::WriteOwner |
-                                          QFile::ReadGroup | QFile::ReadOther);
-            }
-            else
-            {
-                LOG_ERROR("Failed to copy file:" << res_file.errorString().toStdString());
-            }
-        }
+        QFile::remove(settingsPath);
+    }
+    if (res_file.copy(settingsPath))
+    {
+        QFile::setPermissions(settingsPath,
+                              QFile::ReadOwner | QFile::WriteOwner |
+                                  QFile::ReadGroup | QFile::ReadOther);
+    }
+    else
+    {
+        LOG_ERROR("Failed to copy file:" << res_file.errorString().toStdString());
     }
 }
 
@@ -161,11 +160,26 @@ int main(int argc, char *argv[])
     // 初始化组件
     EventBusManager::instance().startEventBus();
     initRegisterEvents();
-    checkSettingsFile();
+    if (!QFile::exists(settingsPath))
+    {
+        repairSettingsFile();
+    }
 
     NetworkController network_controller;
     FileSyncEngine file_sync_engine;
     SettingsController settings_controller;
+    // 修复配置文件
+    try
+    {
+        settings_controller.loadSettingsFromFile();
+    }
+    catch (nlohmann::json_abi_v3_12_0::detail::parse_error)
+    {
+        repairSettingsFile();
+        settings_controller.loadSettingsFromFile();
+        QMessageBox::information(nullptr, "提示",
+                                 "配置文件损坏，已恢复默认设置");
+    }
 
     // 创建模型实例
     auto file_list_model = ModelManager::getInstance().getFileListModel();
