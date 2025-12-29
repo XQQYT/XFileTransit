@@ -2170,7 +2170,7 @@ Window {
                                                     load_dialog.onButtonClicked.disconnect(curLoadingBtnHandler)
                                                 }
                                                 if(!settings_model.isUpdateAvailable){
-                                                    settings_model.checkUpdate()
+                                                    settings_model.checkUpdate(false)
                                                     load_dialog.show(qsTr("正在获取版本信息"), qsTr("取消"))
                                                     curLoadingBtnHandler = function cancelGetVersionInfo(){
                                                         Qt.callLater(function() {

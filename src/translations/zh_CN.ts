@@ -549,33 +549,33 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../source/model/SettingsModel.cpp" line="603"/>
+        <location filename="../source/model/SettingsModel.cpp" line="605"/>
         <source>当前已是最新版本</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../source/model/SettingsModel.cpp" line="619"/>
-        <location filename="../source/model/SettingsModel.cpp" line="746"/>
+        <location filename="../source/model/SettingsModel.cpp" line="622"/>
+        <location filename="../source/model/SettingsModel.cpp" line="749"/>
         <source>更新源错误</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../source/model/SettingsModel.cpp" line="690"/>
+        <location filename="../source/model/SettingsModel.cpp" line="693"/>
         <source>错误: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../source/model/SettingsModel.cpp" line="698"/>
+        <location filename="../source/model/SettingsModel.cpp" line="701"/>
         <source>更新成功，请重启应用</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../source/model/SettingsModel.cpp" line="702"/>
+        <location filename="../source/model/SettingsModel.cpp" line="705"/>
         <source>更新失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../source/model/SettingsModel.cpp" line="714"/>
+        <location filename="../source/model/SettingsModel.cpp" line="717"/>
         <source>更新脚本启动失败</source>
         <translation type="unfinished"></translation>
     </message>

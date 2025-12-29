@@ -555,7 +555,7 @@ void SettingsModel::setAboutConfig(std::shared_ptr<std::unordered_map<std::strin
             (*config)["last_check_update"] = std::to_string(timestamp_s);
             EventBusManager::instance().publish("/settings/update_settings_value",
                                                 static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("last_check_update"), std::to_string(timestamp_s));
-            checkUpdate();
+            checkUpdate(true);
         }
     }
 
@@ -586,7 +586,7 @@ int compareVersions(const QString &versionA, const QString &versionB)
     return 0;
 }
 
-void SettingsModel::checkUpdate()
+void SettingsModel::checkUpdate(bool show_in_new)
 {
     connect(&update_manager, &UpdateManager::versionJsonParsedDone, [=](VersionInfo version_info)
             { if (compareVersions(version_info.lastest_version, AppVersion::string) > 0)
@@ -600,7 +600,10 @@ void SettingsModel::checkUpdate()
     }
         else
     {
-        emit versionInfoShow(tr("当前已是最新版本"));
+        if(!show_in_new)
+        {
+            emit versionInfoShow(tr("当前已是最新版本"));
+        }
     } });
 
     connect(&update_manager, &UpdateManager::downloadError, [=](const QString &error_msg)

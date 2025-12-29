@@ -38,7 +38,7 @@ public:
     explicit SettingsModel(QObject *parent = nullptr);
     int currentTheme() const { return current_theme; }
     int currentLanguage() const { return current_language; }
-    bool autoStart() const {return auto_start;}
+    bool autoStart() const { return auto_start; }
     QString cachePath() const { return cache_path; }
     QString cacheSize() const { return cache_size; }
     bool autoClearCache() const { return auto_clear_cache; }
@@ -72,7 +72,7 @@ public:
 
     Q_INVOKABLE void initSettings();
     Q_INVOKABLE void clearCache();
-    Q_INVOKABLE void checkUpdate();
+    Q_INVOKABLE void checkUpdate(bool show_in_new);
     Q_INVOKABLE void updateSoftware();
     Q_INVOKABLE void restartApplication();
     Q_INVOKABLE void cancelDownload();
