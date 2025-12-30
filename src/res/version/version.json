@@ -78,6 +78,35 @@
             "gitcode_url": "https://gitcode.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit-1.1.0_amd64.tar.gz"
         }
       }
+    },
+    "v1.1.1": {
+      "version": "v1.1.1",
+      "release_date": "2025-12-30",
+      "zh_changelog": [
+        " 1. 增加设置代理选项",
+        " 2. 增加自动下载阈值选项",
+        " 3. 增加自动修复配置文件",
+        " 4. 修复自动更新在没有新版本",
+        " 5. 修复配置文件概率性损坏的问题"
+      ],
+      "en_changelog": [
+        " 1. Add proxy settings option",
+        " 2. Add automatic download threshold option",
+        " 3. Add automatic configuration file repair",
+        " 4. Fix auto-update when there are no new versions",
+        " 5. Fix probabilistic configuration file corruption issues"
+      ],
+      "downloads": {
+        "windows": {
+            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.1.1/XFileTransit-1.1.1_x64.exe",
+            "gitcode_url": "https://gitcode.com/XQQYT/XFileTransit/releases/download/v1.1.1/XFileTransit-1.1.1_x64.exe"
+
+        },
+        "linux": {
+            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit-1.1.1_amd64.tar.gz",
+            "gitcode_url": "https://gitcode.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit-1.1.1_amd64.tar.gz"
+        }
+      }
     }
   }
 }
