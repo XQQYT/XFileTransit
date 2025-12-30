@@ -2517,7 +2517,7 @@ Window {
                                         text: settings_model.proxyTestResult
                                         font.pixelSize: 14
                                         color: {
-                                            if (settings_model.proxyTestResult === "连接成功") {
+                                            if (settings_model.proxyTestResult === qsTr("连接成功")) {
                                                 return accentGreen
                                             } else{
                                                 return accentRed

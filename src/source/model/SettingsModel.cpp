@@ -377,7 +377,6 @@ void SettingsModel::setIsUpdateAvailable(bool available)
         {
             EventBusManager::instance().publish("/settings/update_settings_value",
                                                 static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("update_is_avaible"), std::to_string(available));
-            qDebug() << "write " << std::to_string(available);
             flush_config_timer->start();
         }
     }
@@ -402,7 +401,6 @@ void SettingsModel::setNewVersion(const QString &nv)
         {
             EventBusManager::instance().publish("/settings/update_settings_value",
                                                 static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("new_version"), new_version.toStdString());
-            qDebug() << "write " << new_version.toStdString();
 
             flush_config_timer->start();
         }
@@ -419,7 +417,6 @@ void SettingsModel::setReleaseDate(const QString &time)
         {
             EventBusManager::instance().publish("/settings/update_settings_value",
                                                 static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("release_date"), release_date.toStdString());
-            qDebug() << "write " << release_date.toStdString();
             flush_config_timer->start();
         }
     }
@@ -900,7 +897,7 @@ void SettingsModel::cancelDownload()
 void SettingsModel::testProxyConnection()
 {
     connect(&update_manager, &UpdateManager::testResult, this, [=](bool ret)
-            { setProxyTestResult(ret ? "连接成功":"连接失败");
+            { setProxyTestResult(ret ? tr("连接成功"):tr("连接失败"));
             emit testProxyDone(); }, Qt::SingleShotConnection);
     connect(&update_manager, &UpdateManager::testError, this, [=](const QString error)
             { emit Error(error); }, Qt::SingleShotConnection);
