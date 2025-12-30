@@ -141,6 +141,36 @@ ldd "$EXECUTABLE" | awk '{ print $3 }' | grep "^/" | while read -r lib; do
     fi
 done
 
+EXCLUDE_LIB=(
+    "libc.so.6"
+    "libdl.so.2"
+    "libm.so.6"
+    "libpthread.so.0"
+    "librt.so.1"
+    "libresolv.so.2"
+    "libgcc_s.so.1"
+    "libstdc++.so.6"
+    "libz.so.1"
+    "libX11.so.6"
+    "libXau.so.6"
+    "libXdmcp.so.6"
+    "libxcb.so.1"
+    "libxkbcommon.so.0"
+    "libEGL.so.1"
+    "libGL.so.1"
+    "libGLX.so.0"
+    "libOpenGL.so.0"
+    "libbz2.so.1.0"
+    "libexpat.so.1"
+    "liblzma.so.5"
+    "libzstd.so.1"
+)
+
+for lib in "${EXCLUDE_LIB[@]}"; do
+    echo "移除 $lib"
+    rm -f "$TAR_ROOT/lib/$lib" 2>/dev/null || true
+done
+
 echo "3. 复制 Qt 插件和 QML 模块..."
 
 # 复制 Qt 插件
