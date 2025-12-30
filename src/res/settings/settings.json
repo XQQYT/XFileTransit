@@ -21,6 +21,12 @@
     "update_is_avaible":"0",
     "new_version":"",
     "release_date":"",
-    "update_source":"gitcode"
+    "update_source":"gitcode",
+    "proxy_enabled":"0",
+    "proxy_address":"",
+    "proxy_port":"",
+    "proxy_auth_enabled":"0",
+    "proxy_username":"",
+    "proxy_password":""
   }
 }

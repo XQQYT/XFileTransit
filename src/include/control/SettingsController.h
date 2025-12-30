@@ -16,7 +16,7 @@ public:
 
 private:
     std::unique_ptr<SettingsFileInterface> settings_driver;
-    // 内存中的配置，当调用updateConfig和setValue时才写入文件
+    // 内存中的配置，当onFlushConfig时才写入文件
     std::shared_ptr<std::unordered_map<std::string, std::string>> general_config;
     std::shared_ptr<std::unordered_map<std::string, std::string>> file_config;
     std::shared_ptr<std::unordered_map<std::string, std::string>> transfer_config;

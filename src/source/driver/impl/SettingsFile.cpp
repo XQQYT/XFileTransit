@@ -37,6 +37,7 @@ void SettingsFile::flush()
     out << full_json_str;
     out.close();
 }
+
 void SettingsFile::updateConfig(const Settings::SettingsGroup config_name, const std::unordered_map<std::string, std::string> config)
 {
     std::string config_name_str = Settings::toString(config_name);
@@ -46,7 +47,6 @@ void SettingsFile::updateConfig(const Settings::SettingsGroup config_name, const
         return;
     }
     full_config[config_name_str] = config;
-    flush();
 }
 
 void SettingsFile::setValue(const Settings::SettingsGroup config_name, const std::string key, const std::string value)
@@ -65,5 +65,4 @@ void SettingsFile::setValue(const Settings::SettingsGroup config_name, const std
     }
     config_json[key] = value;
     full_config[config_name_str] = config_json;
-    flush();
 }

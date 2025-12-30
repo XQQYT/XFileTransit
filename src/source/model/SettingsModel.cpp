@@ -377,6 +377,7 @@ void SettingsModel::setIsUpdateAvailable(bool available)
         {
             EventBusManager::instance().publish("/settings/update_settings_value",
                                                 static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("update_is_avaible"), std::to_string(available));
+            qDebug() << "write " << std::to_string(available);
             flush_config_timer->start();
         }
     }
@@ -401,6 +402,8 @@ void SettingsModel::setNewVersion(const QString &nv)
         {
             EventBusManager::instance().publish("/settings/update_settings_value",
                                                 static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("new_version"), new_version.toStdString());
+            qDebug() << "write " << new_version.toStdString();
+
             flush_config_timer->start();
         }
     }
@@ -412,9 +415,13 @@ void SettingsModel::setReleaseDate(const QString &time)
     {
         release_date = time;
         emit releaseDateChanged(release_date);
-        EventBusManager::instance().publish("/settings/update_settings_value",
-                                            static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("release_date"), release_date.toStdString());
-        flush_config_timer->start();
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::About)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("release_date"), release_date.toStdString());
+            qDebug() << "write " << release_date.toStdString();
+            flush_config_timer->start();
+        }
     }
 }
 
@@ -445,6 +452,106 @@ void SettingsModel::setAutoCheckUpdate(bool enable)
                                                 static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("auto_check_update"), std::to_string(auto_check_update));
             flush_config_timer->start();
         }
+    }
+}
+
+void SettingsModel::setProxyEnabled(bool enable)
+{
+    if (proxy_enabled != enable)
+    {
+        proxy_enabled = enable;
+        emit proxyEnabledChanged(proxy_enabled);
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::About)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("proxy_enabled"), std::to_string(proxy_enabled));
+            flush_config_timer->start();
+        }
+    }
+}
+
+void SettingsModel::setProxyAddress(const QString &address)
+{
+    if (proxy_address != address)
+    {
+        proxy_address = address;
+        emit proxyAddressChanged(proxy_address);
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::About)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("proxy_address"), proxy_address.toStdString());
+            flush_config_timer->start();
+        }
+    }
+}
+
+void SettingsModel::setProxyPort(const QString &port)
+{
+    if (proxy_port != port)
+    {
+        proxy_port = port;
+        emit proxyPortChanged(proxy_address);
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::About)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("proxy_port"), proxy_port.toStdString());
+            flush_config_timer->start();
+        }
+    }
+}
+
+void SettingsModel::setProxyAuthEnabled(bool enable)
+{
+    if (proxy_auth_enabled != enable)
+    {
+        proxy_auth_enabled = enable;
+        emit proxyAuthEnabledChanged(proxy_auth_enabled);
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::About)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("proxy_auth_enabled"), std::to_string(proxy_auth_enabled));
+            flush_config_timer->start();
+        }
+    }
+}
+
+void SettingsModel::setProxyUsername(const QString &username)
+{
+    if (proxy_username != username)
+    {
+        proxy_username = username;
+        emit proxyAddressChanged(proxy_username);
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::About)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("proxy_username"), proxy_username.toStdString());
+            flush_config_timer->start();
+        }
+    }
+}
+
+void SettingsModel::setProxyPassword(const QString &password)
+{
+    if (proxy_password != password)
+    {
+        proxy_password = password;
+        emit proxyAddressChanged(proxy_password);
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::About)])
+        {
+            QByteArray base64_array = proxy_password.toUtf8().toBase64();
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::About), std::string("proxy_password"), base64_array.toStdString());
+            flush_config_timer->start();
+        }
+    }
+}
+
+void SettingsModel::setProxyTestResult(QString result)
+{
+    if (proxy_test_result != result)
+    {
+        proxy_test_result = result;
+        emit proxyTestResultChanged(proxy_test_result);
     }
 }
 
@@ -551,6 +658,13 @@ void SettingsModel::setAboutConfig(std::shared_ptr<std::unordered_map<std::strin
 
     setUpdateSource(QString::fromStdString((*config)["update_source"]));
     setAutoCheckUpdate(std::stoi((*config)["auto_check_update"]));
+    setProxyEnabled(std::stoi((*config)["proxy_enabled"]));
+    setProxyAddress(QString::fromStdString((*config)["proxy_address"]));
+    setProxyPort(QString::fromStdString((*config)["proxy_port"]));
+    setProxyAuthEnabled(std::stoi((*config)["proxy_auth_enabled"]));
+    setProxyUsername(QString::fromStdString((*config)["proxy_username"]));
+    auto password_array = QByteArray::fromBase64(QByteArray::fromStdString((*config)["proxy_password"]));
+    setProxyPassword(password_array);
     bool update_avaible = std::stoi((*config)["update_is_avaible"]);
     if (update_avaible)
     {
@@ -605,6 +719,14 @@ int compareVersions(const QString &versionA, const QString &versionB)
 
 void SettingsModel::checkUpdate(bool show_in_new)
 {
+    if (proxy_enabled)
+    {
+        update_manager.setProxy(proxy_address, proxy_port, proxy_username, proxy_password);
+    }
+    else
+    {
+        update_manager.removeProxy();
+    }
     connect(&update_manager, &UpdateManager::versionJsonParsedDone, [=](VersionInfo version_info)
             { if (compareVersions(version_info.lastest_version, AppVersion::string) > 0)
     {
@@ -624,7 +746,7 @@ void SettingsModel::checkUpdate(bool show_in_new)
     } });
 
     connect(&update_manager, &UpdateManager::downloadError, [=](const QString &error_msg)
-            { emit downloadError(error_msg); });
+            { emit Error(error_msg); });
 
     if (update_source == "github")
     {
@@ -728,12 +850,20 @@ void SettingsModel::onPackageDownloadDone(QString path)
 
 void SettingsModel::updateSoftware()
 {
+    if (proxy_enabled)
+    {
+        update_manager.setProxy(proxy_address, proxy_port, proxy_username, proxy_password);
+    }
+    else
+    {
+        update_manager.removeProxy();
+    }
     connect(&update_manager, &UpdateManager::downloadPackageDone, this, &SettingsModel::onPackageDownloadDone);
 
     connect(&update_manager, &UpdateManager::downloadProgress, this, &SettingsModel::onDownloadProgress);
 
     connect(&update_manager, &UpdateManager::downloadError, [=](const QString &error_msg)
-            { emit downloadError(error_msg); });
+            { emit Error(error_msg); });
 
     if (update_source == "github")
     {
@@ -765,4 +895,19 @@ void SettingsModel::restartApplication()
 void SettingsModel::cancelDownload()
 {
     update_manager.cancelDownload();
+}
+
+void SettingsModel::testProxyConnection()
+{
+    connect(&update_manager, &UpdateManager::testResult, this, [=](bool ret)
+            { setProxyTestResult(ret ? "连接成功":"连接失败");
+            emit testProxyDone(); }, Qt::SingleShotConnection);
+    connect(&update_manager, &UpdateManager::testError, this, [=](const QString error)
+            { emit Error(error); }, Qt::SingleShotConnection);
+    update_manager.testProxy(proxy_address, proxy_port, proxy_username, proxy_password);
+}
+
+void SettingsModel::cancelTestProxy()
+{
+    update_manager.cancelTestProxy();
 }

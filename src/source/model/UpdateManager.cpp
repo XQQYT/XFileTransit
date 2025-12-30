@@ -7,11 +7,27 @@
 #include <QtCore/QJsonArray>
 
 #include <QtCore/QFile>
+#include <QtNetwork/QNetworkProxy>
 
 UpdateManager::UpdateManager(QObject *parent) : QObject(parent),
                                                 git_downloader(std::make_unique<GitDownloader>(parent)),
-                                                version_parser(std::make_unique<VersionParser>()) {
+                                                version_parser(std::make_unique<VersionParser>()),
+                                                proxy_tester(std::make_unique<ProxyTester>(parent)) {
                                                 };
+
+bool UpdateManager::haveProxy()
+{
+    return git_downloader->haveProxy();
+}
+void UpdateManager::setProxy(const QString address, const QString port, const QString username, const QString password)
+{
+    git_downloader->setProxy(address, port, username, password);
+}
+
+void UpdateManager::removeProxy()
+{
+    git_downloader->removeProxy();
+}
 
 QString UpdateManager::buildUrl(const GitPlatform platform, const QString &owner,
                                 const QString &repo, const QString &branch,
@@ -99,6 +115,19 @@ void UpdateManager::cancelDownload()
     git_downloader->cancelDownload();
 }
 
+void UpdateManager::testProxy(const QString address, const QString port, const QString username, const QString password)
+{
+    proxy_tester->setCb([=](const QString error)
+                        { emit testError(error); }, [=](bool ret)
+                        { testResult(ret); });
+    proxy_tester->testProxy(address, port, username, password);
+}
+
+void UpdateManager::cancelTestProxy()
+{
+    proxy_tester->cancelTestProxy();
+}
+
 VersionInfo UpdateManager::VersionParser::parse(QByteArray version_json)
 {
     QJsonDocument doc = QJsonDocument::fromJson(version_json);
@@ -178,6 +207,35 @@ UpdateManager::GitDownloader::GitDownloader(QObject *parent)
 {
     timeout_timer->setSingleShot(true);
     connect(timeout_timer, &QTimer::timeout, this, &GitDownloader::onTimeout);
+}
+
+bool UpdateManager::GitDownloader::haveProxy()
+{
+    auto proxy = manager->proxy();
+    return proxy.type() != QNetworkProxy::NoProxy;
+}
+
+void UpdateManager::GitDownloader::removeProxy()
+{
+    manager->setProxy(QNetworkProxy::NoProxy);
+}
+
+void UpdateManager::GitDownloader::setProxy(const QString address, const QString port, const QString username, const QString password)
+{
+    removeProxy();
+    QNetworkProxy proxy;
+    proxy.setType(QNetworkProxy::HttpProxy);
+
+    proxy.setHostName(address);
+    proxy.setPort(port.toUInt());
+
+    if (!username.isEmpty() && !password.isEmpty())
+    {
+        proxy.setUser(username);
+        proxy.setPassword(password);
+    }
+
+    manager->setProxy(proxy);
 }
 
 void UpdateManager::GitDownloader::downloadFile(QString url)
@@ -315,4 +373,101 @@ void UpdateManager::GitDownloader::handleRedirect(const QUrl &redirect_url)
             progress_cb(n1, n2); });
 
     timeout_timer->start(30000);
+}
+
+UpdateManager::ProxyTester::ProxyTester(QObject *parent)
+    : QObject(parent), timeout_timer(new QTimer(this))
+{
+}
+
+void UpdateManager::ProxyTester::setCb(std::function<void(QString)> ecb, std::function<void(bool)> rcb)
+{
+    error_cb = ecb;
+    result_cb = rcb;
+}
+
+void UpdateManager::ProxyTester::testProxy(const QString address, const QString port, const QString username, const QString password)
+{
+    ret = true;
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+    QString target_host = "http://httpbin.org/ip";
+    QString proxy_url = address;
+
+    QNetworkProxy proxy;
+    proxy.setType(QNetworkProxy::HttpProxy);
+
+    proxy.setHostName(proxy_url);
+    proxy.setPort(port.toUInt());
+
+    if (!username.isEmpty() && !password.isEmpty())
+    {
+        proxy.setUser(username);
+        proxy.setPassword(password);
+    }
+
+    manager->setProxy(proxy);
+
+    QNetworkRequest request(target_host);
+    request.setHeader(QNetworkRequest::UserAgentHeader, "ProxyTester/1.0");
+
+    current_reply = manager->get(request);
+
+    connect(current_reply, &QNetworkReply::finished, this, &ProxyTester::onFinished, Qt::SingleShotConnection);
+    connect(current_reply, &QNetworkReply::sslErrors, this, &ProxyTester::onSslErrors);
+    connect(current_reply, &QNetworkReply::errorOccurred, this, &ProxyTester::onErrorOccurred);
+
+    timeout_timer->setSingleShot(true);
+    timeout_timer->start(10000);
+}
+
+void UpdateManager::ProxyTester::onFinished()
+{
+    QObject::disconnect(current_reply, nullptr, this, nullptr);
+    result_cb(ret);
+}
+
+void UpdateManager::ProxyTester::onSslErrors(const QList<QSslError> &errors)
+{
+    ret = false;
+    QStringList error_info;
+    for (auto &error : errors)
+    {
+        error_info.append(error.errorString());
+    }
+    error_cb(error_info.join('\n'));
+}
+
+void UpdateManager::ProxyTester::onErrorOccurred(QNetworkReply::NetworkError net_error)
+{
+    ret = false;
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+    if (!reply)
+    {
+        error_cb("Unknown error: No reply object");
+        return;
+    }
+
+    QString errorMsg = QString("Network error %1: %2")
+                           .arg(net_error)
+                           .arg(reply->errorString());
+    error_cb(errorMsg);
+}
+
+void UpdateManager::ProxyTester::cancelTestProxy()
+{
+    if (current_reply && current_reply->isRunning())
+    {
+        QObject::disconnect(current_reply, nullptr, this, nullptr);
+
+        if (timeout_timer)
+        {
+            timeout_timer->stop();
+        }
+
+        current_reply->abort();
+
+        error_cb = nullptr;
+        result_cb = nullptr;
+        current_reply = nullptr;
+    }
 }

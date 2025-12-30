@@ -34,6 +34,13 @@ class SettingsModel : public QObject
     Q_PROPERTY(bool isUpdateAvailable READ isUpdateAvailable WRITE setIsUpdateAvailable NOTIFY isUpdateAvailableChanged)
     Q_PROPERTY(QString updateSource READ updateSource WRITE setUpdateSource NOTIFY updateSourceChanged)
     Q_PROPERTY(bool autoCheckUpdate READ autoCheckUpdate WRITE setAutoCheckUpdate NOTIFY autoCheckUpdateChanged)
+    Q_PROPERTY(bool proxyEnabled READ proxyEnabled WRITE setProxyEnabled NOTIFY proxyEnabledChanged)
+    Q_PROPERTY(QString proxyAddress READ proxyAddress WRITE setProxyAddress NOTIFY proxyAddressChanged)
+    Q_PROPERTY(QString proxyPort READ proxyPort WRITE setProxyPort NOTIFY proxyPortChanged)
+    Q_PROPERTY(bool proxyAuthEnabled READ proxyAuthEnabled WRITE setProxyAuthEnabled NOTIFY proxyAuthEnabledChanged)
+    Q_PROPERTY(QString proxyUsername READ proxyUsername WRITE setProxyUsername NOTIFY proxyUsernameChanged)
+    Q_PROPERTY(QString proxyPassword READ proxyPassword WRITE setProxyPassword NOTIFY proxyPasswordChanged)
+    Q_PROPERTY(QString proxyTestResult READ proxyTestResult WRITE setProxyTestResult NOTIFY proxyTestResultChanged)
 
 public:
     explicit SettingsModel(QObject *parent = nullptr);
@@ -54,6 +61,13 @@ public:
     bool isUpdateAvailable() const { return is_update_available; }
     QString updateSource() const { return update_source; }
     bool autoCheckUpdate() const { return auto_check_update; }
+    bool proxyEnabled() const { return proxy_enabled; }
+    QString proxyAddress() const { return proxy_address; }
+    QString proxyPort() const { return proxy_port; }
+    bool proxyAuthEnabled() const { return proxy_auth_enabled; }
+    QString proxyUsername() const { return proxy_username; }
+    QString proxyPassword() const { return proxy_password; }
+    QString proxyTestResult() const { return proxy_test_result; }
 
     void setCurrentTheme(int theme);
     void setCurrentLanguage(int language);
@@ -71,6 +85,13 @@ public:
     void setIsUpdateAvailable(bool available);
     void setUpdateSource(const QString &us);
     void setAutoCheckUpdate(bool enable);
+    void setProxyEnabled(bool enable);
+    void setProxyAddress(const QString &address);
+    void setProxyPort(const QString &port);
+    void setProxyAuthEnabled(bool enable);
+    void setProxyUsername(const QString &username);
+    void setProxyPassword(const QString &password);
+    void setProxyTestResult(QString result);
     void setQmlEngine(QQmlEngine *engine);
 
     Q_INVOKABLE void initSettings();
@@ -79,6 +100,8 @@ public:
     Q_INVOKABLE void updateSoftware();
     Q_INVOKABLE void restartApplication();
     Q_INVOKABLE void cancelDownload();
+    Q_INVOKABLE void testProxyConnection();
+    Q_INVOKABLE void cancelTestProxy();
 
 signals:
     void currentThemeChanged(int theme);
@@ -97,14 +120,22 @@ signals:
     void isUpdateAvailableChanged(bool available);
     void updateSourceChanged(const QString &update_source);
     void autoCheckUpdateChanged(const bool enabel);
+    void proxyEnabledChanged(bool enable);
+    void proxyAddressChanged(const QString &address);
+    void proxyPortChanged(const QString &port);
+    void proxyAuthEnabledChanged(bool enable);
+    void proxyUsernameChanged(const QString &username);
+    void proxyPasswordChanged(const QString &password);
+    void proxyTestResultChanged(QString result);
     void cacheInfoDone(QString used, QString free_size, QString total);
     void cacheMoveDone();
     void settingsChanged(Settings::Item item, QVariant value);
     void downloadProgress(float progress);
     void downloadDone();
-    void downloadError(QString error_msg);
+    void Error(QString error_msg);
     void versionInfoShow(QString msg);
     void updateOutput(QString output);
+    void testProxyDone();
 
 private:
     void onConfigResult(uint8_t group, std::shared_ptr<std::unordered_map<std::string, std::string>> config);
@@ -123,17 +154,22 @@ private:
     bool checkAutoStart();
 
 private:
+    // general
     int current_theme;    // 0: light, 1: dark
     int current_language; // 0: Chinese, 1: English
     bool auto_start;
+    // file
     QUrl cache_url;
     QString cache_path;
     QString cache_size;
     bool auto_clear_cache;
+    // transfer
     bool auto_download;
     int auto_download_threshold;
     int concurrent_transfers;
+    // notifity
     bool expand_on_action;
+    // about
     const QString app_version = AppVersion::string;
     QString new_version;
     QString release_date;
@@ -141,6 +177,13 @@ private:
     bool is_update_available;
     QString update_source;
     bool auto_check_update;
+    bool proxy_enabled;
+    QString proxy_address;
+    QString proxy_port;
+    bool proxy_auth_enabled;
+    QString proxy_username;
+    QString proxy_password;
+    QString proxy_test_result;
 
     QQmlEngine *qml_engine = nullptr;
     QTranslator *translator;

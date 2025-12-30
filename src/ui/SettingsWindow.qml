@@ -258,7 +258,12 @@ Window {
                     load_dialog.close()
                 })
             })
-            settings_model.downloadError.connect(function(msg){
+            settings_model.testProxyDone.connect(function() {
+                Qt.callLater(function() {
+                    load_dialog.close()
+                })
+            })
+            settings_model.Error.connect(function(msg){
                 Qt.callLater(function() {
                     load_dialog.close()
                 })
@@ -2083,6 +2088,443 @@ Window {
                                         text: qsTr("https://github.com/XQQYT/XFileTransit")
                                         font.pixelSize: 12
                                         color: textSecondary
+                                    }
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            width: aboutContentColumn.width
+                            radius: 16
+                            color: cardColor
+                            border.color: borderColor
+                            border.width: 2
+                            
+                            implicitHeight: proxyColumn.implicitHeight + 40
+                            
+                            Column {
+                                id: proxyColumn
+                                anchors.fill: parent
+                                anchors.margins: 20
+                                spacing: 15
+                                
+                                Row {
+                                    width: parent.width
+                                    spacing: 12
+                                    
+                                    Column {
+                                        spacing: 2
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        
+                                        Text {
+                                            text: qsTr("网络代理设置")
+                                            font {
+                                                pixelSize: 18
+                                                weight: Font.Bold
+                                            }
+                                            color: textPrimary
+                                        }
+                                        
+                                        Text {
+                                            text: qsTr("配置HTTP/HTTPS代理服务器")
+                                            font.pixelSize: 13
+                                            color: textSecondary
+                                        }
+                                    }
+                                }
+                                
+                                // 代理开关
+                                Row {
+                                    width: parent.width
+                                    
+                                    Text {
+                                        text: qsTr("启用代理")
+                                        font.pixelSize: 16
+                                        color: textPrimary
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                    
+                                    Item { width: 20; height: 1 }
+                                    
+                                    Rectangle {
+                                        id: proxySwitch
+                                        width: 60
+                                        height: 30
+                                        radius: 15
+                                        color: settings_model.proxyEnabled ? primaryColor : switchOffColor
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        
+                                        Rectangle {
+                                            x: settings_model.proxyEnabled ? parent.width - width - 3 : 3
+                                            y: 3
+                                            width: 24
+                                            height: 24
+                                            radius: 12
+                                            color: switchHandleColor
+                                            
+                                            Behavior on x {
+                                                NumberAnimation { duration: 200 }
+                                            }
+                                        }
+                                        
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                settings_model.proxyEnabled = !settings_model.proxyEnabled
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                // 代理服务器地址
+                                Column {
+                                    width: parent.width
+                                    spacing: 5
+                                    visible: settings_model.proxyEnabled
+                                    
+                                    Text {
+                                        text: qsTr("代理服务器")
+                                        font.pixelSize: 14
+                                        color: textPrimary
+                                    }
+                                    
+                                    Rectangle {
+                                        width: parent.width
+                                        height: 40
+                                        radius: 8
+                                        color: backgroundColor
+                                        border.color: settings_model.proxyAddress !== "" ? primaryColor : borderColor
+                                        border.width: 1
+                                        
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: parent.enabled ? Qt.IBeamCursor : Qt.ArrowCursor
+                                            acceptedButtons: Qt.NoButton
+                                            
+                                            onClicked: {
+                                                if (parent.enabled) {
+                                                    addressInput.forceActiveFocus()
+                                                }
+                                            }
+                                        }
+
+                                        TextInput {
+                                            id: addressInput
+                                            anchors.fill: parent
+                                            anchors.margins: 12
+                                            verticalAlignment: Text.AlignVCenter
+                                            font.pixelSize: 14
+                                            color: textPrimary
+                                            text: settings_model.proxyAddress
+                                            onTextChanged: settings_model.proxyAddress = text
+                                            enabled: settings_model.proxyEnabled
+                                        }
+                                        Text {
+                                            text: qsTr("例如：proxy.example.com 或 192.168.1.1")
+                                            anchors.fill: parent
+                                            anchors.margins: 12
+                                            verticalAlignment: Text.AlignVCenter
+                                            font.pixelSize: 14
+                                            color: textSecondary
+                                            visible: addressInput.text === "" && addressInput.enabled
+                                        }
+                                    }
+                                }
+                                
+                                // 代理端口
+                                Column {
+                                    width: parent.width
+                                    spacing: 5
+                                    visible: settings_model.proxyEnabled
+                                    
+                                    Text {
+                                        text: qsTr("代理端口")
+                                        font.pixelSize: 14
+                                        color: textPrimary
+                                    }
+                                    
+                                    Rectangle {
+                                        width: parent.width
+                                        height: 40
+                                        radius: 8
+                                        color: backgroundColor
+                                        border.color: settings_model.proxyPort !== "" ? primaryColor : borderColor
+                                        border.width: 1
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: parent.enabled ? Qt.IBeamCursor : Qt.ArrowCursor
+                                            acceptedButtons: Qt.NoButton
+                                            
+                                            onClicked: {
+                                                if (parent.enabled) {
+                                                    addressInput.forceActiveFocus()
+                                                }
+                                            }
+                                        }
+
+                                        TextInput {
+                                            id: portInput
+                                            anchors.fill: parent
+                                            anchors.margins: 12
+                                            verticalAlignment: Text.AlignVCenter
+                                            font.pixelSize: 14
+                                            color: textPrimary
+                                            text: settings_model.proxyPort
+                                            validator: IntValidator { bottom: 1; top: 65535 }
+                                            onTextChanged: settings_model.proxyPort = text
+                                            enabled: settings_model.proxyEnabled
+                                        }
+                                        Text {
+                                            text: qsTr("例如：8080")
+                                            anchors.fill: parent
+                                            anchors.margins: 12
+                                            verticalAlignment: Text.AlignVCenter
+                                            font.pixelSize: 14
+                                            color: textSecondary
+                                            visible: portInput.text === "" && portInput.enabled
+                                        }
+                                    }
+                                }
+                                
+                                // 身份验证信息
+                                Column {
+                                    width: parent.width
+                                    spacing: 5
+                                    visible: settings_model.proxyEnabled
+                                    
+                                    Row {
+                                        width: parent.width
+                                        spacing: 10
+                                        
+                                        Text {
+                                            text: qsTr("需要身份验证")
+                                            font.pixelSize: 16
+                                            color: textPrimary
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+                                        
+                                        Item { width: 10; height: 1 }
+                                        
+                                        Rectangle {
+                                            id: authSwitch
+                                            width: 60
+                                            height: 30
+                                            radius: 15
+                                            color: settings_model.proxyAuthEnabled ? primaryColor : switchOffColor
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            
+                                            Rectangle {
+                                                x: settings_model.proxyAuthEnabled ? parent.width - width - 3 : 3
+                                                y: 3
+                                                width: 24
+                                                height: 24
+                                                radius: 12
+                                                color: switchHandleColor
+                                                
+                                                Behavior on x {
+                                                    NumberAnimation { duration: 200 }
+                                                }
+                                            }
+                                            
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: {
+                                                    settings_model.proxyAuthEnabled = !settings_model.proxyAuthEnabled
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    // 用户名和密码输入
+                                    Grid {
+                                        width: parent.width
+                                        columns: 2
+                                        columnSpacing: 15
+                                        rowSpacing: 10
+                                        visible: settings_model.proxyAuthEnabled && settings_model.proxyEnabled
+                                        
+                                        Column {
+                                            width: parent.width / 2 - parent.columnSpacing / 2
+                                            spacing: 5
+                                            
+                                            Text {
+                                                text: qsTr("用户名")
+                                                font.pixelSize: 14
+                                                color: textPrimary
+                                            }
+                                            
+                                            Rectangle {
+                                                width: parent.width
+                                                height: 35
+                                                radius: 8
+                                                color: backgroundColor
+                                                border.color: settings_model.proxyUsername !== "" ? primaryColor : borderColor
+                                                border.width: 1
+                                                        
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    hoverEnabled: true
+                                                    cursorShape: parent.enabled ? Qt.IBeamCursor : Qt.ArrowCursor
+                                                    acceptedButtons: Qt.NoButton
+                                                    
+                                                    onClicked: {
+                                                        if (parent.enabled) {
+                                                            addressInput.forceActiveFocus()
+                                                        }
+                                                    }
+                                                }
+
+                                                TextInput {
+                                                    id: usernameInput
+                                                    anchors.fill: parent
+                                                    anchors.margins: 10
+                                                    verticalAlignment: Text.AlignVCenter
+                                                    font.pixelSize: 14
+                                                    color: textPrimary
+                                                    text: settings_model.proxyUsername
+                                                    onTextChanged: settings_model.proxyUsername = text
+                                                    enabled: settings_model.proxyEnabled
+                                                }
+                                                Text {
+                                                    text: qsTr("用户名")
+                                                    anchors.fill: parent
+                                                    anchors.margins: 12
+                                                    verticalAlignment: Text.AlignVCenter
+                                                    font.pixelSize: 14
+                                                    color: textSecondary
+                                                    visible: usernameInput.text === "" && usernameInput.enabled
+                                                }
+                                                
+                                            }
+                                        }
+                                        
+                                        Column {
+                                            width: parent.width / 2 - parent.columnSpacing / 2
+                                            spacing: 5
+                                            
+                                            Text {
+                                                text: qsTr("密码")
+                                                font.pixelSize: 14
+                                                color: textPrimary
+                                            }
+                                            
+                                            Rectangle {
+                                                width: parent.width
+                                                height: 35
+                                                radius: 8
+                                                color: backgroundColor
+                                                border.color: settings_model.proxyPassword !== "" ? primaryColor : borderColor
+                                                border.width: 1
+                                                
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    hoverEnabled: true
+                                                    cursorShape: parent.enabled ? Qt.IBeamCursor : Qt.ArrowCursor
+                                                    acceptedButtons: Qt.NoButton
+                                                    
+                                                    onClicked: {
+                                                        if (parent.enabled) {
+                                                            addressInput.forceActiveFocus()
+                                                        }
+                                                    }
+                                                }
+
+                                                TextInput {
+                                                    id: passwordInput
+                                                    anchors.fill: parent
+                                                    anchors.margins: 10
+                                                    verticalAlignment: Text.AlignVCenter
+                                                    font.pixelSize: 14
+                                                    color: textPrimary
+                                                    text: settings_model.proxyPassword
+                                                    echoMode: TextInput.Password
+                                                    onTextChanged: settings_model.proxyPassword = text
+                                                    enabled: settings_model.proxyEnabled
+                                                }
+
+                                                Text {
+                                                    text: qsTr("密码")
+                                                    anchors.fill: parent
+                                                    anchors.margins: 12
+                                                    verticalAlignment: Text.AlignVCenter
+                                                    font.pixelSize: 14
+                                                    color: textSecondary
+                                                    visible: passwordInput.text === "" && passwordInput.enabled
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                // 测试连接按钮
+                                Row {
+                                    spacing: 20
+                                    visible: settings_model.proxyEnabled
+                                    
+                                    Rectangle {
+                                        width: 150
+                                        height: 40
+                                        radius: 10
+                                        color: primaryColor
+                                        
+                                        Row {
+                                            spacing: 8
+                                            anchors.centerIn: parent
+                                            
+                                            Text {
+                                                text: qsTr("测试连接")
+                                                font.pixelSize: 16
+                                                color: whiteColor
+                                                anchors.verticalCenter: parent.verticalCenter
+                                            }
+                                        }
+                                        
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            hoverEnabled: true
+                                            onClicked: {
+                                                settings_model.proxyTestResult = ""
+                                                if(curLoadingBtnHandler){
+                                                    load_dialog.onButtonClicked.disconnect(curLoadingBtnHandler)
+                                                }
+                                                
+                                                load_dialog.show(qsTr("正在测试代理连接"), qsTr("取消"))
+                                                settings_model.testProxyConnection()
+                                                
+                                                curLoadingBtnHandler = function cancelTest(){
+                                                    Qt.callLater(function() {
+                                                        load_dialog.close()
+                                                    })
+                                                    settings_model.cancelTestProxy()
+                                                }
+                                                
+                                                load_dialog.onButtonClicked.connect(curLoadingBtnHandler)
+                                            }
+                                            
+                                            onEntered: parent.opacity = 0.9
+                                            onExited: parent.opacity = 1
+                                        }
+                                    }
+                                    
+                                    Text {
+                                        id: proxyStatusText
+                                        text: settings_model.proxyTestResult
+                                        font.pixelSize: 14
+                                        color: {
+                                            if (settings_model.proxyTestResult === "连接成功") {
+                                                return accentGreen
+                                            } else{
+                                                return accentRed
+                                            }
+                                        }
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        visible: settings_model.proxyTestResult != ""
                                     }
                                 }
                             }
