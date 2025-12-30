@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.1] - 2025-12-30
+
+## Added
+- 增加设置代理选项
+- 增加自动下载阈值选项
+- 增加自动修复配置文件
+
+## Fixed
+- 修复自动更新在没有新版本
+- 修复配置文件概率性损坏的问题
 
 ## [v1.1.0] - 2025-12-28
 
@@ -45,3 +55,4 @@ XFileTransit 致力于让局域网内文件传输变得极简高效，欢迎体�
 
 [v1.0.0]: https://github.com/XQQYT/XFileTransit/tree/v1.0.0
 [v1.1.0]: https://github.com/XQQYT/XFileTransit/tree/v1.1.0
+[v1.1.1]: https://github.com/XQQYT/XFileTransit/tree/v1.1.1

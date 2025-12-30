@@ -15,6 +15,7 @@ void SettingsFile::load(const std::string &path)
 
 std::unordered_map<std::string, std::string> SettingsFile::getConfig(const Settings::SettingsGroup config_name)
 {
+    std::shared_lock<std::shared_mutex> read_lock(mtx);
     std::string config_name_str = Settings::toString(config_name);
 
     if (!full_config.contains(config_name_str))
@@ -37,8 +38,10 @@ void SettingsFile::flush()
     out << full_json_str;
     out.close();
 }
+
 void SettingsFile::updateConfig(const Settings::SettingsGroup config_name, const std::unordered_map<std::string, std::string> config)
 {
+    std::unique_lock<std::shared_mutex> write_lock(mtx);
     std::string config_name_str = Settings::toString(config_name);
     if (!full_config.contains(config_name_str))
     {
@@ -46,11 +49,11 @@ void SettingsFile::updateConfig(const Settings::SettingsGroup config_name, const
         return;
     }
     full_config[config_name_str] = config;
-    flush();
 }
 
 void SettingsFile::setValue(const Settings::SettingsGroup config_name, const std::string key, const std::string value)
 {
+    std::unique_lock<std::shared_mutex> write_lock(mtx);
     std::string config_name_str = Settings::toString(config_name);
     if (!full_config.contains(config_name_str))
     {
@@ -65,5 +68,4 @@ void SettingsFile::setValue(const Settings::SettingsGroup config_name, const std
     }
     config_json[key] = value;
     full_config[config_name_str] = config_json;
-    flush();
 }

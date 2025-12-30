@@ -4,6 +4,8 @@
 #include "driver/interface/SettingsFileInterface.h"
 #include "nlohmann/json.hpp"
 #include <fstream>
+#include <shared_mutex>
+#include <mutex>
 
 using json = nlohmann::json;
 
@@ -20,6 +22,7 @@ private:
     json full_config;
     std::unique_ptr<std::ofstream> out;
     std::string config_path;
+    std::shared_mutex mtx;
 };
 
 #endif

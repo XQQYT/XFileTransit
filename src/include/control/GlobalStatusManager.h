@@ -132,6 +132,7 @@ namespace Settings
         CachePath,
         AutoClearCache,
         AutoDownload,
+        AutoDownloadThreshold,
         ConcurrentTransfers,
         ExpandOnAction,
         AppVersion,
@@ -177,50 +178,32 @@ namespace Settings
 inline namespace AppVersion
 {
     inline constexpr int Major = 1;
-    inline constexpr int Minor = 0;
+    inline constexpr int Minor = 1;
     inline constexpr int Patch = 0;
-    inline constexpr int Build = 20241128;
+    inline constexpr int Build = 20251230;
 
-    inline static constexpr const char *string = "v1.1.0";
-    inline static constexpr const char *string_full = "v1.0.0.20251228";
+    inline static constexpr const char *string = "v1.1.1";
+    inline static constexpr const char *string_full = "v1.1.1.20251230";
 
     inline static constexpr const char *zh_change_log = R"(
     当前版本
     新增:
-    一. 增加设置窗口,
-      1.支持开机自启选项
-      2.支持深浅主题切换
-      3.支持中英语言切换
-      4.支持自动清理缓存
-      5.支持选择缓存路径
-      6.支持手动清理缓存
-      7.支持自动展开
-      8.支持选择自动下载
-      9.支持设置并行任务数
-      10.支持检查更新，在线更新
-    二.优化传输体验
-      1.支持取消传输任务
-      2.支持停止正在传输的任务
-      3.增加下载全部，停止全部按钮)";
+    1. 增加设置代理选项
+    2. 增加自动下载阈值选项
+    3. 增加自动修复配置文件
+    修复:
+    1. 修复自动更新在没有新版本
+    2. 修复配置文件概率性损坏的问题)";
 
     inline static constexpr const char *en_change_log = R"(
     Current Version
     New Features:
-     一、Add Settings Window
-      1. Support startup on boot option
-      2. Support light/dark theme switching
-      3. Support Chinese/English language switching
-      4. Support automatic cache cleanup
-      5. Support selecting cache path
-      6. Support manual cache cleanup
-      7. Support auto-expand
-      8. Support selecting automatic download
-      9. Support setting the number of parallel tasks
-      10. Support update check and online updates
-    二、Optimize Transfer Experience
-      1. Support canceling transfer tasks
-      2. Support stopping ongoing transfer tasks
-      3. Add Download All and Stop All buttons)";
+    1. Add proxy settings option
+    2. Add automatic download threshold option
+    3. Add automatic configuration file repair
+    Fixed:
+    1. Fix auto-update when there are no new versions
+    2. Fix probabilistic configuration file corruption issues)";
 }
 
 #endif

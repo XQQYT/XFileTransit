@@ -30,7 +30,7 @@ for cmd in patchelf ldd; do
 done
 
 # 设置包信息
-PACKAGE_NAME="XFileTransit_${VERSION}_amd64.tar.gz"
+PACKAGE_NAME="XFileTransit-${VERSION}_amd64.tar.gz"
 TAR_ROOT="$PACKAGE_DIR/XFileTransit_${VERSION}_amd64"
 
 echo "======================================"
@@ -127,6 +127,36 @@ ldd "$EXECUTABLE" | awk '{ print $3 }' | grep "^/" | while read -r lib; do
     fi
 done
 
+EXCLUDE_LIB=(
+    "libc.so.6"
+    "libdl.so.2"
+    "libm.so.6"
+    "libpthread.so.0"
+    "librt.so.1"
+    "libresolv.so.2"
+    "libgcc_s.so.1"
+    "libstdc++.so.6"
+    "libz.so.1"
+    "libX11.so.6"
+    "libXau.so.6"
+    "libXdmcp.so.6"
+    "libxcb.so.1"
+    "libxkbcommon.so.0"
+    "libEGL.so.1"
+    "libGL.so.1"
+    "libGLX.so.0"
+    "libOpenGL.so.0"
+    "libbz2.so.1.0"
+    "libexpat.so.1"
+    "liblzma.so.5"
+    "libzstd.so.1"
+)
+
+for lib in "${EXCLUDE_LIB[@]}"; do
+    echo "移除 $lib"
+    rm -f "$TAR_ROOT/lib/$lib" 2>/dev/null || true
+done
+
 # 复制 Qt 插件
 echo "复制 Qt 插件..."
 PLUGIN_DIRS=("platforms" "xcbglintegrations" "imageformats" "platformthemes" "tls")
@@ -163,6 +193,10 @@ for qml_module in "${QML_MODULES[@]}"; do
         cp -r "$src_dir/"* "$dest_dir/" 2>/dev/null || true
     fi
 done
+
+mkdir "$TAR_ROOT/tmp_file"
+GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o "$TAR_ROOT"/tmp_file/ConfigMergerLinux ./tools/update/configMerger.go
+cp "src/res/settings/settings.json" "$TAR_ROOT/tmp_file/settings.json"
 
 # 设置 RPATH 的函数
 function set_rpath() {
