@@ -1,8 +1,8 @@
 {
   "app_name": "XFileTransit",
   "description": "局域网文件传输工具",
-  "latest_version": "v1.1.0",
-  "update_time": "2025-12-28",
+  "latest_version": "v1.1.1",
+  "update_time": "2025-12-30",
   "versions": {
     "v1.0.0": {
       "version": "v1.0.0",
@@ -103,8 +103,8 @@
 
         },
         "linux": {
-            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit-1.1.1_amd64.tar.gz",
-            "gitcode_url": "https://gitcode.com/XQQYT/XFileTransit/releases/download/v1.1.0/XFileTransit-1.1.1_amd64.tar.gz"
+            "github_url": "https://github.com/XQQYT/XFileTransit/releases/download/v1.1.1/XFileTransit-1.1.1_amd64.tar.gz",
+            "gitcode_url": "https://gitcode.com/XQQYT/XFileTransit/releases/download/v1.1.1/XFileTransit-1.1.1_amd64.tar.gz"
         }
       }
     }

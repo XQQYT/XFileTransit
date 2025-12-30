@@ -747,11 +747,11 @@ void SettingsModel::checkUpdate(bool show_in_new)
 
     if (update_source == "github")
     {
-        update_manager.downloadVersionJson(GitPlatform::Github, "XQQYT", "XFileTransit", "dev", "src/res/version/version.json");
+        update_manager.downloadVersionJson(GitPlatform::Github, "XQQYT", "XFileTransit", "master", "src/res/version/version.json");
     }
     else if (update_source == "gitcode")
     {
-        update_manager.downloadVersionJson(GitPlatform::GitCode, "XQQYT", "XFileTransit", "dev", "src/res/version/version.json");
+        update_manager.downloadVersionJson(GitPlatform::GitCode, "XQQYT", "XFileTransit", "master", "src/res/version/version.json");
     }
     else
     {
