@@ -256,6 +256,10 @@ std::string FileJsonMsgBuilder::buildFileMsg(Json::MessageType::File::Type type,
         content["id"] = args["id"];
         result["content"] = content;
         return result.dump();
+    case Json::MessageType::File::ReceiverInitDone:
+        result["type"] = Json::MessageType::File::toString(Json::MessageType::File::ReceiverInitDone);
+        result["content"] = content;
+        return result.dump();
     default:
         break;
     }

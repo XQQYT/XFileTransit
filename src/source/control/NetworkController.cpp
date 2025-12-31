@@ -58,7 +58,9 @@ void NetworkController::initSubscribe()
                                           std::bind(&NetworkController::onSendCancelTransit,
                                                     this,
                                                     std::placeholders::_1));
-
+    EventBusManager::instance().subscribe("/file/send_init_file_receiver_done",
+                                          std::bind(&NetworkController::onSendInitFileReceiverDone,
+                                                    this));
     // 设置错误处理回调函数
     control_msg_network_driver->setDealConnectErrorCb(std::bind(&NetworkController::onConnectError, this, std::placeholders::_1));
     control_msg_network_driver->setDealRecvErrorCb(std::bind(
@@ -270,4 +272,11 @@ void NetworkController::onSendCancelTransit(uint32_t id)
     auto file_builder = json_builder->getBuilder(Json::BuilderType::File);
     control_msg_network_driver->sendMsg(
         file_builder->buildFileMsg(Json::MessageType::File::FileCancel, {{"id", std::to_string(id)}}));
+}
+
+void NetworkController::onSendInitFileReceiverDone()
+{
+    auto file_builder = json_builder->getBuilder(Json::BuilderType::File);
+    control_msg_network_driver->sendMsg(
+        file_builder->buildFileMsg(Json::MessageType::File::ReceiverInitDone, {}));
 }

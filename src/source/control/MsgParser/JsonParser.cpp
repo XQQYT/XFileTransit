@@ -17,6 +17,7 @@ JsonParser::JsonParser() : json_driver(std::make_unique<NlohmannJson>())
 
     type_funcfion_map[Json::MessageType::Settings::toString(Json::MessageType::Settings::ConcurrentTask)] = std::bind(&JsonParser::concurrentChanged, this, std::placeholders::_1);
     type_funcfion_map[Json::MessageType::File::toString(Json::MessageType::File::FileCancel)] = std::bind(&JsonParser::cancelFileTransit, this, std::placeholders::_1);
+    type_funcfion_map[Json::MessageType::File::toString(Json::MessageType::File::ReceiverInitDone)] = std::bind(&JsonParser::receiverInitDone, this, std::placeholders::_1);
 }
 
 void JsonParser::parse(std::unique_ptr<NetworkInterface::UserMsg> data)
@@ -158,4 +159,9 @@ void JsonParser::concurrentChanged(std::unique_ptr<Json::Parser> parser)
 void JsonParser::cancelFileTransit(std::unique_ptr<Json::Parser> parser)
 {
     EventBusManager::instance().publish("/file/have_cancel_transit", static_cast<uint32_t>(std::stoul(parser->getValue("id"))));
+}
+
+void JsonParser::receiverInitDone(std::unique_ptr<Json::Parser> parser)
+{
+    EventBusManager::instance().publish("/file/have_init_file_receiver_done");
 }
