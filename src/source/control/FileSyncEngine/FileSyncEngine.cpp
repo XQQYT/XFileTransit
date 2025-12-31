@@ -41,6 +41,9 @@ FileSyncEngine::FileSyncEngine()
                                                                                 &FileSyncEngine::onCancelUploadFile,
                                                                                 this,
                                                                                 std::placeholders::_1));
+    EventBusManager::instance().subscribe("/file/have_init_file_receiver_done", std::bind(
+                                                                                    &FileSyncEngine::initFileSenders,
+                                                                                    this));
 }
 
 void FileSyncEngine::onHaveFileToSend(uint32_t id, std::string path)
@@ -125,6 +128,12 @@ void FileSyncEngine::start(std::string address, std::string recv_port,
                              std::bind(&FileSyncEngine::haveFileMsg, this, std::placeholders::_1, std::placeholders::_2));
     }
 
+    EventBusManager::instance().publish("/file/send_init_file_receiver_done");
+    is_start = true;
+}
+
+void FileSyncEngine::initFileSenders()
+{
     // 初始化sender
     std::vector<std::shared_ptr<FileSender>> initialized_senders;
     for (int i = 0; i < sender_num; ++i)
@@ -147,7 +156,6 @@ void FileSyncEngine::start(std::string address, std::string recv_port,
         sender->start(std::bind(&FileSyncEngine::getPendingFile, this));
         file_senders.push_back(sender);
     }
-    is_start = true;
 }
 
 void FileSyncEngine::setConcurrentTask(uint8_t num)

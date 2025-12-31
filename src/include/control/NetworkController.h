@@ -27,6 +27,7 @@ private:
     void onSendGetFile(uint32_t id);
     void onConcurrentChanged(uint8_t num);
     void onSendCancelTransit(uint32_t id);
+    void onSendInitFileReceiverDone();
 
 private:
     std::unique_ptr<NetworkInterface> control_msg_network_driver;

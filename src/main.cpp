@@ -57,6 +57,10 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/sync/have_expired_file");
     // 初始化文件传输引擎
     EventBusManager::instance().registerEvent("/file/initialize_FileSyncCore");
+    // 发送文件传输引擎监听完成
+    EventBusManager::instance().registerEvent("/file/send_init_file_receiver_done");
+    // 收到对方文件传输监听完成
+    EventBusManager::instance().registerEvent("/file/have_init_file_receiver_done");
     // 关闭文件传输引擎
     EventBusManager::instance().registerEvent("/file/close_FileSyncCore");
     // 发送获取文件请求

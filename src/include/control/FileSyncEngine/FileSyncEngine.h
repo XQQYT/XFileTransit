@@ -26,6 +26,7 @@ public:
     void haveFileConnection(UnifiedSocket socket);
     void haveFileMsg(UnifiedSocket socket, std::unique_ptr<NetworkInterface::UserMsg> msg);
     void setConcurrentTask(uint8_t num);
+    void initFileSenders();
     ~FileSyncEngine();
 
 private:
