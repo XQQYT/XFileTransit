@@ -98,6 +98,7 @@ mkdir -p "$TAR_ROOT/lib"
 # 收集 Qt6 核心库
 QT_LIBS=(
     "libQt6Core.so.6"
+    "libQt6Svg.so.6"
     "libQt6Gui.so.6"
     "libQt6Qml.so.6"
     "libQt6Quick.so.6"
@@ -121,8 +122,8 @@ QT_LIBS=(
 for lib in "${QT_LIBS[@]}"; do
     lib_path="$QT_GCC_PATH/lib/$lib"
     if [[ -f "$lib_path" ]]; then
-        echo "复制 Qt 库: $lib"
-        cp -f "$lib_path"* "$TAR_ROOT/lib/" 2>/dev/null || true
+        echo "复制 Qt 库: $lib_path.8.3 -> "$TAR_ROOT/lib/$lib""
+        cp -f "$lib_path.8.3" "$TAR_ROOT/lib/$lib" 2>/dev/null || true
     else
         echo "警告: 未找到 Qt 库: $lib_path"
     fi
@@ -174,7 +175,7 @@ done
 echo "3. 复制 Qt 插件和 QML 模块..."
 
 # 复制 Qt 插件
-PLUGIN_DIRS=("platforms" "xcbglintegrations" "imageformats" "platformthemes" "tls")
+PLUGIN_DIRS=("platforms" "xcbglintegrations" "imageformats" "platformthemes" "tls" "iconengines")
 
 for plugin_dir in "${PLUGIN_DIRS[@]}"; do
     src_dir="$QT_GCC_PATH/plugins/$plugin_dir"
@@ -200,6 +201,9 @@ for qml_module in "${QML_MODULES[@]}"; do
         cp -r "$src_dir/"* "$dest_dir/" 2>/dev/null || true
     fi
 done
+
+echo "移除.debug文件 $TAR_ROOT"
+find "$TAR_ROOT" -name "*.debug" -type f -delete
 
 echo "4. 设置 RPATH..."
 

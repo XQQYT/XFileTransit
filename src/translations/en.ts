@@ -388,94 +388,94 @@
         <translation>Confirm disconnect?</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1073"/>
-        <location filename="../ui/MainWindow.qml" line="1073"/>
+        <location filename="../ui/MainWindow.qml" line="1074"/>
+        <location filename="../ui/MainWindow.qml" line="1074"/>
         <source>IP信息</source>
         <translation>IP info</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1115"/>
-        <location filename="../ui/MainWindow.qml" line="1115"/>
+        <location filename="../ui/MainWindow.qml" line="1116"/>
+        <location filename="../ui/MainWindow.qml" line="1116"/>
         <source>设置</source>
         <translation>Settings</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1196"/>
-        <location filename="../ui/MainWindow.qml" line="1196"/>
+        <location filename="../ui/MainWindow.qml" line="1197"/>
+        <location filename="../ui/MainWindow.qml" line="1197"/>
         <source>取消了连接</source>
         <translation>Connection cancelled</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1241"/>
-        <location filename="../ui/MainWindow.qml" line="1269"/>
-        <location filename="../ui/MainWindow.qml" line="1241"/>
-        <location filename="../ui/MainWindow.qml" line="1269"/>
+        <location filename="../ui/MainWindow.qml" line="1242"/>
+        <location filename="../ui/MainWindow.qml" line="1270"/>
+        <location filename="../ui/MainWindow.qml" line="1242"/>
+        <location filename="../ui/MainWindow.qml" line="1270"/>
         <source>是否同步当前文件</source>
         <translation>Synchronize current files?</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1282"/>
-        <location filename="../ui/MainWindow.qml" line="1282"/>
+        <location filename="../ui/MainWindow.qml" line="1283"/>
+        <location filename="../ui/MainWindow.qml" line="1283"/>
         <source>连接成功</source>
         <translation>Connection successful</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1295"/>
-        <location filename="../ui/MainWindow.qml" line="1295"/>
+        <location filename="../ui/MainWindow.qml" line="1296"/>
+        <location filename="../ui/MainWindow.qml" line="1296"/>
         <source>连接被拒绝</source>
         <translation>Connection refused</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1327"/>
-        <location filename="../ui/MainWindow.qml" line="1327"/>
+        <location filename="../ui/MainWindow.qml" line="1328"/>
+        <location filename="../ui/MainWindow.qml" line="1328"/>
         <source>下载全部</source>
         <translation>Download All</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1367"/>
-        <location filename="../ui/MainWindow.qml" line="1367"/>
+        <location filename="../ui/MainWindow.qml" line="1368"/>
+        <location filename="../ui/MainWindow.qml" line="1368"/>
         <source>停止全部</source>
         <translation>Stop All</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1382"/>
-        <location filename="../ui/MainWindow.qml" line="1382"/>
+        <location filename="../ui/MainWindow.qml" line="1383"/>
+        <location filename="../ui/MainWindow.qml" line="1383"/>
         <source>确定停止所有文件的传输吗</source>
         <translation>Confirm stopping all file transfers?</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1391"/>
-        <location filename="../ui/MainWindow.qml" line="1391"/>
+        <location filename="../ui/MainWindow.qml" line="1392"/>
+        <location filename="../ui/MainWindow.qml" line="1392"/>
         <source>没有正在传输的文件</source>
         <translation>No files are being transferred</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1425"/>
-        <location filename="../ui/MainWindow.qml" line="1425"/>
+        <location filename="../ui/MainWindow.qml" line="1426"/>
+        <location filename="../ui/MainWindow.qml" line="1426"/>
         <source>清空</source>
         <translation>Clear</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1439"/>
-        <location filename="../ui/MainWindow.qml" line="1439"/>
+        <location filename="../ui/MainWindow.qml" line="1440"/>
+        <location filename="../ui/MainWindow.qml" line="1440"/>
         <source>确定清空吗？传输中的文件也会中断</source>
         <translation>Confirm clearing? Files in transfer will also be interrupted</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1439"/>
-        <location filename="../ui/MainWindow.qml" line="1439"/>
+        <location filename="../ui/MainWindow.qml" line="1440"/>
+        <location filename="../ui/MainWindow.qml" line="1440"/>
         <source>确定清空吗？</source>
         <translation>Confirm clearing?</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1493"/>
-        <location filename="../ui/MainWindow.qml" line="1493"/>
+        <location filename="../ui/MainWindow.qml" line="1494"/>
+        <location filename="../ui/MainWindow.qml" line="1494"/>
         <source>有文件正在传输中</source>
         <translation>Files are being transferred</translation>
     </message>
     <message>
-        <location filename="../ui/MainWindow.qml" line="1502"/>
-        <location filename="../ui/MainWindow.qml" line="1502"/>
+        <location filename="../ui/MainWindow.qml" line="1503"/>
+        <location filename="../ui/MainWindow.qml" line="1503"/>
         <source>确定退出吗？</source>
         <translation>Confirm exit?</translation>
     </message>

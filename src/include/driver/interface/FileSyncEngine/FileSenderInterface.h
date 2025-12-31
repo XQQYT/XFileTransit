@@ -26,7 +26,6 @@ public:
     virtual void cancelSending()
     {
         cancel = true;
-        std::cout << "cancel: " << cancel << std::endl;
     }
 
 protected:

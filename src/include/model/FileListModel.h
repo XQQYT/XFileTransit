@@ -68,6 +68,7 @@ public:
   Q_INVOKABLE void cancelTransit(int index);
   Q_INVOKABLE void cancelAllTransit();
   Q_INVOKABLE void downloadAll();
+  Q_INVOKABLE void removeAllRemoteFiles();
   void updateFilePath(QString new_path);
   void setAutoDownload(bool enable);
   void addRemoteFiles(std::vector<std::vector<std::string>> files);
@@ -81,7 +82,6 @@ public slots:
 
 private:
   bool isFileExists(const QString &filePath);
-  void removeAllRemoteFiles();
   void onHaveExpiredFile(std::vector<std::string> id);
   void deleteFile(int index);
   void removeFileById(std::vector<std::string> id);

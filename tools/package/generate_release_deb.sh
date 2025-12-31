@@ -30,7 +30,7 @@ for cmd in dpkg-deb patchelf ldd; do
 done
 
 # 设置包信息
-PACKAGE_NAME="XFileTransit_${VERSION}_amd64.deb"
+PACKAGE_NAME="XFileTransit-${VERSION}_amd64.deb"
 DEB_ROOT="$PACKAGE_DIR/XFileTransit_${VERSION}_deb"
 
 echo "======================================"
@@ -165,6 +165,7 @@ fi
 echo "收集 Qt6 库依赖..."
 QT_LIBS=(
     "libQt6Core.so.6"
+    "libQt6Svg.so.6"
     "libQt6Gui.so.6"
     "libQt6Qml.so.6"
     "libQt6Quick.so.6"
@@ -188,8 +189,8 @@ QT_LIBS=(
 for lib in "${QT_LIBS[@]}"; do
     lib_path="$QT_GCC_PATH/lib/$lib"
     if [[ -f "$lib_path" ]]; then
-        echo "复制 Qt 库: $lib"
-        cp -f "$lib_path"* "$DEB_ROOT/opt/XFileTransit/lib/" 2>/dev/null || true
+        echo "复制 Qt 库: $lib_path.8.3 -> "$DEB_ROOT/opt/XFileTransit/lib/$lib""
+        cp -f "$lib_path.8.3" "$DEB_ROOT/opt/XFileTransit/lib/$lib" 2>/dev/null || true
     else
         echo "警告: 未找到 Qt 库: $lib_path"
     fi
@@ -234,13 +235,13 @@ EXCLUDE_LIB=(
 )
 
 for lib in "${EXCLUDE_LIB[@]}"; do
-    echo "移除 $lib"
-    rm -f "$TAR_ROOT/lib/$lib" 2>/dev/null || true
+    echo "移除 $DEB_ROOT/opt/XFileTransit/lib/$lib"
+    rm -f "$DEB_ROOT/opt/XFileTransit/lib/$lib" 2>/dev/null || true
 done
 
 # 复制 Qt 插件
 echo "复制 Qt 插件..."
-PLUGIN_DIRS=("platforms" "xcbglintegrations" "imageformats" "platformthemes" "tls")
+PLUGIN_DIRS=("platforms" "xcbglintegrations" "imageformats" "platformthemes" "tls" "iconengines")
 
 for plugin_dir in "${PLUGIN_DIRS[@]}"; do
     src_dir="$QT_GCC_PATH/plugins/$plugin_dir"
@@ -274,6 +275,9 @@ for qml_module in "${QML_MODULES[@]}"; do
         cp -r "$src_dir/"* "$dest_dir/" 2>/dev/null || true
     fi
 done
+
+echo "移除.debug文件 $DEB_ROOT/opt/XFileTransit"
+find "$DEB_ROOT/opt/XFileTransit" -name "*.debug" -type f -delete
 
 # 设置 RPATH 的函数
 function set_rpath() {

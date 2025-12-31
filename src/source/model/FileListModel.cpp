@@ -249,14 +249,15 @@ void FileListModel::onConnectionClosed()
 void FileListModel::removeAllRemoteFiles()
 {
     beginResetModel();
-    for (auto it = file_list.begin(); it < file_list.end(); it++)
+    auto new_end = std::remove_if(file_list.begin(), file_list.end(),
+                                  [](const FileInfo &file)
+                                  {
+                                      return file.is_remote_file;
+                                  });
+    file_list.erase(new_end, file_list.end());
+    for (auto &file : file_list)
     {
-        if (it->is_remote_file)
-        {
-            file_list.erase(it);
-            continue;
-        }
-        it->file_status = FileStatus::StatusLocalDefault;
+        file.file_status = FileStatus::StatusLocalDefault;
     }
     endResetModel();
 }
@@ -651,6 +652,7 @@ void FileListModel::cancelAllTransit()
         }
         transfing_index.append(i);
     }
+    QThread::msleep(100);
     for (auto i : transfing_index)
     {
         if (file_list[i].file_status == FileStatus::StatusDownloading || file_list[i].file_status == FileStatus::StatusUploading)

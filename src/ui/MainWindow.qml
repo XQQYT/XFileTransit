@@ -1041,6 +1041,7 @@ ApplicationWindow  {
                                     root.currentAcceptHandler = function() {
                                         resetStatus()
                                         connection_manager.disconnect()
+                                        file_list_model.removeAllRemoteFiles()
                                     }
                                     generalDialogLoader.item.show()
                                     generalDialogLoader.item.requestActivate()
