@@ -31,8 +31,10 @@ private:
     void onSetEncrptyed(bool enable);
 
 private:
-    std::unique_ptr<NetworkInterface> control_msg_network_driver;
-    std::unique_ptr<Json::JsonFactoryInterface> json_builder;
+    std::unique_ptr<NetworkInterface> tcp_driver;
+    std::unique_ptr<NetworkInterface> p2p_driver;
+    std::unique_ptr<Json::JsonFactoryInterface> user_json_builder;
+    std::unique_ptr<Json::JsonBuilder> signal_json_builder;
     std::shared_ptr<SecurityInterface> security_driver;
     std::unique_ptr<Parser> json_parser;
     std::unique_ptr<Parser> binary_parser;

@@ -1,12 +1,14 @@
 #include "control/NetworkController.h"
 #include "control/EventBusManager.h"
 #include "driver/impl/TcpDriver.h"
-#include "driver/impl/Nlohmann.h"
+#include "driver/impl/UserJsonDriver.h"
+#include "driver/impl/SignalJsonDriver.h"
 #include "driver/impl/OpensslDriver.h"
-#include "control/MsgParser/JsonParser.h"
-#include "control/MsgParser/BinaryParser.h"
+#include "control/MsgParser/UserJsonParser.h"
+#include "control/MsgParser/SignalJsonParser.h"
 #include "control/GlobalStatusManager.h"
 #include "common/DebugOutputer.h"
+#include "driver/impl/P2PDriver.h"
 
 void NetworkController::initSubscribe()
 {
@@ -28,7 +30,7 @@ void NetworkController::initSubscribe()
                                           std::bind(&NetworkController::onResetConnection,
                                                     this));
     EventBusManager::instance().subscribe("/network/cancel_conn_request", [this]()
-                                          { control_msg_network_driver->resetConnection(); });
+                                          { tcp_driver->resetConnection(); });
     EventBusManager::instance().subscribe("/network/have_connect_request_result",
                                           std::bind(&NetworkController::onHaveConnectRequestResult,
                                                     this,
@@ -66,31 +68,42 @@ void NetworkController::initSubscribe()
                                           std::bind(&NetworkController::onSendInitFileReceiverDone,
                                                     this));
     // 设置错误处理回调函数
-    control_msg_network_driver->setDealConnectErrorCb(std::bind(&NetworkController::onConnectError, this, std::placeholders::_1));
-    control_msg_network_driver->setDealRecvErrorCb(std::bind(
+    tcp_driver->setDealConnectErrorCb(std::bind(&NetworkController::onConnectError, this, std::placeholders::_1));
+    tcp_driver->setDealRecvErrorCb(std::bind(
         &NetworkController::onRecvError,
         this,
         std::placeholders::_1));
-    control_msg_network_driver->setDealConnClosedCb(std::bind(
+    tcp_driver->setDealConnClosedCb(std::bind(
         &NetworkController::onConnClosed,
         this));
 }
 
-NetworkController::NetworkController() : control_msg_network_driver(std::make_unique<TcpDriver>()),
-                                         json_builder(std::make_unique<NlohmannJson>()),
+NetworkController::NetworkController() : tcp_driver(std::make_unique<TcpDriver>()),
+                                         p2p_driver(std::make_unique<P2PDriver>()),
+                                         user_json_builder(std::make_unique<NlohmannJson>()),
+                                         signal_json_builder(std::make_unique<SignalJsonMsgBuilder>()),
                                          security_driver(std::make_shared<OpensslDriver>()),
                                          json_parser(std::make_unique<JsonParser>())
 {
     initSubscribe();
     // 设置安全实例驱动才会按照加密协议进行通信
-    control_msg_network_driver->setSecurityInstance(security_driver);
-    control_msg_network_driver->startListen("0.0.0.0", "7777", "7778", nullptr, [this](bool connect_status) -> bool
-                                            {
-            control_msg_network_driver->recvMsg([this](std::unique_ptr<NetworkInterface::UserMsg> msg)
+    tcp_driver->setSecurityInstance(security_driver);
+    tcp_driver->startListen("0.0.0.0", "7777", "7778", nullptr, [this](bool connect_status) -> bool
+                            {
+            tcp_driver->recvMsg([this](std::unique_ptr<NetworkInterface::UserMsg> msg)
                 {
                     json_parser->parse(std::move(msg));
                 });
             return true; });
+    p2p_driver->setNetworkInfo("127.0.0.1", "8888");
+    p2p_driver->connectTo([=](bool ret)
+                          { 
+        if(ret)
+        {
+            p2p_driver->recvMsg([=](std::string msg)
+                {  });
+            p2p_driver->sendMsg(signal_json_builder->buildSignalMsg(Json::MessageType::Signal::Register, {}));
+        } });
 }
 
 void NetworkController::onSetEncrptyed(bool enable)
@@ -100,46 +113,55 @@ void NetworkController::onSetEncrptyed(bool enable)
 
 void NetworkController::onSendConnectRequest(std::string sender_device_name, std::string sender_device_ip, std::string target_device_ip)
 {
-    control_msg_network_driver->setTlsNetworkInfo(target_device_ip, "7777");
-    control_msg_network_driver->setNetworkInfo(target_device_ip, "7778");
-    control_msg_network_driver->connectTo([=](bool ret)
-                                          {
+    switch (ConnectionType::connection_type)
+    {
+    case ConnectionType::Tcp:
+        tcp_driver->setTlsNetworkInfo(target_device_ip, "7777");
+        tcp_driver->setNetworkInfo(target_device_ip, "7778");
+        tcp_driver->connectTo([=](bool ret)
+                              {
             if (ret)
             {
-                control_msg_network_driver->recvMsg([this](std::unique_ptr<NetworkInterface::UserMsg> msg)
+                tcp_driver->recvMsg([this](std::unique_ptr<NetworkInterface::UserMsg> msg)
                     {
                         LOG_INFO("recv msg -> " << std::string(msg->data.data(), msg->data.data() + msg->data.size()));
                         json_parser->parse(std::move(msg));
                     });
                 GlobalStatusManager::getInstance().setCurrentTargetDeviceIP(target_device_ip);
-                std::string msg = json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(
+                std::string msg = user_json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(
                     Json::MessageType::User::ConnectRequest,
                     {
                          {"sender_device_name",sender_device_name},
                          {"sender_device_ip",sender_device_ip}
                     });
-                control_msg_network_driver->sendMsg(msg);
+                tcp_driver->sendMsg(msg);
             }
             else
             {
                 LOG_ERROR("failed to connect");
             } });
-    GlobalStatusManager::getInstance().setCurrentLocalDeviceIP(std::move(sender_device_ip));
-    GlobalStatusManager::getInstance().setCurrentLocalDeviceName(std::move(sender_device_name));
+        GlobalStatusManager::getInstance().setCurrentLocalDeviceIP(std::move(sender_device_ip));
+        GlobalStatusManager::getInstance().setCurrentLocalDeviceName(std::move(sender_device_name));
+        break;
+    case ConnectionType::P2P:
+        break;
+    default:
+        break;
+    }
 }
 
 // 发送ip和name，预留扩展
 void NetworkController::onResetConnection()
 {
-    std::string msg = json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(Json::MessageType::User::CancelConnRequest, {{"sender_device_name", GlobalStatusManager::getInstance().getCurrentLocalDeviceName()}, {"sender_device_ip", GlobalStatusManager::getInstance().getCurrentLocalDeviceIP()}});
-    control_msg_network_driver->sendMsg(msg);
-    control_msg_network_driver->resetConnection();
+    std::string msg = user_json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(Json::MessageType::User::CancelConnRequest, {{"sender_device_name", GlobalStatusManager::getInstance().getCurrentLocalDeviceName()}, {"sender_device_ip", GlobalStatusManager::getInstance().getCurrentLocalDeviceIP()}});
+    tcp_driver->sendMsg(msg);
+    tcp_driver->resetConnection();
 }
 
 void NetworkController::onSendConnectRequestResult(bool res)
 {
-    std::string msg = json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(Json::MessageType::User::ConnectRequestResponse, {{"subtype", "connect_request_response"}, {"arg0", res ? "success" : "failed"}});
-    control_msg_network_driver->sendMsg(msg);
+    std::string msg = user_json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(Json::MessageType::User::ConnectRequestResponse, {{"subtype", "connect_request_response"}, {"arg0", res ? "success" : "failed"}});
+    tcp_driver->sendMsg(msg);
     if (res) // 接受连接
     {
         GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::High);
@@ -148,7 +170,7 @@ void NetworkController::onSendConnectRequestResult(bool res)
     }
     else // 拒绝连接
     {
-        control_msg_network_driver->resetConnection();
+        tcp_driver->resetConnection();
     }
     GlobalStatusManager::getInstance().setConnectStatus(res);
 }
@@ -163,14 +185,14 @@ void NetworkController::onHaveConnectRequestResult(bool res, std::string)
     }
     else
     {
-        control_msg_network_driver->resetConnection();
+        tcp_driver->resetConnection();
     }
     GlobalStatusManager::getInstance().setConnectStatus(res);
 }
 
 void NetworkController::onDisconnect()
 {
-    control_msg_network_driver->resetConnection();
+    tcp_driver->resetConnection();
     GlobalStatusManager::getInstance().setConnectStatus(false);
     EventBusManager::instance().publish("/file/close_FileSyncCore");
 }
@@ -199,7 +221,7 @@ void NetworkController::onConnectError(const NetworkInterface::ConnectError erro
     {
         EventBusManager::instance().publish("/network/have_connect_error", std::string("未知连接错误"));
     }
-    control_msg_network_driver->resetConnection();
+    tcp_driver->resetConnection();
     GlobalStatusManager::getInstance().setConnectStatus(false);
     GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
     EventBusManager::instance().publish("/file/close_FileSyncCore");
@@ -225,7 +247,7 @@ void NetworkController::onRecvError(const NetworkInterface::RecvError error)
     {
         EventBusManager::instance().publish("/network/have_recv_error", std::string("未知接收错误"));
     }
-    control_msg_network_driver->resetConnection();
+    tcp_driver->resetConnection();
     GlobalStatusManager::getInstance().setConnectStatus(false);
     GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
     EventBusManager::instance().publish("/file/close_FileSyncCore");
@@ -235,7 +257,7 @@ void NetworkController::onConnClosed()
 {
     EventBusManager::instance().publish("/network/connection_closed");
     // 重置驱动上下文
-    control_msg_network_driver->resetConnection();
+    tcp_driver->resetConnection();
     GlobalStatusManager::getInstance().setConnectStatus(false);
     GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
     EventBusManager::instance().publish("/file/close_FileSyncCore");
@@ -243,49 +265,49 @@ void NetworkController::onConnClosed()
 
 void NetworkController::onSendExpiredFile(uint32_t id)
 {
-    auto sync_builder = json_builder->getBuilder(Json::BuilderType::Sync);
-    control_msg_network_driver->sendMsg(
+    auto sync_builder = user_json_builder->getBuilder(Json::BuilderType::Sync);
+    tcp_driver->sendMsg(
         sync_builder->buildSyncMsg(Json::MessageType::Sync::FileExpired, {std::to_string(id)}, 1));
 }
 
 void NetworkController::onSendSyncAddFiles(std::vector<std::string> files, uint8_t stride)
 {
-    auto sync_builder = json_builder->getBuilder(Json::BuilderType::Sync);
-    control_msg_network_driver->sendMsg(
+    auto sync_builder = user_json_builder->getBuilder(Json::BuilderType::Sync);
+    tcp_driver->sendMsg(
         sync_builder->buildSyncMsg(Json::MessageType::Sync::AddFiles, std::move(files), stride));
 }
 
 void NetworkController::onSendSyncDeleteFile(uint32_t id)
 {
-    auto sync_builder = json_builder->getBuilder(Json::BuilderType::Sync);
-    control_msg_network_driver->sendMsg(
+    auto sync_builder = user_json_builder->getBuilder(Json::BuilderType::Sync);
+    tcp_driver->sendMsg(
         sync_builder->buildSyncMsg(Json::MessageType::Sync::RemoveFile, {std::to_string(id)}, 1));
 }
 
 void NetworkController::onSendGetFile(uint32_t id)
 {
-    auto sync_builder = json_builder->getBuilder(Json::BuilderType::Sync);
-    control_msg_network_driver->sendMsg(
+    auto sync_builder = user_json_builder->getBuilder(Json::BuilderType::Sync);
+    tcp_driver->sendMsg(
         sync_builder->buildSyncMsg(Json::MessageType::Sync::DownloadFile, {std::to_string(id)}, 1));
 }
 
 void NetworkController::onConcurrentChanged(uint8_t num)
 {
-    auto settings_builder = json_builder->getBuilder(Json::BuilderType::Settings);
-    control_msg_network_driver->sendMsg(
+    auto settings_builder = user_json_builder->getBuilder(Json::BuilderType::Settings);
+    tcp_driver->sendMsg(
         settings_builder->buildSettingsMsg(Json::MessageType::Settings::ConcurrentTask, {{"concurrent", std::to_string(num)}}));
 }
 
 void NetworkController::onSendCancelTransit(uint32_t id)
 {
-    auto file_builder = json_builder->getBuilder(Json::BuilderType::File);
-    control_msg_network_driver->sendMsg(
+    auto file_builder = user_json_builder->getBuilder(Json::BuilderType::File);
+    tcp_driver->sendMsg(
         file_builder->buildFileMsg(Json::MessageType::File::FileCancel, {{"id", std::to_string(id)}}));
 }
 
 void NetworkController::onSendInitFileReceiverDone()
 {
-    auto file_builder = json_builder->getBuilder(Json::BuilderType::File);
-    control_msg_network_driver->sendMsg(
+    auto file_builder = user_json_builder->getBuilder(Json::BuilderType::File);
+    tcp_driver->sendMsg(
         file_builder->buildFileMsg(Json::MessageType::File::ReceiverInitDone, {}));
 }

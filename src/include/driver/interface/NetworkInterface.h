@@ -90,7 +90,8 @@ public:
     virtual void startTlsListen(const std::string &address, const std::string &tls_port, std::function<bool(bool)> tls_callback) {}
     virtual void startTcpListen(const std::string &address, const std::string &tcp_port, std::function<bool(bool)> tcp_callback) {}
     virtual void sendMsg(const std::string &msg) = 0;
-    virtual void recvMsg(std::function<void(std::unique_ptr<UserMsg>)> callback) = 0;
+    virtual void recvMsg(std::function<void(std::unique_ptr<UserMsg>)> callback) {};
+    virtual void recvMsg(std::function<void(std::string)> callback) {}
     virtual void closeSocket() = 0;
     virtual void resetConnection() = 0;
     virtual void setSecurityInstance(std::shared_ptr<SecurityInterface> instance) { security_instance = instance; }

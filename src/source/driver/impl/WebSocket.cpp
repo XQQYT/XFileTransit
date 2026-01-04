@@ -98,7 +98,7 @@ void WebSocket::sendMsg(const std::string &msg)
         } });
 }
 
-void WebSocket::recvMsg(std::function<void(std::unique_ptr<UserMsg>)> callback)
+void WebSocket::recvMsg(std::function<void(std::string)> callback)
 {
     auto self = shared_from_this();
     auto buffer = std::make_shared<beast::flat_buffer>();
@@ -108,7 +108,7 @@ void WebSocket::recvMsg(std::function<void(std::unique_ptr<UserMsg>)> callback)
                           {
                               if (!ec)
                               {
-                                  //   callback(beast::buffers_to_string(buffer->data()));
+                                  callback(beast::buffers_to_string(buffer->data()));
                                   recvMsg(callback);
                                   std::cout << "接收  " << beast::buffers_to_string(buffer->data()) << std::endl
                                             << std::endl;
@@ -133,4 +133,8 @@ void WebSocket::closeSocket()
             std::cerr << "Error while closing WebSocket: " << e.what() << std::endl;
         }
     }
+}
+
+void WebSocket::resetConnection()
+{
 }

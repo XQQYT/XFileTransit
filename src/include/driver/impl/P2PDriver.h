@@ -13,7 +13,7 @@ public:
     void setNetworkInfo(const std::string &address, const std::string &port) override;
     void connectTo(std::function<void(bool)> callback = nullptr) override;
     void sendMsg(const std::string &msg) override;
-    void recvMsg(std::function<void(std::unique_ptr<UserMsg>)> callback) override;
+    void recvMsg(std::function<void(std::string)> callback) override;
     void closeSocket() override;
     void resetConnection() override;
 
@@ -25,9 +25,15 @@ public:
     void start(std::function<std::optional<std::pair<uint32_t, std::string>>()> get_task_cb) override;
 
 private:
+    enum class State
+    {
+        Default,
+        InSignal,
+        InP2P
+    };
     std::string signal_address;
     std::string signal_port;
-    std::unique_ptr<NetworkInterface> websocket_driver;
+    std::shared_ptr<NetworkInterface> websocket_driver;
 };
 
 #endif

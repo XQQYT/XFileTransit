@@ -123,6 +123,16 @@ private:
     std::unordered_map<uint32_t, std::string> id_filename;
 };
 
+inline namespace ConnectionType
+{
+    enum Type
+    {
+        Tcp,
+        P2P
+    };
+    inline Type connection_type = Tcp;
+};
+
 namespace Settings
 {
     enum class Item

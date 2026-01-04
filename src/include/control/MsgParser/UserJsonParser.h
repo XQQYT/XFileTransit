@@ -1,5 +1,5 @@
-#ifndef _JSONPARSER_H
-#define _JSONPARSER_H
+#ifndef _USERJSONPARSER_H
+#define _USERJSONPARSER_H
 
 #include "Parser.h"
 #include "driver/interface/JsonFactoryInterface.h"

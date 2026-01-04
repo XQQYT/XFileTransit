@@ -1,8 +1,9 @@
 #include "driver/impl/P2PDriver.h"
 #include "driver/impl/WebSocket.h"
+#include "common/DebugOutputer.h"
 
 P2PDriver::P2PDriver()
-    : websocket_driver(std::make_unique<WebSocket>())
+    : websocket_driver(WebSocket::create())
 {
 }
 
@@ -11,18 +12,22 @@ void P2PDriver::setNetworkInfo(const std::string &address, const std::string &po
 {
     signal_address = address;
     signal_port = port;
+    websocket_driver->setNetworkInfo(signal_address, signal_port);
 }
 
 void P2PDriver::connectTo(std::function<void(bool)> callback)
 {
+    websocket_driver->connectTo(callback);
 }
 
 void P2PDriver::sendMsg(const std::string &msg)
 {
+    websocket_driver->sendMsg(msg);
 }
 
-void P2PDriver::recvMsg(std::function<void(std::unique_ptr<UserMsg>)> callback)
+void P2PDriver::recvMsg(std::function<void(std::string)> callback)
 {
+    websocket_driver->recvMsg(callback);
 }
 
 void P2PDriver::closeSocket()

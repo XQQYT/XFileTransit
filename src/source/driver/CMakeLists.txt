@@ -1,5 +1,6 @@
 set(DRIVER_SOURCES
-    impl/Nlohmann.cpp
+    impl/UserJsonDriver.cpp
+    impl/SignalJsonDriver.cpp
     impl/SettingsFile.cpp
     impl/TcpDriver.cpp
     impl/OuterMsgBuilder.cpp

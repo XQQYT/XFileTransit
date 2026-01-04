@@ -1,6 +1,6 @@
 set(CONTROL_SOURCES
     NetworkController.cpp
-    MsgParser/JsonParser.cpp
+    MsgParser/UserJsonParser.cpp
     FileSyncEngine/FileSyncEngine.cpp
     SettingsController.cpp
 )

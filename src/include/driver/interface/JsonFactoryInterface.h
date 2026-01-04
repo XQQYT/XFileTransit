@@ -2,6 +2,7 @@
 #define _JSONFACTORY_H
 
 #include <string>
+#include <stdexcept>
 #include <vector>
 #include <memory>
 #include <map>
@@ -128,6 +129,24 @@ namespace Json
                 }
             }
         }
+        namespace Signal
+        {
+            enum Type
+            {
+                Register
+            };
+
+            constexpr const char *toString(Type type)
+            {
+                switch (type)
+                {
+                case Register:
+                    return "register";
+                default:
+                    return "unknown";
+                }
+            }
+        }
     }
 
     // 消息架构描述
@@ -193,10 +212,27 @@ namespace Json
     class JsonBuilder
     {
     public:
-        virtual std::string buildUserMsg(MessageType::User::Type type, std::map<std::string, std::string> &&args) = 0;
-        virtual std::string buildSyncMsg(MessageType::Sync::Type type, std::vector<std::string> &&args, uint8_t stride) = 0;
-        virtual std::string buildFileMsg(MessageType::File::Type type, std::map<std::string, std::string> args) = 0;
-        virtual std::string buildSettingsMsg(MessageType::Settings::Type type, std::map<std::string, std::string> args) = 0;
+        virtual std::string buildUserMsg(MessageType::User::Type type, std::map<std::string, std::string> &&args)
+        {
+            throw std::runtime_error("Empty User Builder implement");
+        }
+        virtual std::string buildSyncMsg(MessageType::Sync::Type type, std::vector<std::string> &&args, uint8_t stride)
+        {
+            throw std::runtime_error("Empty Sync Builder implement");
+        }
+        virtual std::string buildFileMsg(MessageType::File::Type type, std::map<std::string, std::string> args)
+        {
+            throw std::runtime_error("Empty File Builder implement");
+        }
+        virtual std::string buildSettingsMsg(MessageType::Settings::Type type, std::map<std::string, std::string> args)
+        {
+            throw std::runtime_error("Empty Settings Builder implement");
+        }
+        virtual std::string buildSignalMsg(MessageType::Signal::Type type, std::map<std::string, std::string> args)
+        {
+            throw std::runtime_error("Empty Signal Builder implement");
+        }
+
         virtual ~JsonBuilder() = default;
     };
     class JsonFactoryInterface

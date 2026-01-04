@@ -16,18 +16,22 @@ using tcp = asio::ip::tcp;
 class WebSocket : public NetworkInterface, public std::enable_shared_from_this<WebSocket>
 {
 public:
-    WebSocket();
+    static std::shared_ptr<WebSocket> create()
+    {
+        return std::shared_ptr<WebSocket>(new WebSocket());
+    }
     WebSocket(const WebSocket &obj) = delete;
     WebSocket &operator=(WebSocket &obj) = delete;
     void setNetworkInfo(const std::string &address, const std::string &port) override;
     void connectTo(std::function<void(bool)> callback = nullptr) override;
     void sendMsg(const std::string &msg) override;
-    void recvMsg(std::function<void(std::unique_ptr<UserMsg>)> callback) override;
+    void recvMsg(std::function<void(std::string)> callback) override;
     void closeSocket() override;
     void resetConnection() override;
     ~WebSocket();
 
 private:
+    WebSocket();
     std::optional<asio::executor_work_guard<asio::io_context::executor_type>> work_guard;
     std::thread io_thread;
     std::unique_ptr<asio::io_context> ioc;
