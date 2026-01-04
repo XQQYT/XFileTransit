@@ -89,8 +89,11 @@ std::unique_ptr<NetworkInterface::UserMsg> OuterMsgBuilder::build(std::vector<ui
     memcpy(msg.data() + offset, real_msg.data(), real_msg.size());
     offset += real_msg.size();
     auto user_msg = std::make_unique<NetworkInterface::UserMsg>();
-    user_msg->iv.assign(iv, iv + 16);
-    user_msg->sha256.assign(sha256, sha256 + 32);
+    if (iv && sha256)
+    {
+        user_msg->iv.assign(iv, iv + 16);
+        user_msg->sha256.assign(sha256, sha256 + 32);
+    }
     user_msg->data = std::move(msg);
 
     return user_msg;

@@ -14,7 +14,7 @@ class FileSender : public FileSenderInterface
 {
 public:
     using FileSenderInterface::FileSenderInterface;
-    bool initialize() override;
+    bool initialize(const std::string &addr, const std::string &p, std::shared_ptr<SecurityInterface> inst) override;
     void start(std::function<std::optional<std::pair<uint32_t, std::string>>()> get_task_cb) override;
     void stop() override;
     ~FileSender() override;

@@ -5,6 +5,8 @@ set(DRIVER_SOURCES
     impl/OuterMsgBuilder.cpp
     impl/OpensslDriver.cpp
     impl/OuterMsgParser.cpp
+    impl/P2PDriver.cpp
+    impl/WebSocket.cpp
     impl/FileSyncEngine/FileReceiver.cpp
     impl/FileSyncEngine/FileSender.cpp
     impl/FileSyncEngine/FileParser.cpp
@@ -13,6 +15,7 @@ set(DRIVER_SOURCES
 
 # Windows 特定的 OpenSSL 设置
 if(WIN32)
+    set(BOOST_INCLUDE_DIR "D:/msys64/mingw64/include")
     set(OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL-Win64")
     set(OPENSSL_INCLUDE_DIR "${OPENSSL_ROOT_DIR}/include")
     set(OPENSSL_CRYPTO_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MT/libcrypto.lib")
@@ -42,6 +45,7 @@ target_include_directories(driver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include
     ${OPENSSL_INCLUDE_DIR}
+    ${BOOST_INCLUDE_DIR}
 )
 
 if(WIN32)

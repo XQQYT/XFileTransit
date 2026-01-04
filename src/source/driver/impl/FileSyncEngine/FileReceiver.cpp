@@ -5,8 +5,11 @@
 #include <cstring>
 #include <mutex>
 
-bool FileReceiver::initialize()
+bool FileReceiver::initialize(const std::string &addr, const std::string &p, std::shared_ptr<SecurityInterface> inst)
 {
+    address = addr;
+    port = p;
+    security_instance = inst;
     listen_socket = createListenSocket(address, port);
     outer_parser = std::make_unique<OuterMsgParser>();
     return (listen_socket != INVALID_SOCKET_VAL);

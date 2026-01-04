@@ -91,8 +91,9 @@ NetworkController::NetworkController() : control_msg_network_driver(std::make_un
 
 void NetworkController::onSendConnectRequest(std::string sender_device_name, std::string sender_device_ip, std::string target_device_ip)
 {
-    control_msg_network_driver->initTlsSocket(target_device_ip, "7777");
-    control_msg_network_driver->initTcpSocket(target_device_ip, "7778");
+    control_msg_network_driver->setTlsNetworkInfo(target_device_ip, "7777");
+    control_msg_network_driver->setNetworkInfo(target_device_ip, "7778");
+    control_msg_network_driver->enableEncrpty(false);
     control_msg_network_driver->connectTo([=](bool ret)
                                           {
             if (ret)

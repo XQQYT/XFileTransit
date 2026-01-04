@@ -14,7 +14,7 @@ class FileReceiver : public FileReceiverInterface
 public:
     using FileReceiverInterface::FileReceiverInterface;
 
-    bool initialize() override;
+    bool initialize(const std::string &addr, const std::string &p, std::shared_ptr<SecurityInterface> inst) override;
     void start(std::function<void(UnifiedSocket)> accept_cb,
                std::function<void(UnifiedSocket socket, std::unique_ptr<NetworkInterface::UserMsg>)> msg_cb) override;
     void stop() override;

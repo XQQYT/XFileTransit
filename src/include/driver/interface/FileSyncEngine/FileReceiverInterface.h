@@ -8,14 +8,12 @@
 class FileReceiverInterface
 {
 public:
-    FileReceiverInterface(const std::string &addr, const std::string &p, std::shared_ptr<SecurityInterface> inst) : address(addr), port(p), security_instance(inst)
-    {
-    }
+    FileReceiverInterface() = default;
     virtual ~FileReceiverInterface() = default;
-    virtual bool initialize() = 0;
+    virtual bool initialize(const std::string &addr, const std::string &p, std::shared_ptr<SecurityInterface> inst) { return false; }
     virtual void start(std::function<void(UnifiedSocket)> accept_cb,
                        std::function<void(UnifiedSocket socket, std::unique_ptr<NetworkInterface::UserMsg>)> msg_cb) = 0;
-    virtual void stop() = 0;
+    virtual void stop() {}
 
 protected:
     std::shared_ptr<SecurityInterface> security_instance;

@@ -7,8 +7,11 @@
 #include <cerrno>
 #include <cstring>
 
-bool FileSender::initialize()
+bool FileSender::initialize(const std::string &addr, const std::string &p, std::shared_ptr<SecurityInterface> inst)
 {
+    address = addr;
+    port = p;
+    security_instance = inst;
 #ifdef _WIN32
     if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0)
     {

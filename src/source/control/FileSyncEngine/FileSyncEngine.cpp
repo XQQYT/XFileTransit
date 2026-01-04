@@ -119,10 +119,10 @@ void FileSyncEngine::start(std::string address, std::string recv_port,
     LOG_INFO("FileSyncCore start");
 
     // 初始化receiver
-    file_receiver = std::make_unique<FileReceiver>("0.0.0.0", this->recv_port, this->instance);
+    file_receiver = std::make_unique<FileReceiver>();
     cv = std::make_shared<std::condition_variable>();
 
-    if (file_receiver->initialize())
+    if (file_receiver->initialize("0.0.0.0", this->recv_port, this->instance))
     {
         file_receiver->start(std::bind(&FileSyncEngine::haveFileConnection, this, std::placeholders::_1),
                              std::bind(&FileSyncEngine::haveFileMsg, this, std::placeholders::_1, std::placeholders::_2));
@@ -138,8 +138,8 @@ void FileSyncEngine::initFileSenders()
     std::vector<std::shared_ptr<FileSender>> initialized_senders;
     for (int i = 0; i < sender_num; ++i)
     {
-        auto sender = std::make_shared<FileSender>(this->address, this->recv_port, this->instance);
-        if (sender->initialize())
+        auto sender = std::make_shared<FileSender>();
+        if (sender->initialize(this->address, this->recv_port, this->instance))
         {
             sender->setCondition(this->cv);
             sender->setCheckQueue([this]() -> bool
@@ -169,8 +169,8 @@ void FileSyncEngine::setConcurrentTask(uint8_t num)
         for (uint8_t i = 0; i < need_to_close; ++i)
         {
             LOG_DEBUG("add one sender");
-            auto sender = std::make_shared<FileSender>(this->address, this->recv_port, this->instance);
-            if (sender->initialize())
+            auto sender = std::make_shared<FileSender>();
+            if (sender->initialize(this->address, this->recv_port, this->instance))
             {
                 sender->setCondition(this->cv);
                 sender->setCheckQueue([this]() -> bool

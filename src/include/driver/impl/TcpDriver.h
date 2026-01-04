@@ -12,8 +12,9 @@ class TcpDriver : public NetworkInterface
 public:
     TcpDriver();
     ~TcpDriver();
-    void initTlsSocket(const std::string &address, const std::string &tls_port) override;
-    void initTcpSocket(const std::string &address, const std::string &tcp_port) override;
+    void setTlsNetworkInfo(const std::string &address, const std::string &tls_port) override;
+    void setNetworkInfo(const std::string &address, const std::string &tcp_port) override;
+    void enableEncrpty(bool enable) override;
     void connectTo(std::function<void(bool)> callback = nullptr) override;
     void sendMsg(const std::string &msg) override;
     // 设置安全实例才会开启tls监听
@@ -66,6 +67,8 @@ private:
     std::atomic<bool> listen_running{false};
     bool recv_running{false};
     std::atomic<bool> connect_status{false};
+
+    bool enable_encrpty;
 };
 
 #endif //_TCPDRIVER_H
