@@ -32,13 +32,14 @@ std::unique_ptr<NetworkInterface::UserMsg> OuterMsgBuilder::build(std::vector<ui
     memcpy(&header.version, &version, sizeof(version));
 
     uint8_t msg_flag = static_cast<uint8_t>(flag);
+    msg_flag |= OuterMsgBuilderInterface::encrptyed ? static_cast<int>(NetworkInterface::Flag::IS_ENCRYPT) : 0;
 
     memcpy(&header.flag, &msg_flag, sizeof(msg_flag));
 
     uint8_t *iv = nullptr;
     uint8_t *sha256 = nullptr;
 
-    bool encrypt = security_instance && (flag & NetworkInterface::Flag::IS_ENCRYPT);
+    bool encrypt = security_instance && OuterMsgBuilderInterface::encrptyed;
     if (encrypt)
     {
         iv = security_instance->aesEncrypt(real_msg, security_instance->getTlsInfo().key.get());

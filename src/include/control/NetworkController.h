@@ -28,6 +28,7 @@ private:
     void onConcurrentChanged(uint8_t num);
     void onSendCancelTransit(uint32_t id);
     void onSendInitFileReceiverDone();
+    void onSetEncrptyed(bool enable);
 
 private:
     std::unique_ptr<NetworkInterface> control_msg_network_driver;

@@ -26,6 +26,7 @@ class SettingsModel : public QObject
     Q_PROPERTY(bool autoDownload READ autoDownload WRITE setAutoDownload NOTIFY autoDownloadChanged)
     Q_PROPERTY(int autoDownloadThreshold READ autoDownloadThreshold WRITE setAutoDownloadThreshold NOTIFY autoDownloadThresholdChanged)
     Q_PROPERTY(int concurrentTransfers READ concurrentTransfers WRITE setConcurrentTransfers NOTIFY concurrentTransfersChanged)
+    Q_PROPERTY(bool encrpty READ encrpty WRITE setEncrpty NOTIFY encrptyChanged)
     Q_PROPERTY(bool expandOnAction READ expandOnAction WRITE setExpandOnAction NOTIFY expandOnActionChanged)
     Q_PROPERTY(QString appVersion READ appVersion CONSTANT)
     Q_PROPERTY(QString changeLog READ changeLog WRITE setChangeLog NOTIFY changeLogChanged)
@@ -53,6 +54,7 @@ public:
     bool autoDownload() const { return auto_download; }
     int autoDownloadThreshold() const { return auto_download_threshold; }
     int concurrentTransfers() const { return concurrent_transfers; }
+    bool encrpty() const { return encrptyed; }
     bool expandOnAction() const { return expand_on_action; }
     QString appVersion() const { return app_version; }
     QString releaseDate() const { return release_date; }
@@ -78,6 +80,7 @@ public:
     void setAutoDownload(bool enable);
     void setAutoDownloadThreshold(int threshold);
     void setConcurrentTransfers(int transfers);
+    void setEncrpty(bool enable);
     void setExpandOnAction(bool expand);
     void setChangeLog(const QString &log);
     void setNewVersion(const QString &new_version);
@@ -113,6 +116,7 @@ signals:
     void autoDownloadChanged(bool enable);
     void autoDownloadThresholdChanged(int threshold);
     void concurrentTransfersChanged(int transfers);
+    void encrptyChanged(bool enable);
     void expandOnActionChanged(bool expand);
     void changeLogChanged(const QString &log);
     void newVersionChanged(const QString &new_version);
@@ -167,6 +171,7 @@ private:
     bool auto_download;
     int auto_download_threshold;
     int concurrent_transfers;
+    bool encrptyed;
     // notifity
     bool expand_on_action;
     // about

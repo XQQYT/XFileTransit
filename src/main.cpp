@@ -43,6 +43,8 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/network/have_recv_error");
     // 收到对端关闭连接
     EventBusManager::instance().registerEvent("/network/connection_closed");
+    // 设置加密选项
+    EventBusManager::instance().registerEvent("/network/set_encrptyed");
     // 发送添加文件消息
     EventBusManager::instance().registerEvent("/sync/send_addfiles");
     // 收到添加文件消息

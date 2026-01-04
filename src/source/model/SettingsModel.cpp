@@ -350,6 +350,22 @@ void SettingsModel::setConcurrentTransfers(int transfers)
     }
 }
 
+void SettingsModel::setEncrpty(bool enable)
+{
+    if (encrptyed != enable)
+    {
+        encrptyed = enable;
+        emit encrptyChanged(enable);
+        EventBusManager::instance().publish("/network/set_encrptyed", enable);
+        if (grout_init_flags[Settings::to_uint8(Settings::SettingsGroup::Transfer)])
+        {
+            EventBusManager::instance().publish("/settings/update_settings_value",
+                                                static_cast<uint8_t>(Settings::SettingsGroup::Transfer), std::string("encrptyed"), std::to_string(enable));
+            flush_config_timer->start();
+        }
+    }
+}
+
 void SettingsModel::setExpandOnAction(bool expand)
 {
     if (expand_on_action != expand)
@@ -636,6 +652,7 @@ void SettingsModel::setTransitConfig(std::shared_ptr<std::unordered_map<std::str
     setAutoDownload(std::stoi((*config)["auto_download"]));
     setAutoDownloadThreshold(std::stoi((*config)["auto_download_threshold"]));
     setConcurrentTransfers(std::stoi((*config)["concurrent_task"]));
+    setEncrpty(std::stoi((*config)["encrptyed"]));
 
     endLoadConfig(Settings::SettingsGroup::Transfer);
 }

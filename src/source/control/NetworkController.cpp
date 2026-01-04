@@ -10,6 +10,10 @@
 
 void NetworkController::initSubscribe()
 {
+    EventBusManager::instance().subscribe("/network/set_encrptyed",
+                                          std::bind(&NetworkController::onSetEncrptyed,
+                                                    this,
+                                                    std::placeholders::_1));
     EventBusManager::instance().subscribe("/network/send_connect_request",
                                           std::bind(&NetworkController::onSendConnectRequest,
                                                     this,
@@ -89,11 +93,15 @@ NetworkController::NetworkController() : control_msg_network_driver(std::make_un
             return true; });
 }
 
+void NetworkController::onSetEncrptyed(bool enable)
+{
+    OuterMsgBuilderInterface::encrptyed = enable;
+}
+
 void NetworkController::onSendConnectRequest(std::string sender_device_name, std::string sender_device_ip, std::string target_device_ip)
 {
     control_msg_network_driver->setTlsNetworkInfo(target_device_ip, "7777");
     control_msg_network_driver->setNetworkInfo(target_device_ip, "7778");
-    control_msg_network_driver->enableEncrpty(false);
     control_msg_network_driver->connectTo([=](bool ret)
                                           {
             if (ret)

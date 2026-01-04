@@ -87,7 +87,6 @@ public:
     virtual void connectTo(std::function<void(bool)> callback = nullptr) = 0;
     virtual void startListen(const std::string &address, const std::string &tls_port, const std::string &tcp_port,
                              std::function<bool(bool)> tls_callback, std::function<bool(bool)> tcp_callback) {}
-    virtual void enableEncrpty(bool enable) {}
     virtual void startTlsListen(const std::string &address, const std::string &tls_port, std::function<bool(bool)> tls_callback) {}
     virtual void startTcpListen(const std::string &address, const std::string &tcp_port, std::function<bool(bool)> tcp_callback) {}
     virtual void sendMsg(const std::string &msg) = 0;

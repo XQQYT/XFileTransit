@@ -61,7 +61,7 @@ void FileSender::sendMsg(std::vector<uint8_t> &&msg, bool is_binary)
     if (msg.empty() || client_socket == INVALID_SOCKET_VAL)
         return;
 
-    NetworkInterface::Flag flag = NetworkInterface::Flag::IS_ENCRYPT;
+    NetworkInterface::Flag flag = static_cast<NetworkInterface::Flag>(0);
     if (is_binary)
     {
         flag = static_cast<NetworkInterface::Flag>(static_cast<uint8_t>(flag) |

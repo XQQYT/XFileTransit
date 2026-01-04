@@ -41,11 +41,6 @@ TcpDriver::~TcpDriver()
     closeSocket();
 }
 
-void TcpDriver::enableEncrpty(bool enable)
-{
-    enable_encrpty = enable;
-}
-
 void TcpDriver::setTlsNetworkInfo(const std::string &address, const std::string &tls_port)
 {
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -194,7 +189,7 @@ void TcpDriver::sendMsg(const std::string &msg)
         return;
     }
 
-    NetworkInterface::Flag flag = enable_encrpty ? NetworkInterface::Flag::IS_ENCRYPT : static_cast<NetworkInterface::Flag>(0);
+    NetworkInterface::Flag flag = static_cast<NetworkInterface::Flag>(0);
     std::unique_ptr<NetworkInterface::UserMsg> ready_to_send_msg = msg_builder->buildMsg(msg, flag);
 
     if (!ready_to_send_msg)
