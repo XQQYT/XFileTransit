@@ -4,23 +4,23 @@
 #include "control/GlobalStatusManager.h"
 #include <iostream>
 
-JsonParser::JsonParser() : json_driver(std::make_unique<NlohmannJson>())
+UserJsonParser::UserJsonParser() : json_driver(std::make_unique<NlohmannJson>())
 {
-    type_funcfion_map["connect_request"] = std::bind(&JsonParser::connectRequest, this, std::placeholders::_1);
-    type_funcfion_map["response"] = std::bind(&JsonParser::resonpeResult, this, std::placeholders::_1);
-    type_funcfion_map["cancel_conn_request"] = std::bind(&JsonParser::cancelConnRequest, this, std::placeholders::_1);
+    type_funcfion_map["connect_request"] = std::bind(&UserJsonParser::connectRequest, this, std::placeholders::_1);
+    type_funcfion_map["response"] = std::bind(&UserJsonParser::resonpeResult, this, std::placeholders::_1);
+    type_funcfion_map["cancel_conn_request"] = std::bind(&UserJsonParser::cancelConnRequest, this, std::placeholders::_1);
 
-    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::FileExpired)] = std::bind(&JsonParser::syncExpiredFile, this, std::placeholders::_1);
-    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::AddFiles)] = std::bind(&JsonParser::syncAddFiles, this, std::placeholders::_1);
-    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::RemoveFile)] = std::bind(&JsonParser::syncDeleteFiles, this, std::placeholders::_1);
-    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::DownloadFile)] = std::bind(&JsonParser::downloadFile, this, std::placeholders::_1);
+    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::FileExpired)] = std::bind(&UserJsonParser::syncExpiredFile, this, std::placeholders::_1);
+    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::AddFiles)] = std::bind(&UserJsonParser::syncAddFiles, this, std::placeholders::_1);
+    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::RemoveFile)] = std::bind(&UserJsonParser::syncDeleteFiles, this, std::placeholders::_1);
+    type_funcfion_map[Json::MessageType::Sync::toString(Json::MessageType::Sync::DownloadFile)] = std::bind(&UserJsonParser::downloadFile, this, std::placeholders::_1);
 
-    type_funcfion_map[Json::MessageType::Settings::toString(Json::MessageType::Settings::ConcurrentTask)] = std::bind(&JsonParser::concurrentChanged, this, std::placeholders::_1);
-    type_funcfion_map[Json::MessageType::File::toString(Json::MessageType::File::FileCancel)] = std::bind(&JsonParser::cancelFileTransit, this, std::placeholders::_1);
-    type_funcfion_map[Json::MessageType::File::toString(Json::MessageType::File::ReceiverInitDone)] = std::bind(&JsonParser::receiverInitDone, this, std::placeholders::_1);
+    type_funcfion_map[Json::MessageType::Settings::toString(Json::MessageType::Settings::ConcurrentTask)] = std::bind(&UserJsonParser::concurrentChanged, this, std::placeholders::_1);
+    type_funcfion_map[Json::MessageType::File::toString(Json::MessageType::File::FileCancel)] = std::bind(&UserJsonParser::cancelFileTransit, this, std::placeholders::_1);
+    type_funcfion_map[Json::MessageType::File::toString(Json::MessageType::File::ReceiverInitDone)] = std::bind(&UserJsonParser::receiverInitDone, this, std::placeholders::_1);
 }
 
-void JsonParser::parse(std::unique_ptr<NetworkInterface::UserMsg> data)
+void UserJsonParser::parse(std::unique_ptr<NetworkInterface::UserMsg> data)
 {
     auto parser = json_driver->getParser();
     std::string data_str(std::make_move_iterator(data->data.begin()),
@@ -39,7 +39,7 @@ void JsonParser::parse(std::unique_ptr<NetworkInterface::UserMsg> data)
     }
 }
 
-void JsonParser::connectRequest(std::unique_ptr<Json::Parser> parser)
+void UserJsonParser::connectRequest(std::unique_ptr<Json::Parser> parser)
 {
     std::string ip = parser->getValue("sender_device_ip");
     std::string name = parser->getValue("sender_device_name");
@@ -48,7 +48,7 @@ void JsonParser::connectRequest(std::unique_ptr<Json::Parser> parser)
     GlobalStatusManager::getInstance().setCurrentTargetDeviceName(std::move(name));
 }
 
-void JsonParser::resonpeResult(std::unique_ptr<Json::Parser> parser)
+void UserJsonParser::resonpeResult(std::unique_ptr<Json::Parser> parser)
 {
     auto arg0 = JsonMessageType::parseResultType(parser->getValue("arg0"));
     auto subtype = JsonMessageType::parseResponseType(parser->getValue("subtype"));
@@ -63,7 +63,7 @@ void JsonParser::resonpeResult(std::unique_ptr<Json::Parser> parser)
     }
 }
 
-void JsonParser::publishResponse(std::string &&event_name, JsonMessageType::ResultType type)
+void UserJsonParser::publishResponse(std::string &&event_name, JsonMessageType::ResultType type)
 {
     switch (type)
     {
@@ -80,7 +80,7 @@ void JsonParser::publishResponse(std::string &&event_name, JsonMessageType::Resu
     }
 }
 
-void JsonParser::publishResponse(std::string &&event_name, JsonMessageType::ResultType type, std::string arg0)
+void UserJsonParser::publishResponse(std::string &&event_name, JsonMessageType::ResultType type, std::string arg0)
 {
     switch (type)
     {
@@ -97,14 +97,14 @@ void JsonParser::publishResponse(std::string &&event_name, JsonMessageType::Resu
     }
 }
 
-void JsonParser::cancelConnRequest(std::unique_ptr<Json::Parser> parser)
+void UserJsonParser::cancelConnRequest(std::unique_ptr<Json::Parser> parser)
 {
     std::string ip = parser->getValue("sender_device_ip");
     std::string name = parser->getValue("sender_device_name");
     EventBusManager::instance().publish("/network/cancel_conn_request", parser->getValue("sender_device_ip"), parser->getValue("sender_device_name"));
 }
 
-void JsonParser::syncExpiredFile(std::unique_ptr<Json::Parser> parser)
+void UserJsonParser::syncExpiredFile(std::unique_ptr<Json::Parser> parser)
 {
     std::vector<std::string> files;
     auto file_ids = parser->getArray("files");
@@ -115,7 +115,7 @@ void JsonParser::syncExpiredFile(std::unique_ptr<Json::Parser> parser)
     }
     EventBusManager::instance().publish("/sync/have_expired_file", files);
 }
-void JsonParser::syncAddFiles(std::unique_ptr<Json::Parser> parser)
+void UserJsonParser::syncAddFiles(std::unique_ptr<Json::Parser> parser)
 {
     auto array = parser->getArray("files");
     std::vector<std::vector<std::string>> files;
@@ -126,7 +126,7 @@ void JsonParser::syncAddFiles(std::unique_ptr<Json::Parser> parser)
     EventBusManager::instance().publish("/sync/have_addfiles", files);
 }
 
-void JsonParser::syncDeleteFiles(std::unique_ptr<Json::Parser> parser)
+void UserJsonParser::syncDeleteFiles(std::unique_ptr<Json::Parser> parser)
 {
     std::vector<std::string> files;
     auto file_ids = parser->getArray("files");
@@ -138,7 +138,7 @@ void JsonParser::syncDeleteFiles(std::unique_ptr<Json::Parser> parser)
     EventBusManager::instance().publish("/sync/have_deletefiles", files);
 }
 
-void JsonParser::downloadFile(std::unique_ptr<Json::Parser> parser)
+void UserJsonParser::downloadFile(std::unique_ptr<Json::Parser> parser)
 {
     std::vector<std::string> files;
     auto file_ids = parser->getArray("files");
@@ -150,18 +150,18 @@ void JsonParser::downloadFile(std::unique_ptr<Json::Parser> parser)
     EventBusManager::instance().publish("/file/have_download_request", files);
 }
 
-void JsonParser::concurrentChanged(std::unique_ptr<Json::Parser> parser)
+void UserJsonParser::concurrentChanged(std::unique_ptr<Json::Parser> parser)
 {
     uint8_t concurrent_num = std::stoi(parser->getValue("concurrent"));
     EventBusManager::instance().publish("/settings/have_concurrent_changed", concurrent_num);
 }
 
-void JsonParser::cancelFileTransit(std::unique_ptr<Json::Parser> parser)
+void UserJsonParser::cancelFileTransit(std::unique_ptr<Json::Parser> parser)
 {
     EventBusManager::instance().publish("/file/have_cancel_transit", static_cast<uint32_t>(std::stoul(parser->getValue("id"))));
 }
 
-void JsonParser::receiverInitDone(std::unique_ptr<Json::Parser> parser)
+void UserJsonParser::receiverInitDone(std::unique_ptr<Json::Parser> parser)
 {
     EventBusManager::instance().publish("/file/have_init_file_receiver_done");
 }

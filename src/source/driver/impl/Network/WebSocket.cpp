@@ -1,4 +1,4 @@
-#include "driver/impl/WebSocket.h"
+#include "driver/impl/Network/WebSocket.h"
 
 WebSocket::WebSocket()
     : ioc(std::make_unique<asio::io_context>()),
@@ -24,14 +24,10 @@ WebSocket::~WebSocket()
     }
 }
 
-void WebSocket::setNetworkInfo(const std::string &address, const std::string &port)
+void WebSocket::connect(const std::string &addr, const std::string &p, std::function<void(bool)> callback)
 {
-    this->address = address;
-    this->port = port;
-}
-
-void WebSocket::connectTo(std::function<void(bool)> callback)
-{
+    this->address = addr;
+    this->port = p;
     try
     {
         auto self = shared_from_this(); // 确保 `this` 对象在异步操作完成前不会被销毁

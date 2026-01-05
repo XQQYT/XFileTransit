@@ -2,12 +2,12 @@ set(DRIVER_SOURCES
     impl/UserJsonDriver.cpp
     impl/SignalJsonDriver.cpp
     impl/SettingsFile.cpp
-    impl/TcpDriver.cpp
+    impl/Network/TcpDriver.cpp
     impl/OuterMsgBuilder.cpp
     impl/OpensslDriver.cpp
     impl/OuterMsgParser.cpp
-    impl/P2PDriver.cpp
-    impl/WebSocket.cpp
+    impl/Network/P2PDriver.cpp
+    impl/Network/WebSocket.cpp
     impl/FileSyncEngine/FileReceiver.cpp
     impl/FileSyncEngine/FileSender.cpp
     impl/FileSyncEngine/FileParser.cpp
@@ -41,6 +41,19 @@ endif()
 add_library(driver STATIC
     ${DRIVER_SOURCES}
 )
+
+find_package(LibDataChannel QUIET)
+
+if(LibDataChannel_FOUND)
+    message(STATUS "Found libdatachannel: ${LibDataChannel_VERSION}")
+else()
+    message(WARNING "libdatachannel not found, P2PDriver will not work")
+endif()
+
+if(LibDataChannel_FOUND)
+    target_link_libraries(driver PUBLIC LibDataChannel::LibDataChannel)
+endif()
+
 
 target_include_directories(driver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty

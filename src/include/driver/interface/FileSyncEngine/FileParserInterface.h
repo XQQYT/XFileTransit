@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <stdint.h>
-#include "driver/interface/NetworkInterface.h"
+#include "driver/interface/Network/NetworkInterface.h"
 
 class FileParserInterface
 {

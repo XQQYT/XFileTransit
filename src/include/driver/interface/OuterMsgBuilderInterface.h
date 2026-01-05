@@ -6,7 +6,7 @@
 #include <memory>
 #include <string>
 #include "driver/interface/SecurityInterface.h"
-#include "driver/interface/NetworkInterface.h"
+#include "driver/interface/Network/NetworkInterface.h"
 
 class OuterMsgBuilderInterface
 {

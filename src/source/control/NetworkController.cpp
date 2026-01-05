@@ -1,6 +1,7 @@
 #include "control/NetworkController.h"
 #include "control/EventBusManager.h"
-#include "driver/impl/TcpDriver.h"
+#include "driver/impl/Network/TcpDriver.h"
+#include "driver/impl/Network/P2PDriver.h"
 #include "driver/impl/UserJsonDriver.h"
 #include "driver/impl/SignalJsonDriver.h"
 #include "driver/impl/OpensslDriver.h"
@@ -8,7 +9,6 @@
 #include "control/MsgParser/SignalJsonParser.h"
 #include "control/GlobalStatusManager.h"
 #include "common/DebugOutputer.h"
-#include "driver/impl/P2PDriver.h"
 
 void NetworkController::initSubscribe()
 {
@@ -79,11 +79,10 @@ void NetworkController::initSubscribe()
 }
 
 NetworkController::NetworkController() : tcp_driver(std::make_unique<TcpDriver>()),
-                                         p2p_driver(std::make_unique<P2PDriver>()),
+                                         p2p_driver(std::make_shared<P2PDriver>()),
                                          user_json_builder(std::make_unique<NlohmannJson>()),
                                          signal_json_builder(std::make_unique<SignalJsonMsgBuilder>()),
-                                         security_driver(std::make_shared<OpensslDriver>()),
-                                         json_parser(std::make_unique<JsonParser>())
+                                         security_driver(std::make_shared<OpensslDriver>())
 {
     initSubscribe();
     // 设置安全实例驱动才会按照加密协议进行通信
@@ -92,18 +91,22 @@ NetworkController::NetworkController() : tcp_driver(std::make_unique<TcpDriver>(
                             {
             tcp_driver->recvMsg([this](std::unique_ptr<NetworkInterface::UserMsg> msg)
                 {
-                    json_parser->parse(std::move(msg));
+                    json_parser.parse(std::move(msg));
                 });
             return true; });
-    p2p_driver->setNetworkInfo("127.0.0.1", "8888");
-    p2p_driver->connectTo([=](bool ret)
-                          { 
+    p2p_driver->connect("127.0.0.1", "8888", [=](bool ret)
+                        { 
         if(ret)
         {
             p2p_driver->recvMsg([=](std::string msg)
-                {  });
+                { json_parser.parse(msg); });
             p2p_driver->sendMsg(signal_json_builder->buildSignalMsg(Json::MessageType::Signal::Register, {}));
+            p2p_driver->initialize();
+            p2p_driver->createOffer([](const std::string& str){
+                std::cout<<"sdp: "<<str<<std::endl;
+            });
         } });
+    json_parser.setP2PInstance(p2p_driver);
 }
 
 void NetworkController::onSetEncrptyed(bool enable)
@@ -117,15 +120,13 @@ void NetworkController::onSendConnectRequest(std::string sender_device_name, std
     {
     case ConnectionType::Tcp:
         tcp_driver->setTlsNetworkInfo(target_device_ip, "7777");
-        tcp_driver->setNetworkInfo(target_device_ip, "7778");
-        tcp_driver->connectTo([=](bool ret)
-                              {
+        tcp_driver->connect(target_device_ip, "7778", [=](bool ret)
+                            {
             if (ret)
             {
                 tcp_driver->recvMsg([this](std::unique_ptr<NetworkInterface::UserMsg> msg)
                     {
-                        LOG_INFO("recv msg -> " << std::string(msg->data.data(), msg->data.data() + msg->data.size()));
-                        json_parser->parse(std::move(msg));
+                        json_parser.parse(std::move(msg));
                     });
                 GlobalStatusManager::getInstance().setCurrentTargetDeviceIP(target_device_ip);
                 std::string msg = user_json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(
@@ -197,19 +198,19 @@ void NetworkController::onDisconnect()
     EventBusManager::instance().publish("/file/close_FileSyncCore");
 }
 
-void NetworkController::onConnectError(const NetworkInterface::ConnectError error)
+void NetworkController::onConnectError(const TcpInterface::ConnectError error)
 {
-    static const std::map<NetworkInterface::ConnectError, std::string> connect_error_messages = {
-        {NetworkInterface::ConnectError::CONNECT_ACCESS_DENIED, "连接被拒绝：权限不足"},
-        {NetworkInterface::ConnectError::CONNECT_ADDR_IN_USE, "地址已被占用"},
-        {NetworkInterface::ConnectError::CONNECT_ALREADY_CONNECTED, "套接字已连接"},
-        {NetworkInterface::ConnectError::CONNECT_BAD_ADDRESS, "地址参数错误"},
-        {NetworkInterface::ConnectError::CONNECT_HOST_UNREACHABLE, "目标主机不可达"},
-        {NetworkInterface::ConnectError::CONNECT_IN_PROGRESS, "非阻塞连接正在进行中"},
-        {NetworkInterface::ConnectError::CONNECT_INTERRUPTED, "连接操作被中断"},
-        {NetworkInterface::ConnectError::CONNECT_NETWORK_UNREACHABLE, "网络不可达"},
-        {NetworkInterface::ConnectError::CONNECT_REFUSED, "连接被目标拒绝"},
-        {NetworkInterface::ConnectError::CONNECT_TIMEOUT, "连接超时"}};
+    static const std::map<TcpInterface::ConnectError, std::string> connect_error_messages = {
+        {TcpInterface::ConnectError::CONNECT_ACCESS_DENIED, "连接被拒绝：权限不足"},
+        {TcpInterface::ConnectError::CONNECT_ADDR_IN_USE, "地址已被占用"},
+        {TcpInterface::ConnectError::CONNECT_ALREADY_CONNECTED, "套接字已连接"},
+        {TcpInterface::ConnectError::CONNECT_BAD_ADDRESS, "地址参数错误"},
+        {TcpInterface::ConnectError::CONNECT_HOST_UNREACHABLE, "目标主机不可达"},
+        {TcpInterface::ConnectError::CONNECT_IN_PROGRESS, "非阻塞连接正在进行中"},
+        {TcpInterface::ConnectError::CONNECT_INTERRUPTED, "连接操作被中断"},
+        {TcpInterface::ConnectError::CONNECT_NETWORK_UNREACHABLE, "网络不可达"},
+        {TcpInterface::ConnectError::CONNECT_REFUSED, "连接被目标拒绝"},
+        {TcpInterface::ConnectError::CONNECT_TIMEOUT, "连接超时"}};
 
     // 使用时
     auto it = connect_error_messages.find(error);
@@ -227,16 +228,16 @@ void NetworkController::onConnectError(const NetworkInterface::ConnectError erro
     EventBusManager::instance().publish("/file/close_FileSyncCore");
 }
 
-void NetworkController::onRecvError(const NetworkInterface::RecvError error)
+void NetworkController::onRecvError(const TcpInterface::RecvError error)
 {
-    static const std::map<NetworkInterface::RecvError, std::string> error_map = {
-        {NetworkInterface::RecvError::RECV_CONN_ABORTED, "连接被中止"},
-        {NetworkInterface::RecvError::RECV_NOT_CONNECTED, "网络未连接"},
-        {NetworkInterface::RecvError::RECV_NETWORK_DOWN, "网络连接故障"},
-        {NetworkInterface::RecvError::RECV_TIMED_OUT, "接收数据超时"},
-        {NetworkInterface::RecvError::RECV_INTERRUPTED, "接收操作被中断"},
-        {NetworkInterface::RecvError::RECV_SHUTDOWN, "连接已关闭"},
-        {NetworkInterface::RecvError::RECV_NETWORK_RESET, "网络连接重置"}};
+    static const std::map<TcpInterface::RecvError, std::string> error_map = {
+        {TcpInterface::RecvError::RECV_CONN_ABORTED, "连接被中止"},
+        {TcpInterface::RecvError::RECV_NOT_CONNECTED, "网络未连接"},
+        {TcpInterface::RecvError::RECV_NETWORK_DOWN, "网络连接故障"},
+        {TcpInterface::RecvError::RECV_TIMED_OUT, "接收数据超时"},
+        {TcpInterface::RecvError::RECV_INTERRUPTED, "接收操作被中断"},
+        {TcpInterface::RecvError::RECV_SHUTDOWN, "连接已关闭"},
+        {TcpInterface::RecvError::RECV_NETWORK_RESET, "网络连接重置"}};
 
     auto it = error_map.find(error);
     if (it != error_map.end())

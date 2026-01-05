@@ -6,7 +6,8 @@
 #include <memory>
 
 #include "driver/interface/SecurityInterface.h"
-#include "driver/interface/NetworkInterface.h"
+#include "driver/interface/Network/NetworkInterface.h"
+#include "driver/interface/Network/TcpInterface.h"
 
 class OuterMsgParserInterface
 {
@@ -14,7 +15,7 @@ public:
     virtual void delegateRecv(UnifiedSocket client_socket,
                               std::function<void(std::unique_ptr<NetworkInterface::UserMsg> parsed_msg)> callback,
                               std::function<void()> dcc_cb,
-                              std::function<void(const NetworkInterface::RecvError error)> dre_cb,
+                              std::function<void(const TcpInterface::RecvError error)> dre_cb,
                               std::shared_ptr<SecurityInterface> security_instance,
                               bool &running) = 0;
     virtual ~OuterMsgParserInterface() = default;

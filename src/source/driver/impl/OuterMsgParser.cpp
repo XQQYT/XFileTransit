@@ -30,7 +30,7 @@ static WinsockInitializer winsockInit;
 #endif
 
 void OuterMsgParser::dealRecvError(std::function<void()> dcc_cb,
-                                   std::function<void(const NetworkInterface::RecvError error)> dre_cb)
+                                   std::function<void(const TcpInterface::RecvError error)> dre_cb)
 {
     if (dre_cb)
     {
@@ -45,25 +45,25 @@ void OuterMsgParser::dealRecvError(std::function<void()> dcc_cb,
             }
             break;
         case SOCKET_ECONNABORTED:
-            dre_cb(NetworkInterface::RecvError::RECV_CONN_ABORTED);
+            dre_cb(TcpInterface::RecvError::RECV_CONN_ABORTED);
             break;
         case SOCKET_ENOTCONN:
-            dre_cb(NetworkInterface::RecvError::RECV_NOT_CONNECTED);
+            dre_cb(TcpInterface::RecvError::RECV_NOT_CONNECTED);
             break;
         case SOCKET_ENETDOWN:
-            dre_cb(NetworkInterface::RecvError::RECV_NETWORK_DOWN);
+            dre_cb(TcpInterface::RecvError::RECV_NETWORK_DOWN);
             break;
         case SOCKET_ETIMEDOUT:
-            dre_cb(NetworkInterface::RecvError::RECV_TIMED_OUT);
+            dre_cb(TcpInterface::RecvError::RECV_TIMED_OUT);
             break;
         case SOCKET_EINTR:
-            dre_cb(NetworkInterface::RecvError::RECV_INTERRUPTED);
+            dre_cb(TcpInterface::RecvError::RECV_INTERRUPTED);
             break;
         case SOCKET_ESHUTDOWN:
-            dre_cb(NetworkInterface::RecvError::RECV_SHUTDOWN);
+            dre_cb(TcpInterface::RecvError::RECV_SHUTDOWN);
             break;
         case SOCKET_ENETRESET:
-            dre_cb(NetworkInterface::RecvError::RECV_NETWORK_RESET);
+            dre_cb(TcpInterface::RecvError::RECV_NETWORK_RESET);
             break;
         default:
             LOG_ERROR("Recv unknown error: " << error_code);
@@ -75,7 +75,7 @@ void OuterMsgParser::dealRecvError(std::function<void()> dcc_cb,
 void OuterMsgParser::delegateRecv(UnifiedSocket client_socket,
                                   std::function<void(std::unique_ptr<NetworkInterface::UserMsg> parsed_msg)> callback,
                                   std::function<void()> dcc_cb,
-                                  std::function<void(const NetworkInterface::RecvError error)> dre_cb,
+                                  std::function<void(const TcpInterface::RecvError error)> dre_cb,
                                   std::shared_ptr<SecurityInterface> security_instance,
                                   bool &running)
 {

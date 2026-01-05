@@ -1,7 +1,7 @@
 #ifndef _USERJSONPARSER_H
 #define _USERJSONPARSER_H
 
-#include "Parser.h"
+#include "driver/interface/Network/NetworkInterface.h"
 #include "driver/interface/JsonFactoryInterface.h"
 #include <map>
 #include <functional>
@@ -43,11 +43,11 @@ namespace JsonMessageType
     }
 }
 
-class JsonParser : public Parser
+class UserJsonParser
 {
 public:
-    JsonParser();
-    void parse(std::unique_ptr<NetworkInterface::UserMsg> data) override;
+    UserJsonParser();
+    void parse(std::unique_ptr<NetworkInterface::UserMsg> data);
 
 private:
     void connectRequest(std::unique_ptr<Json::Parser> parser);

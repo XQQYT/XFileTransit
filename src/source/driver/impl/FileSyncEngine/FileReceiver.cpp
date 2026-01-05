@@ -152,7 +152,7 @@ void FileReceiver::start(std::function<void(UnifiedSocket)> accept_cb,
                                         LOG_INFO("Connection closed for socket: " << accepted_socket);
                                         this->removeSocket(accepted_socket);
                                     },
-                                    [](const NetworkInterface::RecvError error) {
+                                    [](const TcpInterface::RecvError error) {
                                         // 接收错误回调
                                         LOG_ERROR("Receive error: " << static_cast<int>(error));
                                     },

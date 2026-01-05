@@ -2,7 +2,7 @@
 #define FILERECEIVERINTERFACE_H
 
 #include "driver/interface/SecurityInterface.h"
-#include "driver/interface/NetworkInterface.h"
+#include "driver/interface/Network/TcpInterface.h"
 #include <string>
 
 class FileReceiverInterface

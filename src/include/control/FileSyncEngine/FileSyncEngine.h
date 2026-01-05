@@ -2,7 +2,7 @@
 #define _FILESYNCENGINE_H
 
 #include "driver/interface/SecurityInterface.h"
-#include "driver/interface/NetworkInterface.h"
+#include "driver/interface/Network/NetworkInterface.h"
 #include "driver/interface/FileSyncEngine/FileSenderInterface.h"
 #include "driver/interface/FileSyncEngine/FileReceiverInterface.h"
 #include "driver/interface/FileSyncEngine/FileParserInterface.h"

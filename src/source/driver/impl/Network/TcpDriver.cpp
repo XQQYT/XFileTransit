@@ -1,4 +1,4 @@
-#include "driver/impl/TcpDriver.h"
+#include "driver/impl/Network/TcpDriver.h"
 #include "driver/impl/OuterMsgBuilder.h"
 #include "driver/impl/OuterMsgParser.h"
 #include "driver/interface/PlatformSocket.h"
@@ -61,17 +61,6 @@ void TcpDriver::setTlsNetworkInfo(const std::string &address, const std::string 
     }
 }
 
-void TcpDriver::setNetworkInfo(const std::string &address, const std::string &tcp_port)
-{
-    client_tcp_addr.sin_family = AF_INET;
-    client_tcp_addr.sin_port = htons(static_cast<uint16_t>(std::stoi(tcp_port)));
-
-    if (inet_pton(AF_INET, address.c_str(), &client_tcp_addr.sin_addr) <= 0)
-    {
-        LOG_ERROR("Invalid TCP address: " << address);
-    }
-}
-
 void TcpDriver::dealConnectError()
 {
     if (ignore_one_error)
@@ -122,8 +111,16 @@ void TcpDriver::dealConnectError()
     }
 }
 
-void TcpDriver::connectTo(std::function<void(bool)> callback)
+void TcpDriver::connect(const std::string &address, const std::string &port, std::function<void(bool)> callback)
 {
+    client_tcp_addr.sin_family = AF_INET;
+    client_tcp_addr.sin_port = htons(static_cast<uint16_t>(std::stoi(port)));
+
+    if (inet_pton(AF_INET, address.c_str(), &client_tcp_addr.sin_addr) <= 0)
+    {
+        LOG_ERROR("Invalid TCP address: " << address);
+    }
+
     ignore_one_error = false;
 
     if (client_socket == INVALID_SOCKET_VAL)
@@ -134,7 +131,7 @@ void TcpDriver::connectTo(std::function<void(bool)> callback)
         return;
     }
 
-    int ret = connect(client_socket, (sockaddr *)&client_tls_addr, sizeof(client_tls_addr));
+    int ret = ::connect(client_socket, (sockaddr *)&client_tls_addr, sizeof(client_tls_addr));
     if (ret == SOCKET_ERROR_VAL)
     {
         dealConnectError();
@@ -160,7 +157,7 @@ void TcpDriver::connectTo(std::function<void(bool)> callback)
             return;
         }
 
-        ret = connect(client_socket, (sockaddr *)&client_tcp_addr, sizeof(client_tcp_addr));
+        ret = ::connect(client_socket, (sockaddr *)&client_tcp_addr, sizeof(client_tcp_addr));
     }
 
     connect_status = (ret == 0);

@@ -6,7 +6,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <memory>
-#include "driver/interface/NetworkInterface.h"
+#include "driver/interface/Network/NetworkInterface.h"
 
 namespace asio = boost::asio;
 namespace beast = boost::beast;
@@ -22,12 +22,13 @@ public:
     }
     WebSocket(const WebSocket &obj) = delete;
     WebSocket &operator=(WebSocket &obj) = delete;
-    void setNetworkInfo(const std::string &address, const std::string &port) override;
-    void connectTo(std::function<void(bool)> callback = nullptr) override;
+    void connect(const std::string &address, const std::string &port, std::function<void(bool)> callback = nullptr) override;
     void sendMsg(const std::string &msg) override;
     void recvMsg(std::function<void(std::string)> callback) override;
     void closeSocket() override;
     void resetConnection() override;
+
+    void startListen(const std::string &address, const std::string &port, std::function<bool(bool)> callback) {}
     ~WebSocket();
 
 private:
