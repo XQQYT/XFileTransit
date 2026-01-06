@@ -14,7 +14,7 @@ public:
     NetworkController();
 
 private:
-    void onSendConnectRequest(std::string sender_device_name, std::string sender_device_ip, std::string target_device_ip);
+    void onSendConnectRequest(std::unordered_map<std::string, std::string> args);
     void onSendConnectRequestResult(bool res);
     void onResetConnection();
     void onHaveConnectRequestResult(bool res, std::string);

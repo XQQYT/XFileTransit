@@ -42,10 +42,26 @@ add_library(driver STATIC
     ${DRIVER_SOURCES}
 )
 
-find_package(LibDataChannel QUIET)
+# 查找 libdatachannel
+find_path(LibDataChannel_INCLUDE_DIR rtc/rtc.h
+    PATHS D:/mingw64/include
+          /usr/local/include
+)
 
-if(LibDataChannel_FOUND)
-    message(STATUS "Found libdatachannel: ${LibDataChannel_VERSION}")
+find_library(LibDataChannel_LIBRARY NAMES datachannel libdatachannel
+    PATHS D:/mingw64/lib
+          /usr/local/lib
+)
+
+if(LibDataChannel_INCLUDE_DIR AND LibDataChannel_LIBRARY)
+    message(STATUS "Found libdatachannel: ${LibDataChannel_LIBRARY}")
+    
+    add_library(LibDataChannel::LibDataChannel UNKNOWN IMPORTED)
+    set_target_properties(LibDataChannel::LibDataChannel PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${LibDataChannel_INCLUDE_DIR}"
+        IMPORTED_LOCATION "${LibDataChannel_LIBRARY}"
+    )
+    set(LibDataChannel_FOUND TRUE)
 else()
     message(WARNING "libdatachannel not found, P2PDriver will not work")
 endif()

@@ -133,7 +133,9 @@ namespace Json
         {
             enum Type
             {
-                Register
+                Register,
+                ConnectRequest,
+                Offer
             };
 
             constexpr const char *toString(Type type)
@@ -142,6 +144,10 @@ namespace Json
                 {
                 case Register:
                     return "register";
+                case ConnectRequest:
+                    return "connect_request";
+                case Offer:
+                    return "offer";
                 default:
                     return "unknown";
                 }

@@ -10,15 +10,19 @@
 class SignalJsonParser
 {
 public:
-    SignalJsonParser() {}
-    void parse(const std::string &data) {}
+    SignalJsonParser();
+    void parse(const std::string &data);
     void setP2PInstace(std::shared_ptr<P2PInterface> inst)
     {
         p2p_instance = inst;
     }
 
 private:
+    void onRegisterResult(std::unique_ptr<Json::Parser> parser);
+
+private:
     std::unique_ptr<Json::JsonFactoryInterface> json_driver;
+    std::unique_ptr<Json::JsonBuilder> signal_json_builder;
     std::map<std::string, std::function<void(std::unique_ptr<Json::Parser> parser)>> type_funcfion_map;
     std::shared_ptr<P2PInterface> p2p_instance;
 };

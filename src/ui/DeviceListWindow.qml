@@ -12,6 +12,7 @@ Window {
     flags: Qt.FramelessWindowHint
     
     property var deviceModel: null
+    property int connectionMode: 0
     
     property color windowBg: "#ffffff"
     property color windowBorder: "#f0f0f0"
@@ -532,7 +533,7 @@ Window {
             Rectangle {
                 id: quickConnectCard
                 width: parent.width
-                height: 80
+                height: connectionMode === 1 ? 145 : 120
                 radius: cardRadius
                 color: cardBg
                 border.color: cardBorder
@@ -541,6 +542,100 @@ Window {
                 anchors.topMargin: 16
                 anchors.horizontalCenter: parent.horizontalCenter
 
+                // 模式切换按钮
+                Row {
+                    id: modeSwitch
+                    anchors.top: parent.top
+                    anchors.topMargin: 12
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: 0
+                    height: 28
+                    
+                    // 局域网模式按钮
+                    Rectangle {
+                        id: lanModeButton
+                        width: 80
+                        height: 28
+                        radius: 6
+                        color: connectionMode === 0 ? buttonBg : "transparent"
+                        border.color: connectionMode === 0 ? buttonBorder : textDisabled
+                        border.width: 1
+                        
+                        Text {
+                            anchors.centerIn: parent
+                            text: qsTr("局域网")
+                            font.pixelSize: 12
+                            font.family: "Microsoft YaHei UI"
+                            font.weight: connectionMode === 0 ? Font.Medium : Font.Normal
+                            color: connectionMode === 0 ? buttonText : textSecondary
+                        }
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (connectionMode !== 0) {
+                                    connectionMode = 0
+                                }
+                            }
+                            
+                            onEntered: {
+                                if (connectionMode !== 0) {
+                                    lanModeButton.color = closeButtonBgHover
+                                }
+                            }
+                            onExited: {
+                                if (connectionMode !== 0) {
+                                    lanModeButton.color = "transparent"
+                                }
+                            }
+                        }
+                    }
+                    
+                    // P2P模式按钮
+                    Rectangle {
+                        id: p2pModeButton
+                        width: 80
+                        height: 28
+                        radius: 6
+                        color: connectionMode === 1 ? buttonBg : "transparent"
+                        border.color: connectionMode === 1 ? buttonBorder : textDisabled
+                        border.width: 1
+                        
+                        Text {
+                            anchors.centerIn: parent
+                            text: qsTr("P2P")
+                            font.pixelSize: 12
+                            font.family: "Microsoft YaHei UI"
+                            font.weight: connectionMode === 1 ? Font.Medium : Font.Normal
+                            color: connectionMode === 1 ? buttonText : textSecondary
+                        }
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (connectionMode !== 1) {
+                                    connectionMode = 1
+                                }
+                            }
+                            
+                            onEntered: {
+                                if (connectionMode !== 1) {
+                                    p2pModeButton.color = closeButtonBgHover
+                                }
+                            }
+                            onExited: {
+                                if (connectionMode !== 1) {
+                                    p2pModeButton.color = "transparent"
+                                }
+                            }
+                        }
+                    }
+                }
+                    
                 // 标题
                 Text {
                     id: quickConnectTitle
@@ -551,52 +646,297 @@ Window {
                     color: listHeaderText
                     anchors.left: parent.left
                     anchors.leftMargin: 16
-                    anchors.top: parent.top
-                    anchors.topMargin: 12
+                    anchors.top: modeSwitch.bottom
+                    anchors.topMargin: 8
+                    visible: connectionMode === 0
                 }
 
-                RowLayout {
+                // 局域网模式内容
+                Rectangle {
+                    id: lanModeContent
                     anchors.left: parent.left
-                    anchors.leftMargin: 16
                     anchors.right: parent.right
-                    anchors.rightMargin: 16
                     anchors.top: quickConnectTitle.bottom
                     anchors.topMargin: 8
-                    spacing: 8
-
-                    // IP地址输入部分（四个文本框和三个点）
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 12
+                    color: "transparent"
+                    visible: connectionMode === 0
+                    
                     RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 0 
-                        
-                        Repeater {
-                            id: ipInputFieldsRepeater
-                            model: 4
+                        anchors.fill: parent
+                        anchors.leftMargin: 16
+                        anchors.rightMargin: 16
+                        spacing: 8
+
+                        // IP地址输入部分（四个文本框和三个点）
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 0 
                             
+                            Repeater {
+                                id: ipInputFieldsRepeater
+                                model: 4
+                                
+                                RowLayout {
+                                    spacing: 4
+                                    Layout.alignment: Qt.AlignVCenter
+                                    
+                                    TextField {
+                                        id: ipField
+                                        property int index: model.index
+                                        property bool isLastField: index === 3
+                                        
+                                        Layout.preferredWidth: 56
+                                        Layout.preferredHeight: 42
+                                        font.pixelSize: 16
+                                        horizontalAlignment: TextInput.AlignHCenter
+                                        verticalAlignment: TextInput.AlignVCenter
+                                        maximumLength: 3
+                                        inputMethodHints: Qt.ImhDigitsOnly
+                                        selectByMouse: true
+
+                                        property bool isValidSegment: {
+                                            if (text === "") return true
+                                            var num = parseInt(text, 10)
+                                            return !isNaN(num) && num >= 0 && num <= 255
+                                        }
+                                                    
+                                        background: Rectangle {
+                                            color: inputFieldBg
+                                            border.color: inputFieldBorderDefault
+                                            border.width: 0
+                                            Rectangle {
+                                                anchors.left: parent.left
+                                                anchors.right: parent.right
+                                                anchors.bottom: parent.bottom
+                                                height: 2
+                                                color: {
+                                                    if (!ipField.isValidSegment) {
+                                                        return textError
+                                                    } else if (ipField.activeFocus) {
+                                                        return inputFieldBorderFocus
+                                                    } else {
+                                                        return inputFieldUnderline
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        
+                                        validator: IntValidator { 
+                                            bottom: 0; 
+                                            top: 255 
+                                        }
+                                        
+                                        // 自动跳转
+                                        onTextChanged: {
+                                            if (text.length >= 3 && !isLastField) {
+                                                delayJumpTimer.index = index
+                                                delayJumpTimer.start()
+                                            }
+                                        }
+                                        
+                                        Timer {
+                                            id: delayJumpTimer
+                                            interval: 10
+                                            property int index: 0
+                                            onTriggered: {
+                                                if (ipInputFieldsRepeater.itemAt(index + 1)) {
+                                                    let nextContainer = ipInputFieldsRepeater.itemAt(index + 1)
+                                                    if (nextContainer && nextContainer.children[0]) {
+                                                        nextContainer.children[0].forceActiveFocus()
+                                                        nextContainer.children[0].selectAll()
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        
+                                        // 处理键盘事件
+                                        Keys.onPressed: function(event) {
+                                            // Backspace 且内容为空时，跳到上一段
+                                            if (event.key === Qt.Key_Backspace && text === "") {
+                                                if (index > 0) {
+                                                    let prevContainer = ipInputFieldsRepeater.itemAt(index - 1)
+                                                    if (prevContainer && prevContainer.children[0]) {
+                                                        prevContainer.children[0].forceActiveFocus()
+                                                        prevContainer.children[0].selectAll()
+                                                        event.accepted = true
+                                                    }
+                                                }
+                                            }
+                                            // 点号或右方向键跳到下一个
+                                            else if ((event.key === Qt.Key_Period || event.key === Qt.Key_Right) && !isLastField) {
+                                                let nextContainer = ipInputFieldsRepeater.itemAt(index + 1)
+                                                if (nextContainer && nextContainer.children[0]) {
+                                                    nextContainer.children[0].forceActiveFocus()
+                                                    nextContainer.children[0].selectAll()
+                                                    event.accepted = true
+                                                }
+                                            }
+                                            // 左方向键跳到上一个
+                                            else if (event.key === Qt.Key_Left && index > 0) {
+                                                let prevContainer = ipInputFieldsRepeater.itemAt(index - 1)
+                                                if (prevContainer && prevContainer.children[0]) {
+                                                    prevContainer.children[0].forceActiveFocus()
+                                                    prevContainer.children[0].selectAll()
+                                                    event.accepted = true
+                                                }
+                                            }
+                                            // 输入点号时自动跳到下一个
+                                            else if (event.text === "." && !isLastField) {
+                                                let nextContainer = ipInputFieldsRepeater.itemAt(index + 1)
+                                                if (nextContainer && nextContainer.children[0]) {
+                                                    nextContainer.children[0].forceActiveFocus()
+                                                    nextContainer.children[0].selectAll()
+                                                    event.accepted = true
+                                                }
+                                            }
+                                        }
+                                        
+                                        onFocusChanged: {
+                                            if (focus) {
+                                                selectAll()
+                                            }
+                                        }
+                                    }
+                                    
+                                    // 点号分隔符（前三个后有）
+                                    Label {
+                                        visible: index < 3
+                                        text: "."
+                                        font.pixelSize: 16
+                                        color: textDisabled
+                                        Layout.alignment: Qt.AlignVCenter
+                                        Layout.leftMargin: 4
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // 连接按钮
+                        Rectangle {
+                            id: lanConnectButton
+                            Layout.preferredWidth: 80
+                            Layout.preferredHeight: 42
+                            radius: 6
+                            color: lanConnectMouseArea.containsMouse ? buttonBgHover : buttonBg
+                            border.color: buttonBorder
+                            border.width: 1.5
+                            
+                            Text {
+                                anchors.centerIn: parent
+                                text: qsTr("连接")
+                                font.pixelSize: 14
+                                font.family: "Microsoft YaHei UI"
+                                font.weight: Font.Medium
+                                color: buttonText
+                            }
+                            
+                            MouseArea {
+                                id: lanConnectMouseArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    // 获取完整的IP地址
+                                    let ipParts = []
+                                    for (let i = 0; i < 4; i++) {
+                                        let container = ipInputFieldsRepeater.itemAt(i)
+                                        if (container && container.children[0]) {
+                                            ipParts.push(container.children[0].text)
+                                        }
+                                    }
+                                    let ip = ipParts.join(".")
+                                    
+                                    if(device_list_model.isLocalIp(ip))
+                                    {
+                                        if (generalDialogLoader.status === Loader.Ready) {
+                                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                                            generalDialogLoader.item.text = qsTr("该IP为本地地址")
+                                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                                            generalDialogLoader.item.show()
+                                            generalDialogLoader.item.requestActivate()
+                                        }
+                                        return
+                                    }
+                                    function isValidIPv4(ip) {
+                                        const regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+                                        const match = ip.match(regex)
+                                        if (!match) return false
+                                        
+                                        for (let i = 1; i <= 4; i++) {
+                                            const num = parseInt(match[i], 10)
+                                            if (num < 0 || num > 255) return false
+                                        }
+                                        return true
+                                    }
+                                    
+                                    if (isValidIPv4(ip)) {
+                                        deviceModel.connectToTarget(ip)
+                                        load_dialog.show(qsTr("正在连接..."), qsTr("取消"))
+                                        deviceModel.stopScan()
+                                    } else {
+                                        // 显示错误对话框
+                                        if (generalDialogLoader.status === Loader.Ready) {
+                                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                                            generalDialogLoader.item.text = qsTr("请输入有效的 IPv4 地址（如 192.168.1.100)")
+                                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                                            generalDialogLoader.item.show()
+                                            generalDialogLoader.item.requestActivate()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // P2P模式内容
+                Rectangle {
+                    id: p2pModeContent
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: modeSwitch.bottom
+                    anchors.topMargin: 8
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 12
+                    color: "transparent"
+                    visible: connectionMode === 1
+                    
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 16
+                        anchors.rightMargin: 16
+                        spacing: 8
+                        
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 8
+                            
+                            // 对方代码输入
                             RowLayout {
-                                spacing: 4
-                                Layout.alignment: Qt.AlignVCenter
+                                spacing: 8
+                                Layout.fillWidth: true
+                                
+                                Text {
+                                    text: qsTr("对方代码:")
+                                    font.pixelSize: 14
+                                    font.family: "Microsoft YaHei UI"
+                                    color: listHeaderText
+                                    Layout.preferredWidth: 70
+                                }
                                 
                                 TextField {
-                                    id: ipField
-                                    property int index: model.index
-                                    property bool isLastField: index === 3
-                                    
-                                    Layout.preferredWidth: 56
+                                    id: p2pCodeField
+                                    Layout.fillWidth: true
                                     Layout.preferredHeight: 42
-                                    font.pixelSize: 16
-                                    horizontalAlignment: TextInput.AlignHCenter
-                                    verticalAlignment: TextInput.AlignVCenter
-                                    maximumLength: 3
-                                    inputMethodHints: Qt.ImhDigitsOnly
+                                    font.pixelSize: 12
+                                    placeholderText: qsTr("请输入对方设备代码")
+                                    placeholderTextColor: textTertiary
+                                    maximumLength: 12
+                                    inputMethodHints: Qt.ImhUppercaseOnly | Qt.ImhNoPredictiveText
                                     selectByMouse: true
-
-                                    property bool isValidSegment: {
-                                        if (text === "") return true
-                                        var num = parseInt(text, 10)
-                                        return !isNaN(num) && num >= 0 && num <= 255
-                                    }
-                                                
+                                    
                                     background: Rectangle {
                                         color: inputFieldBg
                                         border.color: inputFieldBorderDefault
@@ -607,83 +947,11 @@ Window {
                                             anchors.bottom: parent.bottom
                                             height: 2
                                             color: {
-                                                if (!ipField.isValidSegment) {
-                                                    return inputFieldBorderError
-                                                } else if (ipField.activeFocus) {
+                                                if (p2pCodeField.activeFocus) {
                                                     return inputFieldBorderFocus
                                                 } else {
                                                     return inputFieldUnderline
                                                 }
-                                            }
-                                        }
-                                    }
-                                    
-                                    validator: IntValidator { 
-                                        bottom: 0; 
-                                        top: 255 
-                                    }
-                                    
-                                    // 自动跳转
-                                    onTextChanged: {
-                                        if (text.length >= 3 && !isLastField) {
-                                            delayJumpTimer.index = index
-                                            delayJumpTimer.start()
-                                        }
-                                    }
-                                    
-                                    Timer {
-                                        id: delayJumpTimer
-                                        interval: 10
-                                        property int index: 0
-                                        onTriggered: {
-                                            if (ipInputFieldsRepeater.itemAt(index + 1)) {
-                                                let nextContainer = ipInputFieldsRepeater.itemAt(index + 1)
-                                                if (nextContainer && nextContainer.children[0]) {
-                                                    nextContainer.children[0].forceActiveFocus()
-                                                    nextContainer.children[0].selectAll()
-                                                }
-                                            }
-                                        }
-                                    }
-                                    
-                                    // 处理键盘事件
-                                    Keys.onPressed: function(event) {
-                                        // Backspace 且内容为空时，跳到上一段
-                                        if (event.key === Qt.Key_Backspace && text === "") {
-                                            if (index > 0) {
-                                                let prevContainer = ipInputFieldsRepeater.itemAt(index - 1)
-                                                if (prevContainer && prevContainer.children[0]) {
-                                                    prevContainer.children[0].forceActiveFocus()
-                                                    prevContainer.children[0].selectAll()
-                                                    event.accepted = true
-                                                }
-                                            }
-                                        }
-                                        // 点号或右方向键跳到下一个
-                                        else if ((event.key === Qt.Key_Period || event.key === Qt.Key_Right) && !isLastField) {
-                                            let nextContainer = ipInputFieldsRepeater.itemAt(index + 1)
-                                            if (nextContainer && nextContainer.children[0]) {
-                                                nextContainer.children[0].forceActiveFocus()
-                                                nextContainer.children[0].selectAll()
-                                                event.accepted = true
-                                            }
-                                        }
-                                        // 左方向键跳到上一个
-                                        else if (event.key === Qt.Key_Left && index > 0) {
-                                            let prevContainer = ipInputFieldsRepeater.itemAt(index - 1)
-                                            if (prevContainer && prevContainer.children[0]) {
-                                                prevContainer.children[0].forceActiveFocus()
-                                                prevContainer.children[0].selectAll()
-                                                event.accepted = true
-                                            }
-                                        }
-                                        // 输入点号时自动跳到下一个
-                                        else if (event.text === "." && !isLastField) {
-                                            let nextContainer = ipInputFieldsRepeater.itemAt(index + 1)
-                                            if (nextContainer && nextContainer.children[0]) {
-                                                nextContainer.children[0].forceActiveFocus()
-                                                nextContainer.children[0].selectAll()
-                                                event.accepted = true
                                             }
                                         }
                                     }
@@ -694,91 +962,114 @@ Window {
                                         }
                                     }
                                 }
+                            }
+                            
+                            // 动态密码输入
+                            RowLayout {
+                                spacing: 8
+                                Layout.fillWidth: true
                                 
-                                // 点号分隔符（前三个后有）
-                                Label {
-                                    visible: index < 3
-                                    text: "."
-                                    font.pixelSize: 16
-                                    color: textDisabled
-                                    Layout.alignment: Qt.AlignVCenter
-                                    Layout.leftMargin: 4
+                                Text {
+                                    text: qsTr("动态密码:")
+                                    font.pixelSize: 14
+                                    font.family: "Microsoft YaHei UI"
+                                    color: listHeaderText
+                                    Layout.preferredWidth: 70
+                                }
+                                
+                                TextField {
+                                    id: p2pPasswordField
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 42
+                                    font.pixelSize: 12
+                                    placeholderText: qsTr("请输入动态密码")
+                                    placeholderTextColor: textTertiary
+                                    maximumLength: 6
+                                    echoMode: TextInput.Password
+                                    inputMethodHints: Qt.ImhDigitsOnly
+                                    selectByMouse: true
+                                    
+                                    background: Rectangle {
+                                        color: inputFieldBg
+                                        border.color: inputFieldBorderDefault
+                                        border.width: 0
+                                        Rectangle {
+                                            anchors.left: parent.left
+                                            anchors.right: parent.right
+                                            anchors.bottom: parent.bottom
+                                            height: 2
+                                            color: {
+                                                if (p2pPasswordField.activeFocus) {
+                                                    return inputFieldBorderFocus
+                                                } else {
+                                                    return inputFieldUnderline
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    onFocusChanged: {
+                                        if (focus) {
+                                            selectAll()
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
-                    
-                    // 连接按钮
-                    Rectangle {
-                        id: connectButton
-                        Layout.preferredWidth: 80
-                        Layout.preferredHeight: 42
-                        radius: 6
-                        color: connectMouseArea.containsMouse ? buttonBgHover : buttonBg
-                        border.color: buttonBorder
-                        border.width: 1.5
                         
-                        Text {
-                            anchors.centerIn: parent
-                            text: qsTr("连接")
-                            font.pixelSize: 14
-                            font.family: "Microsoft YaHei UI"
-                            font.weight: Font.Medium
-                            color: buttonText
-                        }
-                        
-                        MouseArea {
-                            id: connectMouseArea
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                // 获取完整的IP地址
-                                let ipParts = []
-                                for (let i = 0; i < 4; i++) {
-                                    let container = ipInputFieldsRepeater.itemAt(i)
-                                    if (container && container.children[0]) {
-                                        ipParts.push(container.children[0].text)
-                                    }
-                                }
-                                let ip = ipParts.join(".")
-                                
-                                if(device_list_model.isLocalIp(ip))
-                                {
-                                    if (generalDialogLoader.status === Loader.Ready) {
-                                        generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                                        generalDialogLoader.item.text = qsTr("该IP为本地地址")
-                                        generalDialogLoader.item.buttons = generalDialogLoader.item.ok
-                                        generalDialogLoader.item.show()
-                                        generalDialogLoader.item.requestActivate()
-                                    }
-                                    return
-                                }
-                                function isValidIPv4(ip) {
-                                    const regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
-                                    const match = ip.match(regex)
-                                    if (!match) return false
+                        // P2P连接按钮
+                        Rectangle {
+                            id: p2pConnectButton
+                            Layout.preferredWidth: 80
+                            Layout.preferredHeight: 42
+                            radius: 6
+                            color: p2pConnectMouseArea.containsMouse ? buttonBgHover : buttonBg
+                            border.color: buttonBorder
+                            border.width: 1.5
+                            
+                            Text {
+                                anchors.centerIn: parent
+                                text: qsTr("连接")
+                                font.pixelSize: 14
+                                font.family: "Microsoft YaHei UI"
+                                font.weight: Font.Medium
+                                color: buttonText
+                            }
+                            
+                            MouseArea {
+                                id: p2pConnectMouseArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    let code = p2pCodeField.text.trim()
+                                    let password = p2pPasswordField.text.trim()
                                     
-                                    for (let i = 1; i <= 4; i++) {
-                                        const num = parseInt(match[i], 10)
-                                        if (num < 0 || num > 255) return false
+                                    // 验证输入
+                                    if (code.length === 0) {
+                                        if (generalDialogLoader.status === Loader.Ready) {
+                                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                                            generalDialogLoader.item.text = qsTr("请输入对方设备代码")
+                                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                                            generalDialogLoader.item.show()
+                                            generalDialogLoader.item.requestActivate()
+                                        }
+                                        return
                                     }
-                                    return true
-                                }
-                                
-                                if (isValidIPv4(ip)) {
-                                    deviceModel.connectToTarget(ip)
-                                    load_dialog.show(qsTr("正在连接..."), qsTr("取消"))
-                                    deviceModel.stopScan()
-                                } else {
-                                    // 显示错误对话框
-                                    if (generalDialogLoader.status === Loader.Ready) {
-                                        generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                                        generalDialogLoader.item.text = qsTr("请输入有效的 IPv4 地址（如 192.168.1.100)")
-                                        generalDialogLoader.item.buttons = generalDialogLoader.item.ok
-                                        generalDialogLoader.item.show()
-                                        generalDialogLoader.item.requestActivate()
+                                    
+                                    if (password.length === 0) {
+                                        if (generalDialogLoader.status === Loader.Ready) {
+                                            generalDialogLoader.item.iconType = generalDialogLoader.item.error
+                                            generalDialogLoader.item.text = qsTr("请输入动态密码")
+                                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                                            generalDialogLoader.item.show()
+                                            generalDialogLoader.item.requestActivate()
+                                        }
+                                        return
                                     }
+                                    
+                                    deviceModel.connectViaP2P(code, password)
+                                    load_dialog.show(qsTr("正在建立P2P连接..."), qsTr("取消"))
                                 }
                             }
                         }

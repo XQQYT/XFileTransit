@@ -19,9 +19,7 @@ void NetworkController::initSubscribe()
     EventBusManager::instance().subscribe("/network/send_connect_request",
                                           std::bind(&NetworkController::onSendConnectRequest,
                                                     this,
-                                                    std::placeholders::_1,
-                                                    std::placeholders::_2,
-                                                    std::placeholders::_3));
+                                                    std::placeholders::_1));
     EventBusManager::instance().subscribe("/network/send_connect_request_result",
                                           std::bind(&NetworkController::onSendConnectRequestResult,
                                                     this,
@@ -94,19 +92,15 @@ NetworkController::NetworkController() : tcp_driver(std::make_unique<TcpDriver>(
                     json_parser.parse(std::move(msg));
                 });
             return true; });
-    p2p_driver->connect("127.0.0.1", "8888", [=](bool ret)
+    p2p_driver->connect("172.16.230.1", "8888", [=](bool ret)
                         { 
         if(ret)
         {
+            json_parser.setP2PInstance(p2p_driver);
             p2p_driver->recvMsg([=](std::string msg)
                 { json_parser.parse(msg); });
             p2p_driver->sendMsg(signal_json_builder->buildSignalMsg(Json::MessageType::Signal::Register, {}));
-            p2p_driver->initialize();
-            p2p_driver->createOffer([](const std::string& str){
-                std::cout<<"sdp: "<<str<<std::endl;
-            });
         } });
-    json_parser.setP2PInstance(p2p_driver);
 }
 
 void NetworkController::onSetEncrptyed(bool enable)
@@ -114,13 +108,18 @@ void NetworkController::onSetEncrptyed(bool enable)
     OuterMsgBuilderInterface::encrptyed = enable;
 }
 
-void NetworkController::onSendConnectRequest(std::string sender_device_name, std::string sender_device_ip, std::string target_device_ip)
+void NetworkController::onSendConnectRequest(std::unordered_map<std::string, std::string> args)
 {
-    switch (ConnectionType::connection_type)
+    switch (ConnectionInfo::connection_type)
     {
-    case ConnectionType::Tcp:
-        tcp_driver->setTlsNetworkInfo(target_device_ip, "7777");
-        tcp_driver->connect(target_device_ip, "7778", [=](bool ret)
+    case ConnectionInfo::Tcp:
+    {
+        std::string sender_ip = args["sender_ip"];
+        std::string sender_name = args["sender_name"];
+        std::string target_ip = args["target_ip"];
+
+        tcp_driver->setTlsNetworkInfo(target_ip, "7777");
+        tcp_driver->connect(args["target_ip"], "7778", [=](bool ret)
                             {
             if (ret)
             {
@@ -128,12 +127,12 @@ void NetworkController::onSendConnectRequest(std::string sender_device_name, std
                     {
                         json_parser.parse(std::move(msg));
                     });
-                GlobalStatusManager::getInstance().setCurrentTargetDeviceIP(target_device_ip);
+                GlobalStatusManager::getInstance().setCurrentTargetDeviceIP(target_ip);
                 std::string msg = user_json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(
                     Json::MessageType::User::ConnectRequest,
                     {
-                         {"sender_device_name",sender_device_name},
-                         {"sender_device_ip",sender_device_ip}
+                         {"sender_device_name",sender_name},
+                         {"sender_device_ip",sender_ip}
                     });
                 tcp_driver->sendMsg(msg);
             }
@@ -141,11 +140,21 @@ void NetworkController::onSendConnectRequest(std::string sender_device_name, std
             {
                 LOG_ERROR("failed to connect");
             } });
-        GlobalStatusManager::getInstance().setCurrentLocalDeviceIP(std::move(sender_device_ip));
-        GlobalStatusManager::getInstance().setCurrentLocalDeviceName(std::move(sender_device_name));
+        GlobalStatusManager::getInstance().setCurrentLocalDeviceIP(std::move(sender_ip));
+        GlobalStatusManager::getInstance().setCurrentLocalDeviceName(std::move(sender_name));
         break;
-    case ConnectionType::P2P:
-        break;
+    }
+    case ConnectionInfo::P2P:
+    {
+        std::string code = args["code"];
+        std::string password = args["password"];
+        p2p_driver->sendMsg(signal_json_builder->buildSignalMsg(
+            Json::MessageType::Signal::ConnectRequest,
+            {{"code", code},
+             {"password", password},
+             {"sender_code", ConnectionInfo::my_code}}));
+    }
+    break;
     default:
         break;
     }

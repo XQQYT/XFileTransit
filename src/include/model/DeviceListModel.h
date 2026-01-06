@@ -35,6 +35,7 @@ public:
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void connectToTarget(const int index);
     Q_INVOKABLE void connectToTarget(const QString ip);
+    Q_INVOKABLE void connectViaP2P(const QString code, const QString password);
     Q_INVOKABLE void resetConnection();
     Q_INVOKABLE bool isLocalIp(const QString ip);
     bool getIsScanning() { return scanning; }

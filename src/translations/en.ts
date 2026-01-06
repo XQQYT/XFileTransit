@@ -43,138 +43,188 @@
 <context>
     <name>DeviceListWindow</name>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="310"/>
-        <location filename="../ui/DeviceListWindow.qml" line="310"/>
+        <location filename="../ui/DeviceListWindow.qml" line="311"/>
+        <location filename="../ui/DeviceListWindow.qml" line="311"/>
         <source>扫描完成，发现 %1 个设备</source>
         <translation>Scan completed, found %1 device(s)</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="311"/>
-        <location filename="../ui/DeviceListWindow.qml" line="311"/>
+        <location filename="../ui/DeviceListWindow.qml" line="312"/>
+        <location filename="../ui/DeviceListWindow.qml" line="312"/>
         <source>扫描完成，未发现设备</source>
         <translation>Scan completed, no devices found</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="317"/>
-        <location filename="../ui/DeviceListWindow.qml" line="317"/>
+        <location filename="../ui/DeviceListWindow.qml" line="318"/>
+        <location filename="../ui/DeviceListWindow.qml" line="318"/>
         <source>扫描完成</source>
         <translation>Scan Completed</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="421"/>
-        <location filename="../ui/DeviceListWindow.qml" line="421"/>
+        <location filename="../ui/DeviceListWindow.qml" line="422"/>
+        <location filename="../ui/DeviceListWindow.qml" line="422"/>
         <source>设备列表</source>
         <translation>Device List</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="430"/>
-        <location filename="../ui/DeviceListWindow.qml" line="430"/>
+        <location filename="../ui/DeviceListWindow.qml" line="431"/>
+        <location filename="../ui/DeviceListWindow.qml" line="431"/>
         <source>局域网设备发现</source>
         <translation>LAN Device Discovery</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="449"/>
-        <location filename="../ui/DeviceListWindow.qml" line="449"/>
+        <location filename="../ui/DeviceListWindow.qml" line="450"/>
+        <location filename="../ui/DeviceListWindow.qml" line="450"/>
         <source>停止</source>
         <translation>Stop</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="449"/>
-        <location filename="../ui/DeviceListWindow.qml" line="449"/>
+        <location filename="../ui/DeviceListWindow.qml" line="450"/>
+        <location filename="../ui/DeviceListWindow.qml" line="450"/>
         <source>扫描</source>
         <translation>Scan</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="547"/>
-        <location filename="../ui/DeviceListWindow.qml" line="547"/>
+        <location filename="../ui/DeviceListWindow.qml" line="566"/>
+        <location filename="../ui/DeviceListWindow.qml" line="566"/>
+        <source>局域网</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/DeviceListWindow.qml" line="608"/>
+        <location filename="../ui/DeviceListWindow.qml" line="608"/>
+        <source>P2P</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/DeviceListWindow.qml" line="642"/>
+        <location filename="../ui/DeviceListWindow.qml" line="642"/>
         <source>快速连接</source>
         <translation>Quick Connect</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="723"/>
-        <location filename="../ui/DeviceListWindow.qml" line="723"/>
+        <location filename="../ui/DeviceListWindow.qml" line="828"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1032"/>
+        <location filename="../ui/DeviceListWindow.qml" line="828"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1032"/>
         <source>连接</source>
         <translation>Connect</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="750"/>
-        <location filename="../ui/DeviceListWindow.qml" line="750"/>
+        <location filename="../ui/DeviceListWindow.qml" line="855"/>
+        <location filename="../ui/DeviceListWindow.qml" line="855"/>
         <source>该IP为本地地址</source>
         <translation>This IP is a local address</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="771"/>
-        <location filename="../ui/DeviceListWindow.qml" line="771"/>
+        <location filename="../ui/DeviceListWindow.qml" line="876"/>
+        <location filename="../ui/DeviceListWindow.qml" line="876"/>
         <source>正在连接...</source>
         <translation>Connecting...</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="771"/>
-        <location filename="../ui/DeviceListWindow.qml" line="984"/>
-        <location filename="../ui/DeviceListWindow.qml" line="771"/>
-        <location filename="../ui/DeviceListWindow.qml" line="984"/>
+        <location filename="../ui/DeviceListWindow.qml" line="876"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1072"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1275"/>
+        <location filename="../ui/DeviceListWindow.qml" line="876"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1072"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1275"/>
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="777"/>
-        <location filename="../ui/DeviceListWindow.qml" line="777"/>
+        <location filename="../ui/DeviceListWindow.qml" line="882"/>
+        <location filename="../ui/DeviceListWindow.qml" line="882"/>
         <source>请输入有效的 IPv4 地址（如 192.168.1.100)</source>
         <translation>Please enter a valid IPv4 address (e.g., 192.168.1.100)</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="811"/>
-        <location filename="../ui/DeviceListWindow.qml" line="811"/>
+        <location filename="../ui/DeviceListWindow.qml" line="922"/>
+        <location filename="../ui/DeviceListWindow.qml" line="922"/>
+        <source>对方代码:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/DeviceListWindow.qml" line="934"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1052"/>
+        <location filename="../ui/DeviceListWindow.qml" line="934"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1052"/>
+        <source>请输入对方设备代码</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/DeviceListWindow.qml" line="973"/>
+        <location filename="../ui/DeviceListWindow.qml" line="973"/>
+        <source>动态密码:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/DeviceListWindow.qml" line="985"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1063"/>
+        <location filename="../ui/DeviceListWindow.qml" line="985"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1063"/>
+        <source>请输入动态密码</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/DeviceListWindow.qml" line="1072"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1072"/>
+        <source>正在建立P2P连接...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/DeviceListWindow.qml" line="1102"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1102"/>
         <source>可用设备</source>
         <translation>Available Devices</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="826"/>
-        <location filename="../ui/DeviceListWindow.qml" line="826"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1117"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1117"/>
         <source>%1 个设备</source>
         <translation>%1 device(s)</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="850"/>
-        <location filename="../ui/DeviceListWindow.qml" line="1061"/>
-        <location filename="../ui/DeviceListWindow.qml" line="850"/>
-        <location filename="../ui/DeviceListWindow.qml" line="1061"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1141"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1352"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1141"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1352"/>
         <source>未发现设备</source>
         <translation>No devices found</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="866"/>
-        <location filename="../ui/DeviceListWindow.qml" line="866"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1157"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1157"/>
         <source>未知设备</source>
         <translation>Unknown Device</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="867"/>
-        <location filename="../ui/DeviceListWindow.qml" line="867"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1158"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1158"/>
         <source>IP未知</source>
         <translation>IP Unknown</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="868"/>
-        <location filename="../ui/DeviceListWindow.qml" line="868"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1159"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1159"/>
         <source>未知</source>
         <translation>Unknown</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="984"/>
-        <location filename="../ui/DeviceListWindow.qml" line="984"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1275"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1275"/>
         <source>等待对方响应</source>
         <translation>Waiting for response</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="1060"/>
-        <location filename="../ui/DeviceListWindow.qml" line="1060"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1351"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1351"/>
         <source>正在扫描...</source>
         <translation>Scanning...</translation>
     </message>
     <message>
-        <location filename="../ui/DeviceListWindow.qml" line="1062"/>
-        <location filename="../ui/DeviceListWindow.qml" line="1062"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1353"/>
+        <location filename="../ui/DeviceListWindow.qml" line="1353"/>
         <source>发现 %1 个设备</source>
         <translation>Found %1 device(s)</translation>
     </message>

@@ -1,6 +1,7 @@
 #include "model/DeviceListModel.h"
 #include "control/EventBusManager.h"
 #include "model/ICMPScanner.h"
+#include "control/GlobalStatusManager.h"
 
 DeviceListModel::DeviceListModel(QObject *parent) : QAbstractListModel(parent)
 {
@@ -110,12 +111,16 @@ void DeviceListModel::connectToTarget(const int index)
 
 void DeviceListModel::connectToTarget(const QString ip)
 {
-    EventBusManager::instance().publish("/network/send_connect_request",
-                                        ICMPScanner::getInstance().getLocalComputerName().toStdString(),
-                                        ICMPScanner::getInstance().findMatchingLocalIp(ip).toStdString(),
-                                        ip.toStdString());
+    ConnectionInfo::connection_type = ConnectionInfo::Type::Tcp;
+    std::unordered_map<std::string, std::string> args;
+    args["sender_name"] = ICMPScanner::getInstance().getLocalComputerName().toStdString();
+    args["sender_ip"] = ICMPScanner::getInstance().findMatchingLocalIp(ip).toStdString();
+    args["target_ip"] = ip.toStdString();
+    EventBusManager::instance().publish("/network/send_connect_request", args);
 }
-
+/*
+cmake .. -G "MinGW Makefiles" -DCMAKE_C_COMPILER=D:/Qt6.8/Tools/mingw1310_64/bin/gcc.exe -DCMAKE_CXX_COMPILER=D:/Qt6.8/Tools/mingw1310_64/bin/g++.exe -DCMAKE_MAKE_PROGRAM=D:/Qt6.8/Tools/mingw1310_64/bin/mingw32-make.exe -DUSE_GNUTLS=0 -DUSE_SYSTEM_SRTP=ON -DUSE_SYSTEM_USRSCTP=ON -DBUILD_SHARED_LIBS=ON
+*/
 void DeviceListModel::resetConnection()
 {
     EventBusManager::instance().publish("/network/reset_connection");
@@ -124,4 +129,14 @@ void DeviceListModel::resetConnection()
 bool DeviceListModel::isLocalIp(const QString ip)
 {
     return ICMPScanner::getInstance().isLocalAddress(ip);
+}
+
+void DeviceListModel::connectViaP2P(const QString code, const QString password)
+{
+    ConnectionInfo::connection_type = ConnectionInfo::Type::P2P;
+    std::unordered_map<std::string, std::string>
+        args;
+    args["code"] = code.toStdString();
+    args["password"] = password.toStdString();
+    EventBusManager::instance().publish("/network/send_connect_request", args);
 }

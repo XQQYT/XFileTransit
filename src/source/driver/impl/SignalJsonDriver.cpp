@@ -4,14 +4,25 @@ std::string SignalJsonMsgBuilder::buildSignalMsg(Json::MessageType::Signal::Type
 {
     json result;
     json content;
+    result["type"] = Json::MessageType::Signal::toString(type);
+
     switch (type)
     {
     case Json::MessageType::Signal::Register:
-        result["type"] = Json::MessageType::Signal::toString(type);
         content["id"] = "123456";
-        result["content"] = content;
-        return result.dump();
+
+        break;
+    case Json::MessageType::Signal::Offer:
+        content["offer"] = args["offer"];
+        break;
+    case Json::MessageType::Signal::ConnectRequest:
+        content["code"] = args["code"];
+        content["password"] = args["password"];
+        content["sender_code"] = args["sender_code"];
     default:
-        return "";
+        break;
     }
+
+    result["content"] = content;
+    return result.dump();
 }
