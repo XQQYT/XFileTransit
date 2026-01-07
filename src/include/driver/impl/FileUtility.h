@@ -14,6 +14,7 @@
 
 // 平台特定的头文件
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #elif defined(__linux__)
 #include <unistd.h> // 这个头文件用于 readlink
@@ -248,7 +249,6 @@ public:
 
 #ifdef _WIN32
 // Windows 实现
-#include <windows.h>
         int wide_len = MultiByteToWideChar(CP_UTF8, 0, utf8_str.c_str(), -1, nullptr, 0);
         if (wide_len == 0)
             return L"";
@@ -361,7 +361,6 @@ public:
     static std::string getExecutableDirectory()
     {
 #ifdef _WIN32
-#include <windows.h>
         wchar_t buffer[MAX_PATH];
         DWORD length = GetModuleFileNameW(nullptr, buffer, MAX_PATH);
         if (length == 0 || length >= MAX_PATH)

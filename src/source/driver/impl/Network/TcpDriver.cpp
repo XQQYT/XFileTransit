@@ -11,7 +11,6 @@
 #include <chrono>
 
 #ifdef _WIN32
-#include <windows.h>
 #else
 #include <unistd.h>
 #include <sys/select.h>

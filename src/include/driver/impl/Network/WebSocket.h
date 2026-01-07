@@ -5,6 +5,7 @@
 #include <boost/asio.hpp>
 #include <iostream>
 #include <stdexcept>
+#include <optional>
 #include <memory>
 #include "driver/interface/Network/NetworkInterface.h"
 

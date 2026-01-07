@@ -19,6 +19,7 @@ enum class LogLevel
 
 // 跨平台颜色定义
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 class ConsoleColor
 {
@@ -26,11 +27,11 @@ private:
     static WORD getDefaultColor()
     {
         static WORD defaultColor = []()
-        {
-            CONSOLE_SCREEN_BUFFER_INFO info;
-            GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
-            return info.wAttributes;
-        }();
+            {
+                CONSOLE_SCREEN_BUFFER_INFO info;
+                GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
+                return info.wAttributes;
+            }();
         return defaultColor;
     }
 
@@ -59,7 +60,7 @@ public:
 class ConsoleColor
 {
 public:
-    static void setColor(const char *colorCode)
+    static void setColor(const char* colorCode)
     {
         std::cout << colorCode;
     }
@@ -69,15 +70,15 @@ public:
         std::cout << "\033[0m";
     }
 
-    static constexpr const char *RED = "\033[1;31m";
-    static constexpr const char *GREEN = "\033[1;32m";
-    static constexpr const char *YELLOW = "\033[1;33m";
-    static constexpr const char *BLUE = "\033[1;34m";
-    static constexpr const char *MAGENTA = "\033[1;35m";
-    static constexpr const char *CYAN = "\033[1;36m";
-    static constexpr const char *WHITE = "\033[1;37m";
-    static constexpr const char *GRAY = "\033[1;90m";
-    static constexpr const char *RESET = "\033[0m";
+    static constexpr const char* RED = "\033[1;31m";
+    static constexpr const char* GREEN = "\033[1;32m";
+    static constexpr const char* YELLOW = "\033[1;33m";
+    static constexpr const char* BLUE = "\033[1;34m";
+    static constexpr const char* MAGENTA = "\033[1;35m";
+    static constexpr const char* CYAN = "\033[1;36m";
+    static constexpr const char* WHITE = "\033[1;37m";
+    static constexpr const char* GRAY = "\033[1;90m";
+    static constexpr const char* RESET = "\033[0m";
 };
 #endif
 
@@ -88,7 +89,7 @@ private:
     bool enabled_ = true;
     bool use_color_ = true;
 
-    static DebugOutputer &instance()
+    static DebugOutputer& instance()
     {
         static DebugOutputer instance;
         return instance;
@@ -96,19 +97,19 @@ private:
 
     DebugOutputer() = default;
 
-    void output(LogLevel level, const std::string &message)
+    void output(LogLevel level, const std::string& message)
     {
         if (!enabled_ || level < min_level_)
             return;
 
-        const char *level_str = "";
-        const char *color_code = "";
-        const char *reset_code = "";
+        const char* level_str = "";
+        const char* color_code = "";
+        const char* reset_code = "";
 
 #ifdef _WIN32
         WORD color = 0;
 #else
-        const char *color = "";
+        const char* color = "";
 #endif
 
         switch (level)
@@ -164,8 +165,8 @@ private:
     }
 
 public:
-    DebugOutputer(const DebugOutputer &) = delete;
-    DebugOutputer &operator=(const DebugOutputer &) = delete;
+    DebugOutputer(const DebugOutputer&) = delete;
+    DebugOutputer& operator=(const DebugOutputer&) = delete;
 
     class Stream
     {
@@ -177,13 +178,13 @@ public:
     public:
         Stream(LogLevel level) : level_(level) {}
 
-        Stream(Stream &&other) noexcept
+        Stream(Stream&& other) noexcept
             : buffer_(std::move(other.buffer_)), level_(other.level_), active_(other.active_)
         {
             other.active_ = false;
         }
 
-        Stream &operator=(Stream &&other) noexcept
+        Stream& operator=(Stream&& other) noexcept
         {
             if (this != &other)
             {
@@ -195,8 +196,8 @@ public:
             return *this;
         }
 
-        Stream(const Stream &) = delete;
-        Stream &operator=(const Stream &) = delete;
+        Stream(const Stream&) = delete;
+        Stream& operator=(const Stream&) = delete;
 
         ~Stream()
         {
@@ -207,7 +208,7 @@ public:
         }
 
         template <typename T>
-        Stream &operator<<(const T &value)
+        Stream& operator<<(const T& value)
         {
             if (active_)
             {
@@ -244,7 +245,7 @@ public:
     }
 
     // 带函数名和行号的快速日志
-    static Stream log_func(LogLevel level, const char *func, int line)
+    static Stream log_func(LogLevel level, const char* func, int line)
     {
         Stream stream(level);
         stream << "[" << func << ":" << line << "] ";
@@ -295,14 +296,14 @@ public:
     {
     public:
         template <typename T>
-        Stream &operator<<(const T &) { return *this; }
+        Stream& operator<<(const T&) { return *this; }
     };
 
     static void set_min_level(LogLevel) {}
     static void enable(bool) {}
     static void enable_color(bool) {}
     static Stream log(LogLevel = LogLevel::LEVEL_DEBUG) { return Stream(); }
-    static Stream log_func(LogLevel, const char *, int) { return Stream(); }
+    static Stream log_func(LogLevel, const char*, int) { return Stream(); }
     static Stream red() { return Stream(); }
     static Stream green() { return Stream(); }
     static Stream yellow() { return Stream(); }

@@ -27,7 +27,7 @@ public:
     void setRemoteDescription(const std::string &sdp,
                               std::function<void(bool)> callback = nullptr) override;
     void addIceCandidate(const std::string &candidate) {}
-    P2PState getP2PState() const {}
+    P2PState getP2PState() const {return P2PState::Connected;}
 
 private:
     enum class State

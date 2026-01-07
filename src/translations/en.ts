@@ -88,13 +88,13 @@
         <location filename="../ui/DeviceListWindow.qml" line="566"/>
         <location filename="../ui/DeviceListWindow.qml" line="566"/>
         <source>局域网</source>
-        <translation type="unfinished"></translation>
+        <translation>LAN</translation>
     </message>
     <message>
         <location filename="../ui/DeviceListWindow.qml" line="608"/>
         <location filename="../ui/DeviceListWindow.qml" line="608"/>
         <source>P2P</source>
-        <translation type="unfinished"></translation>
+        <translation>P2P</translation>
     </message>
     <message>
         <location filename="../ui/DeviceListWindow.qml" line="642"/>
@@ -142,7 +142,7 @@
         <location filename="../ui/DeviceListWindow.qml" line="922"/>
         <location filename="../ui/DeviceListWindow.qml" line="922"/>
         <source>对方代码:</source>
-        <translation type="unfinished"></translation>
+        <translation>Peer Code:</translation>
     </message>
     <message>
         <location filename="../ui/DeviceListWindow.qml" line="934"/>
@@ -150,13 +150,13 @@
         <location filename="../ui/DeviceListWindow.qml" line="934"/>
         <location filename="../ui/DeviceListWindow.qml" line="1052"/>
         <source>请输入对方设备代码</source>
-        <translation type="unfinished"></translation>
+        <translation>Please enter peer device code</translation>
     </message>
     <message>
         <location filename="../ui/DeviceListWindow.qml" line="973"/>
         <location filename="../ui/DeviceListWindow.qml" line="973"/>
         <source>动态密码:</source>
-        <translation type="unfinished"></translation>
+        <translation>Dynamic Password:</translation>
     </message>
     <message>
         <location filename="../ui/DeviceListWindow.qml" line="985"/>
@@ -164,13 +164,13 @@
         <location filename="../ui/DeviceListWindow.qml" line="985"/>
         <location filename="../ui/DeviceListWindow.qml" line="1063"/>
         <source>请输入动态密码</source>
-        <translation type="unfinished"></translation>
+        <translation>Please enter dynamic password</translation>
     </message>
     <message>
         <location filename="../ui/DeviceListWindow.qml" line="1072"/>
         <location filename="../ui/DeviceListWindow.qml" line="1072"/>
         <source>正在建立P2P连接...</source>
-        <translation type="unfinished"></translation>
+        <translation>Establishing P2P connection...</translation>
     </message>
     <message>
         <location filename="../ui/DeviceListWindow.qml" line="1102"/>

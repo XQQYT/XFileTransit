@@ -112,6 +112,29 @@ add_executable(${PROJECT_NAME}
     ${APP_SOURCES}
     ${APP_RES}
 )
+
+# 要拷贝的所有文件
+set(RUNTIME_FILES
+    "${LIBDATACHANNEL_ROOT}/bin/datachannel.dll"
+    "${LIBDATACHANNEL_ROOT}/bin/juice.dll"
+    "${OPENSSL_ROOT_DIR}/bin/libcrypto-3-x64.dll"
+    "${OPENSSL_ROOT_DIR}/bin/libssl-3-x64.dll"
+)
+
+foreach(file ${RUNTIME_FILES})
+    if(EXISTS ${file})
+        add_custom_command(TARGET XFileTransit POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${file}"
+                "$<TARGET_FILE_DIR:XFileTransit>/"
+            COMMENT "Copying ${file}"
+            VERBATIM
+        )
+    else()
+        message(WARNING "Runtime file not found: ${file}")
+    endif()
+endforeach()
+
 if(LUPDATE_EXECUTABLE)
     add_dependencies(${PROJECT_NAME} update-translations)
 endif()
@@ -121,19 +144,26 @@ if(WIN32)
     target_sources(${PROJECT_NAME} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/res/logo/logo.rc
     )
+    
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        VS_GLOBAL_MANIFEST "${CMAKE_CURRENT_LIST_DIR}/res/logo/app.manifest"
+    )
+        add_compile_options(/utf-8)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif()
 
-if(WIN32 AND MINGW)
+if(WIN32 AND MSVC)
     if(CMAKE_BUILD_TYPE STREQUAL "Release")
         set_target_properties(${PROJECT_NAME} PROPERTIES
-            LINK_FLAGS "-Wl,-subsystem,windows"
-        )
+            LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup"
+    )
     else()
         set_target_properties(${PROJECT_NAME} PROPERTIES
-            LINK_FLAGS "-Wl,-subsystem,console"
-        )
+            LINK_FLAGS "/SUBSYSTEM:CONSOLE"
+    )
     endif()
 endif()
+
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )

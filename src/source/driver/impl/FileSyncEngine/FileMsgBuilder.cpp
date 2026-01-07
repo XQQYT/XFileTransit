@@ -132,7 +132,7 @@ std::unique_ptr<std::vector<uint8_t>> FileMsgBuilder::buildBlock()
     // 计算本次可读取的数据大小
     uint64_t remaining_data = file_total_size - file_sended_size;
     uint64_t max_data_size = FileSyncEngineInterface::file_block_size - HEADER_SIZE;
-    uint64_t ready_to_read_size = std::min(remaining_data, max_data_size);
+    uint64_t ready_to_read_size = (std::min)(remaining_data, max_data_size);
 
     // 创建数据块（实际大小 = 头部 + 数据）
     uint64_t total_block_size = HEADER_SIZE + ready_to_read_size;

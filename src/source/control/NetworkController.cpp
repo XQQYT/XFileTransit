@@ -209,58 +209,58 @@ void NetworkController::onDisconnect()
 
 void NetworkController::onConnectError(const TcpInterface::ConnectError error)
 {
-    static const std::map<TcpInterface::ConnectError, std::string> connect_error_messages = {
-        {TcpInterface::ConnectError::CONNECT_ACCESS_DENIED, "连接被拒绝：权限不足"},
-        {TcpInterface::ConnectError::CONNECT_ADDR_IN_USE, "地址已被占用"},
-        {TcpInterface::ConnectError::CONNECT_ALREADY_CONNECTED, "套接字已连接"},
-        {TcpInterface::ConnectError::CONNECT_BAD_ADDRESS, "地址参数错误"},
-        {TcpInterface::ConnectError::CONNECT_HOST_UNREACHABLE, "目标主机不可达"},
-        {TcpInterface::ConnectError::CONNECT_IN_PROGRESS, "非阻塞连接正在进行中"},
-        {TcpInterface::ConnectError::CONNECT_INTERRUPTED, "连接操作被中断"},
-        {TcpInterface::ConnectError::CONNECT_NETWORK_UNREACHABLE, "网络不可达"},
-        {TcpInterface::ConnectError::CONNECT_REFUSED, "连接被目标拒绝"},
-        {TcpInterface::ConnectError::CONNECT_TIMEOUT, "连接超时"}};
+    // static const std::map<TcpInterface::ConnectError, std::string> connect_error_messages = {
+    //     {TcpInterface::ConnectError::CONNECT_ACCESS_DENIED, "连接被拒绝：权限不足"},
+    //     {TcpInterface::ConnectError::CONNECT_ADDR_IN_USE, "地址已被占用"},
+    //     {TcpInterface::ConnectError::CONNECT_ALREADY_CONNECTED, "套接字已连接"},
+    //     {TcpInterface::ConnectError::CONNECT_BAD_ADDRESS, "地址参数错误"},
+    //     {TcpInterface::ConnectError::CONNECT_HOST_UNREACHABLE, "目标主机不可达"},
+    //     {TcpInterface::ConnectError::CONNECT_IN_PROGRESS, "非阻塞连接正在进行中"},
+    //     {TcpInterface::ConnectError::CONNECT_INTERRUPTED, "连接操作被中断"},
+    //     {TcpInterface::ConnectError::CONNECT_NETWORK_UNREACHABLE, "网络不可达"},
+    //     {TcpInterface::ConnectError::CONNECT_REFUSED, "连接被目标拒绝"},
+    //     {TcpInterface::ConnectError::CONNECT_TIMEOUT, "连接超时"}};
 
-    // 使用时
-    auto it = connect_error_messages.find(error);
-    if (it != connect_error_messages.end())
-    {
-        EventBusManager::instance().publish("/network/have_connect_error", it->second);
-    }
-    else
-    {
-        EventBusManager::instance().publish("/network/have_connect_error", std::string("未知连接错误"));
-    }
-    tcp_driver->resetConnection();
-    GlobalStatusManager::getInstance().setConnectStatus(false);
-    GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
-    EventBusManager::instance().publish("/file/close_FileSyncCore");
+    // // 使用时
+    // auto it = connect_error_messages.find(error);
+    // if (it != connect_error_messages.end())
+    // {
+    //     EventBusManager::instance().publish("/network/have_connect_error", it->second);
+    // }
+    // else
+    // {
+    //     EventBusManager::instance().publish("/network/have_connect_error", std::string("未知连接错误"));
+    // }
+    // tcp_driver->resetConnection();
+    // GlobalStatusManager::getInstance().setConnectStatus(false);
+    // GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
+    // EventBusManager::instance().publish("/file/close_FileSyncCore");
 }
 
 void NetworkController::onRecvError(const TcpInterface::RecvError error)
 {
-    static const std::map<TcpInterface::RecvError, std::string> error_map = {
-        {TcpInterface::RecvError::RECV_CONN_ABORTED, "连接被中止"},
-        {TcpInterface::RecvError::RECV_NOT_CONNECTED, "网络未连接"},
-        {TcpInterface::RecvError::RECV_NETWORK_DOWN, "网络连接故障"},
-        {TcpInterface::RecvError::RECV_TIMED_OUT, "接收数据超时"},
-        {TcpInterface::RecvError::RECV_INTERRUPTED, "接收操作被中断"},
-        {TcpInterface::RecvError::RECV_SHUTDOWN, "连接已关闭"},
-        {TcpInterface::RecvError::RECV_NETWORK_RESET, "网络连接重置"}};
+    // static const std::map<TcpInterface::RecvError, std::string> error_map = {
+    //     {TcpInterface::RecvError::RECV_CONN_ABORTED, "连接被中止"},
+    //     {TcpInterface::RecvError::RECV_NOT_CONNECTED, "网络未连接"},
+    //     {TcpInterface::RecvError::RECV_NETWORK_DOWN, "网络连接故障"},
+    //     {TcpInterface::RecvError::RECV_TIMED_OUT, "接收数据超时"},
+    //     {TcpInterface::RecvError::RECV_INTERRUPTED, "接收操作被中断"},
+    //     {TcpInterface::RecvError::RECV_SHUTDOWN, "连接已关闭"},
+    //     {TcpInterface::RecvError::RECV_NETWORK_RESET, "网络连接重置"}};
 
-    auto it = error_map.find(error);
-    if (it != error_map.end())
-    {
-        EventBusManager::instance().publish("/network/have_recv_error", it->second);
-    }
-    else
-    {
-        EventBusManager::instance().publish("/network/have_recv_error", std::string("未知接收错误"));
-    }
-    tcp_driver->resetConnection();
-    GlobalStatusManager::getInstance().setConnectStatus(false);
-    GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
-    EventBusManager::instance().publish("/file/close_FileSyncCore");
+    // auto it = error_map.find(error);
+    // if (it != error_map.end())
+    // {
+    //     EventBusManager::instance().publish("/network/have_recv_error", it->second);
+    // }
+    // else
+    // {
+    //     EventBusManager::instance().publish("/network/have_recv_error", std::string("未知接收错误"));
+    // }
+    // tcp_driver->resetConnection();
+    // GlobalStatusManager::getInstance().setConnectStatus(false);
+    // GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
+    // EventBusManager::instance().publish("/file/close_FileSyncCore");
 }
 
 void NetworkController::onConnClosed()

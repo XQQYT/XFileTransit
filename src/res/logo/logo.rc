@@ -7,4 +7,4 @@ IDI_MAIN_ICON ICON "logo_small.ico"
 // IDI_SMALL_ICON ICON "logo_small.ico"
 
 // Manifest 文件
-CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "app.manifest"
+//CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "app.manifest"

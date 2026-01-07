@@ -43,7 +43,7 @@ private:
 private:
     std::deque<std::pair<uint32_t, std::string>>
         pending_send_files;
-    bool is_start{false};
+    bool is_start{ false };
 };
 
 #endif

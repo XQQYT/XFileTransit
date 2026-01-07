@@ -16,8 +16,9 @@ set(DRIVER_SOURCES
 
 # Windows 特定的 OpenSSL 设置
 if(WIN32)
-    set(BOOST_INCLUDE_DIR "D:/msys64/mingw64/include")
-    set(OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL-Win64")
+if(NOT TOOLCHAIN_LOADED)
+    message(WARNING "Toolchain not properly loaded!")
+endif()
     set(OPENSSL_INCLUDE_DIR "${OPENSSL_ROOT_DIR}/include")
     set(OPENSSL_CRYPTO_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MT/libcrypto.lib")
     set(OPENSSL_SSL_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MT/libssl.lib")
@@ -44,12 +45,12 @@ add_library(driver STATIC
 
 # 查找 libdatachannel
 find_path(LibDataChannel_INCLUDE_DIR rtc/rtc.h
-    PATHS D:/mingw64/include
+    PATHS ${LIBDATACHANNEL_ROOT}/include
           /usr/local/include
 )
 
 find_library(LibDataChannel_LIBRARY NAMES datachannel libdatachannel
-    PATHS D:/mingw64/lib
+    PATHS ${LIBDATACHANNEL_ROOT}/lib
           /usr/local/lib
 )
 
@@ -75,7 +76,7 @@ target_include_directories(driver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include
     ${OPENSSL_INCLUDE_DIR}
-    ${BOOST_INCLUDE_DIR}
+    ${BOOST_ROOT}/include
 )
 
 if(WIN32)
