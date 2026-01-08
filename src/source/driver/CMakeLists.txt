@@ -16,18 +16,17 @@ set(DRIVER_SOURCES
 
 # Windows 特定的 OpenSSL 设置
 if(WIN32)
-if(NOT TOOLCHAIN_LOADED)
-    message(WARNING "Toolchain not properly loaded!")
-endif()
-    set(OPENSSL_INCLUDE_DIR "${OPENSSL_ROOT_DIR}/include")
-    set(OPENSSL_CRYPTO_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MT/libcrypto.lib")
-    set(OPENSSL_SSL_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MT/libssl.lib")
-    
-    if(NOT EXISTS "${OPENSSL_CRYPTO_LIBRARY}")
-        message(WARNING "OpenSSL crypto library not found at: ${OPENSSL_CRYPTO_LIBRARY}")
+    if(NOT TOOLCHAIN_LOADED)
+        message(WARNING "Toolchain not properly loaded!")
     endif()
-    if(NOT EXISTS "${OPENSSL_SSL_LIBRARY}")
-        message(WARNING "OpenSSL ssl library not found at: ${OPENSSL_SSL_LIBRARY}")
+    set(OPENSSL_INCLUDE_DIR "${OPENSSL_ROOT_DIR}/include")
+    set(OPENSSL_LIBS_DIR "${OPENSSL_ROOT_DIR}/lib/VC/x64/MT")
+    
+    if(NOT EXISTS "${OPENSSL_LIBS_DIR}/libcrypto.lib")
+        message(WARNING "OpenSSL crypto library not found at: ${OPENSSL_LIBS_DIR}/libcrypto.lib")
+    endif()
+    if(NOT EXISTS "${OPENSSL_LIBS_DIR}/libssl.lib")
+        message(WARNING "OpenSSL ssl library not found at: ${OPENSSL_LIBS_DIR}/libssl.lib")
     endif()
 else()
     find_package(OpenSSL REQUIRED)
@@ -76,13 +75,13 @@ target_include_directories(driver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include
     ${OPENSSL_INCLUDE_DIR}
-    ${BOOST_ROOT}/include
+    ${BOOST_ROOT}
 )
 
 if(WIN32)
     target_link_libraries(driver PUBLIC 
-        "${OPENSSL_SSL_LIBRARY}"
-        "${OPENSSL_CRYPTO_LIBRARY}"
+        "${OPENSSL_LIBS_DIR}/libssl.lib"
+        "${OPENSSL_LIBS_DIR}/libcrypto.lib"
         ws2_32      # Windows Socket
         crypt32     # Windows 加密 API
         bcrypt      # Windows 加密库

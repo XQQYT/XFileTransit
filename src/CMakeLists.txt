@@ -26,7 +26,7 @@ set(EN_QM ${CMAKE_CURRENT_SOURCE_DIR}/res/translations/en.qm)
 # 查找 lupdate
 find_program(LUPDATE_EXECUTABLE
     NAMES lupdate
-    PATHS "${Qt6_PATH}/bin"
+    PATHS "${QT6_DIR}/bin"
     NO_DEFAULT_PATH
 )
 if(LUPDATE_EXECUTABLE)
@@ -46,7 +46,7 @@ endif()
 # 查找 lrelease
 find_program(LRELEASE_EXECUTABLE
     NAMES lrelease
-    PATHS "${Qt6_PATH}/bin"
+    PATHS "${QT6_DIR}/bin"
     NO_DEFAULT_PATH
 )
 if(LRELEASE_EXECUTABLE)
@@ -89,17 +89,6 @@ set(QML_FILES
     ui/SettingsWindow.qml
 )
 
-qt_add_translation(QM_FILES
-    ${QML_FILES}
-    TS_FILES 
-        translations/zh_CN.ts
-        translations/en.ts
-)
-
-qt6_add_resources(APP_RES
-    ${CMAKE_CURRENT_SOURCE_DIR}/res/res.qrc
-)
-
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_definitions(DEBUG_OUTPUT)
 endif()
@@ -110,7 +99,7 @@ add_subdirectory(source/model)
 
 add_executable(${PROJECT_NAME}
     ${APP_SOURCES}
-    ${APP_RES}
+    res/res.qrc
 )
 
 if(WIN32)

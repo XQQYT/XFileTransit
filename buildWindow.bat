@@ -16,7 +16,6 @@ if "%1"=="" (
     echo   clean      - 清理构建目录
     echo   help       - 显示帮助信息
     echo.
-    pause
     exit /b 1
 )
 
@@ -36,7 +35,6 @@ if /i "%1"=="help" (
     echo   clean      - 清理构建目录
     echo   help       - 显示帮助信息
     echo.
-    pause
     exit /b 0
 )
 
@@ -51,7 +49,6 @@ if /i "%1"=="clean" (
         rmdir /s /q build-Window-%BUILD_TYPE_DEBUG%
     )
     echo [信息] 清理完成
-    pause
     exit /b 0
 )
 
@@ -60,7 +57,6 @@ if /i "%1"=="debug" goto :build_debug
 
 echo [错误] 未知动作: %1
 echo 使用 %0 help 查看帮助
-pause
 exit /b 1
 
 rem ========== 构建Release ==========
@@ -82,7 +78,6 @@ echo [步骤] 配置CMake...
 cmake -G %GENERATOR% -DCMAKE_TOOLCHAIN_FILE="%TOOLCHAIN_FILE%" -DCMAKE_BUILD_TYPE=%BUILD_TYPE_RELEASE% -B build-Window-%BUILD_TYPE_RELEASE% .
 if %errorlevel% neq 0 (
     echo [错误] CMake配置失败
-    pause
     exit /b 1
 )
 
@@ -93,7 +88,6 @@ MSbuild XFileTransit.sln /p:Configuration=%BUILD_TYPE_RELEASE% /m
 if %errorlevel% neq 0 (
     echo [错误] 编译失败
     cd ..
-    pause
     exit /b 1
 )
 cd ..
@@ -105,7 +99,6 @@ if exist build-Window-%BUILD_TYPE_RELEASE%\src\Debug\XFileTransit.exe (
     echo [警告] 未找到输出文件
 )
 
-pause
 exit /b 0
 
 rem ========== 构建Debug ==========
@@ -127,7 +120,6 @@ echo [步骤] 配置CMake...
 cmake -G %GENERATOR% -DCMAKE_TOOLCHAIN_FILE="%TOOLCHAIN_FILE%" -DCMAKE_BUILD_TYPE=%BUILD_TYPE_DEBUG% -B build-Window-%BUILD_TYPE_DEBUG% .
 if %errorlevel% neq 0 (
     echo [错误] CMake配置失败
-    pause
     exit /b 1
 )
 
@@ -138,7 +130,6 @@ MSbuild XFileTransit.sln /p:Configuration=%BUILD_TYPE_DEBUG% /m
 if %errorlevel% neq 0 (
     echo [错误] 编译失败
     cd ..
-    pause
     exit /b 1
 )
 cd ..
@@ -150,7 +141,6 @@ if exist build-Window-%BUILD_TYPE_DEBUG%\src\Debug\XFileTransit.exe (
     echo [警告] 未找到输出文件
 )
 
-pause
 exit /b 0
 
 rem ========== 检查工具子程序 ==========
