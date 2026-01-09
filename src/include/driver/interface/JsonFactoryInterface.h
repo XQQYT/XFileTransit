@@ -134,7 +134,9 @@ namespace Json
             enum Type
             {
                 Register,
+                GetTargetStatus,
                 ConnectRequest,
+                ConnectRequestResult,
                 Offer
             };
 
@@ -146,8 +148,12 @@ namespace Json
                     return "register";
                 case ConnectRequest:
                     return "connect_request";
+                case GetTargetStatus:
+                    return "get_target_status";
+                case ConnectRequestResult:
+                    return "connect_request_result";
                 case Offer:
-                    return "offer";
+                    return "sdp_offer";
                 default:
                     return "unknown";
                 }

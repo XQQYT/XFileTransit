@@ -326,7 +326,12 @@ Window {
         enabled: deviceWindowLoader.status === Loader.Ready
                 
         function onConnectResult(ret, ip) {
-            deviceListWindow.hide()
+            if(ret){
+                deviceListWindow.hide()
+            }
+            load_dialog.close()
+        }
+        function onInfoShow(info){
             load_dialog.close()
         }
     }

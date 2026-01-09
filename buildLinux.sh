@@ -13,8 +13,8 @@ fi
 echo "使用Qt路径: $Qt6_PATH"
 
 # 定义构建目录
-DEBUG_DIR="build-Linux-Debug"
-RELEASE_DIR="build-Linux-Release"
+DEBUG_DIR="build-Linux-Debug2"
+RELEASE_DIR="build-Linux-Release2"
 
 # 函数：构建指定配置
 build_config() {

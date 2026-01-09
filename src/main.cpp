@@ -95,6 +95,8 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/settings/update_settings_value");
     // 立即写入到文件
     EventBusManager::instance().registerEvent("/settings/write_into_file");
+
+    EventBusManager::instance().registerEvent("/signal/target_status");
 }
 
 void repairSettingsFile()

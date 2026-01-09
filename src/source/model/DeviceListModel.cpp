@@ -13,6 +13,12 @@ DeviceListModel::DeviceListModel(QObject *parent) : QAbstractListModel(parent)
     EventBusManager::instance().subscribe("/network/have_connect_request_result", [this](bool ret, std::string di)
                                           { QMetaObject::invokeMethod(this, [this, ret, di]()
                                                                       { emit connectResult(ret, QString::fromStdString(di)); }, Qt::QueuedConnection); });
+    EventBusManager::instance().subscribe("/signal/target_status", [this](bool ret)
+                                          { QMetaObject::invokeMethod(this, [this, ret]()
+                                                                      { 
+                                                                        if(!ret)
+                                                                            emit infoShow(tr("对方不在线")); }, Qt::QueuedConnection); });
+
     QObject::connect(&ICMPScanner::getInstance(), &ICMPScanner::foundOne, this, &DeviceListModel::onFoundOne);
     QObject::connect(&ICMPScanner::getInstance(), &ICMPScanner::scanProgress, this, [=](int progress)
                      { emit scanProgress(progress); });
@@ -111,16 +117,14 @@ void DeviceListModel::connectToTarget(const int index)
 
 void DeviceListModel::connectToTarget(const QString ip)
 {
-    ConnectionInfo::connection_type = ConnectionInfo::Type::Tcp;
+    ConnectionInfo::connection_type = ConnectionType::Tcp;
     std::unordered_map<std::string, std::string> args;
     args["sender_name"] = ICMPScanner::getInstance().getLocalComputerName().toStdString();
     args["sender_ip"] = ICMPScanner::getInstance().findMatchingLocalIp(ip).toStdString();
     args["target_ip"] = ip.toStdString();
     EventBusManager::instance().publish("/network/send_connect_request", args);
 }
-/*
-cmake .. -G "MinGW Makefiles" -DCMAKE_C_COMPILER=D:/Qt6.8/Tools/mingw1310_64/bin/gcc.exe -DCMAKE_CXX_COMPILER=D:/Qt6.8/Tools/mingw1310_64/bin/g++.exe -DCMAKE_MAKE_PROGRAM=D:/Qt6.8/Tools/mingw1310_64/bin/mingw32-make.exe -DUSE_GNUTLS=0 -DUSE_SYSTEM_SRTP=ON -DUSE_SYSTEM_USRSCTP=ON -DBUILD_SHARED_LIBS=ON
-*/
+
 void DeviceListModel::resetConnection()
 {
     EventBusManager::instance().publish("/network/reset_connection");
@@ -133,10 +137,11 @@ bool DeviceListModel::isLocalIp(const QString ip)
 
 void DeviceListModel::connectViaP2P(const QString code, const QString password)
 {
-    ConnectionInfo::connection_type = ConnectionInfo::Type::P2P;
+    ConnectionInfo::connection_type = ConnectionType::P2P;
+    TargetInfo::target_status = TargetStatus::WaitingStatus;
     std::unordered_map<std::string, std::string>
         args;
-    args["code"] = code.toStdString();
+    args["target_code"] = code.toStdString();
     args["password"] = password.toStdString();
     EventBusManager::instance().publish("/network/send_connect_request", args);
 }

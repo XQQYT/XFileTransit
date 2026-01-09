@@ -149,7 +149,7 @@ Window {
                     spacing: 4
                     
                     Text {
-                        text: qsTr("IP地址")
+                        text: qsTr("IP地址/设备代码")
                         font.pixelSize: 13
                         color: textSecondary
                         font.weight: Font.Medium

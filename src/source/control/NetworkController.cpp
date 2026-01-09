@@ -92,14 +92,15 @@ NetworkController::NetworkController() : tcp_driver(std::make_unique<TcpDriver>(
                     json_parser.parse(std::move(msg));
                 });
             return true; });
-    p2p_driver->connect("172.16.230.1", "8888", [=](bool ret)
+    p2p_driver->connect("192.168.2.117", "8888", [=](bool ret)
+                        // p2p_driver->connect("127.0.0.1", "8888", [=](bool ret)
                         { 
         if(ret)
         {
             json_parser.setP2PInstance(p2p_driver);
             p2p_driver->recvMsg([=](std::string msg)
                 { json_parser.parse(msg); });
-            p2p_driver->sendMsg(signal_json_builder->buildSignalMsg(Json::MessageType::Signal::Register, {}));
+            p2p_driver->sendMsg(signal_json_builder->buildSignalMsg(Json::MessageType::Signal::Register, {{"id", ConnectionInfo::my_code}}));
         } });
 }
 
@@ -146,13 +147,31 @@ void NetworkController::onSendConnectRequest(std::unordered_map<std::string, std
     }
     case ConnectionInfo::P2P:
     {
-        std::string code = args["code"];
-        std::string password = args["password"];
-        p2p_driver->sendMsg(signal_json_builder->buildSignalMsg(
-            Json::MessageType::Signal::ConnectRequest,
-            {{"code", code},
-             {"password", password},
-             {"sender_code", ConnectionInfo::my_code}}));
+        std::string target_code = args["target_code"];
+        TargetInfo::target_code = target_code;
+        TargetInfo::target_password = args["password"];
+
+        std::string signal_msg;
+        switch (TargetInfo::target_status)
+        {
+        case TargetStatus::WaitingStatus:
+            signal_msg = signal_json_builder->buildSignalMsg(
+                Json::MessageType::Signal::GetTargetStatus,
+                {{"target_code", target_code},
+                 {"sender_code", ConnectionInfo::my_code}});
+            break;
+        case TargetStatus::Online:
+            signal_msg = signal_json_builder->buildSignalMsg(
+                Json::MessageType::Signal::ConnectRequest,
+                {{"target_code", target_code},
+                 {"password", target_password},
+                 {"sender_code", ConnectionInfo::my_code}});
+            break;
+        default:
+            return;
+        }
+        p2p_driver->sendMsg(std::move(signal_msg));
+        break;
     }
     break;
     default:
@@ -170,34 +189,68 @@ void NetworkController::onResetConnection()
 
 void NetworkController::onSendConnectRequestResult(bool res)
 {
-    std::string msg = user_json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(Json::MessageType::User::ConnectRequestResponse, {{"subtype", "connect_request_response"}, {"arg0", res ? "success" : "failed"}});
-    tcp_driver->sendMsg(msg);
-    if (res) // 接受连接
+
+    switch (ConnectionInfo::connection_type)
     {
-        GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::High);
-        EventBusManager::instance().publish("/file/initialize_FileSyncCore",
-                                            GlobalStatusManager::getInstance().getCurrentTargetDeviceIP(), std::string("7779"), security_driver);
-    }
-    else // 拒绝连接
+    case ConnectionType::Tcp:
     {
-        tcp_driver->resetConnection();
+        std::string msg = user_json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(Json::MessageType::User::ConnectRequestResponse, {{"subtype", "connect_request_response"}, {"arg0", res ? "success" : "failed"}});
+        tcp_driver->sendMsg(msg);
+        if (res) // 接受连接
+        {
+            GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::High);
+            EventBusManager::instance().publish("/file/initialize_FileSyncCore",
+                                                GlobalStatusManager::getInstance().getCurrentTargetDeviceIP(), std::string("7779"), security_driver);
+        }
+        else // 拒绝连接
+        {
+            tcp_driver->resetConnection();
+        }
+        GlobalStatusManager::getInstance().setConnectStatus(res);
+        break;
     }
-    GlobalStatusManager::getInstance().setConnectStatus(res);
+    case ConnectionType::P2P:
+    {
+        std::string msg = signal_json_builder->buildSignalMsg(Json::MessageType::Signal::ConnectRequestResult,
+                                                              {{"sender_code", ConnectionInfo::my_code},
+                                                               {"result", res ? "true" : "false"},
+                                                               {"target_code", TargetInfo::target_code}});
+        p2p_driver->sendMsg(msg);
+        if (res) // 接受连接
+        {
+            GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::High);
+        }
+        GlobalStatusManager::getInstance().setConnectStatus(res);
+        break;
+    }
+    }
 }
 
 void NetworkController::onHaveConnectRequestResult(bool res, std::string)
 {
-    if (res)
+    switch (ConnectionInfo::connection_type)
     {
-        GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
-        EventBusManager::instance().publish("/file/initialize_FileSyncCore",
-                                            GlobalStatusManager::getInstance().getCurrentTargetDeviceIP(), std::string("7779"), security_driver);
+    case ConnectionType::Tcp:
+        if (res)
+        {
+            GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
+            EventBusManager::instance().publish("/file/initialize_FileSyncCore",
+                                                GlobalStatusManager::getInstance().getCurrentTargetDeviceIP(), std::string("7779"), security_driver);
+        }
+        else
+        {
+            tcp_driver->resetConnection();
+        }
+        GlobalStatusManager::getInstance().setConnectStatus(res);
+        break;
+    case ConnectionType::P2P:
+        p2p_driver->createOffer([=](const std::string &str)
+                                { p2p_driver->sendMsg(signal_json_builder->buildSignalMsg(
+                                      Json::MessageType::Signal::Offer,
+                                      {{"offer", str},
+                                       {"target_code", TargetInfo::target_code}})); });
+        break;
     }
-    else
-    {
-        tcp_driver->resetConnection();
-    }
-    GlobalStatusManager::getInstance().setConnectStatus(res);
 }
 
 void NetworkController::onDisconnect()

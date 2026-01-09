@@ -125,13 +125,31 @@ private:
 
 inline namespace ConnectionInfo
 {
-    enum Type
+    enum ConnectionType
     {
         Tcp,
         P2P
     };
-    inline Type connection_type = Tcp;
-    inline std::string my_code = "987654321";
+    inline ConnectionType connection_type = Tcp;
+    // inline std::string my_code = "111111";
+    inline std::string my_code = "222222";
+};
+
+inline namespace TargetInfo
+{
+    inline std::string target_code;
+    inline std::string target_password;
+    enum class TargetStatus
+    {
+        None,
+        WaitingStatus,
+        Online,
+        Offline,
+        Accept,
+        Reject,
+        Connected
+    };
+    inline TargetStatus target_status = TargetStatus::None;
 };
 
 namespace Settings

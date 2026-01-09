@@ -44,6 +44,7 @@ signals:
     void scanFinished();
     void scanningChanged();
     void connectResult(bool ret, QString di);
+    void infoShow(QString info);
     void scanProgress(int precent);
 private slots:
     void onFoundOne(DeviceInfo info);

@@ -1259,6 +1259,17 @@ ApplicationWindow  {
                     target: device_list_model
                     enabled: deviceWindowLoader.status === Loader.Ready
                     
+                    function onInfoShow(info){
+                        if (generalDialogLoader.status === Loader.Ready) {
+                            generalDialogLoader.item.iconType = generalDialogLoader.item.info
+                            generalDialogLoader.item.text = info
+                            generalDialogLoader.item.buttons = generalDialogLoader.item.ok
+                                    
+                            generalDialogLoader.item.show()
+                            generalDialogLoader.item.requestActivate()
+                        }
+                    }
+
                     function onConnectResult(ret, ip) {
                         if(ret){
                             current_device = ip;
@@ -1293,7 +1304,7 @@ ApplicationWindow  {
                         }else{
                             if (generalDialogLoader.status === Loader.Ready) {
                                 generalDialogLoader.item.iconType = generalDialogLoader.item.error
-                                generalDialogLoader.item.text = qsTr("连接被拒绝")
+                                generalDialogLoader.item.text = qsTr("连接被用户拒绝")
                                 generalDialogLoader.item.buttons = generalDialogLoader.item.ok
                                     
                                 root.currentAcceptHandler = null

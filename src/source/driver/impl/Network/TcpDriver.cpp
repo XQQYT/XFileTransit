@@ -112,6 +112,7 @@ void TcpDriver::dealConnectError()
 
 void TcpDriver::connect(const std::string &address, const std::string &port, std::function<void(bool)> callback)
 {
+    LOG_DEBUG("tcp connect!!!");
     client_tcp_addr.sin_family = AF_INET;
     client_tcp_addr.sin_port = htons(static_cast<uint16_t>(std::stoi(port)));
 
