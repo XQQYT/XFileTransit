@@ -25,9 +25,9 @@ public:
 
     void createOffer(std::function<void(const std::string &offer)> callback) override;
     void setRemoteDescription(const std::string &sdp,
-                              std::function<void(bool)> callback = nullptr) override;
+                              std::function<void(bool, const std::string &answer)> callback = nullptr) override;
     void addIceCandidate(const std::string &candidate) {}
-    P2PState getP2PState() const {return P2PState::Connected;}
+    P2PState getP2PState() const { return P2PState::Connected; }
 
 private:
     enum class State

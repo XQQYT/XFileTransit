@@ -11,6 +11,8 @@ SignalJsonParser::SignalJsonParser() : json_driver(std::make_unique<NlohmannJson
     type_funcfion_map["target_status"] = std::bind(&SignalJsonParser::onTargetStatus, this, std::placeholders::_1);
     type_funcfion_map["connect_request"] = std::bind(&SignalJsonParser::onConnectRequest, this, std::placeholders::_1);
     type_funcfion_map["connect_request_result"] = std::bind(&SignalJsonParser::onConnectRequestResult, this, std::placeholders::_1);
+    type_funcfion_map["sdp_offer"] = std::bind(&SignalJsonParser::onSdpOffer, this, std::placeholders::_1);
+    type_funcfion_map["sdp_answer"] = std::bind(&SignalJsonParser::onSdpAnswer, this, std::placeholders::_1);
 }
 
 void SignalJsonParser::parse(const std::string &data_str)
@@ -74,4 +76,19 @@ void SignalJsonParser::onConnectRequest(std::unique_ptr<Json::Parser> parser)
 void SignalJsonParser::onConnectRequestResult(std::unique_ptr<Json::Parser> parser)
 {
     EventBusManager::instance().publish("/network/have_connect_request_result", parser->getValue("result") == "true" ? true : false, TargetInfo::target_code);
+}
+
+void SignalJsonParser::onSdpOffer(std::unique_ptr<Json::Parser> parser)
+{
+    p2p_instance->setRemoteDescription(parser->getValue("offer"), [&](bool ret, const std::string &answer)
+                                       { 
+                                        if(ret)
+                                        {
+                                            EventBusManager::instance().publish("/signal/set_offer_done", answer);
+                                        } });
+}
+
+void SignalJsonParser::onSdpAnswer(std::unique_ptr<Json::Parser> parser)
+{
+    p2p_instance->setRemoteDescription(parser->getValue("answer"), nullptr);
 }

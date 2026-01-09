@@ -137,7 +137,8 @@ namespace Json
                 GetTargetStatus,
                 ConnectRequest,
                 ConnectRequestResult,
-                Offer
+                Offer,
+                Answer
             };
 
             constexpr const char *toString(Type type)
@@ -154,6 +155,8 @@ namespace Json
                     return "connect_request_result";
                 case Offer:
                     return "sdp_offer";
+                case Answer:
+                    return "sdp_answer";
                 default:
                     return "unknown";
                 }

@@ -10,7 +10,7 @@ public:
     virtual void initialize() = 0;
     virtual void createOffer(std::function<void(const std::string &offer)> callback) = 0;
     virtual void setRemoteDescription(const std::string &sdp,
-                                      std::function<void(bool)> callback = nullptr) = 0;
+                                      std::function<void(bool, const std::string &answer)> callback = nullptr) = 0;
     virtual void addIceCandidate(const std::string &candidate) = 0;
 
     // P2P状态

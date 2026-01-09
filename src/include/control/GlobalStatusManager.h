@@ -131,8 +131,8 @@ inline namespace ConnectionInfo
         P2P
     };
     inline ConnectionType connection_type = Tcp;
-    // inline std::string my_code = "111111";
-    inline std::string my_code = "222222";
+    inline std::string my_code = "111111";
+    // inline std::string my_code = "222222";
 };
 
 inline namespace TargetInfo

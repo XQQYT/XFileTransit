@@ -16,6 +16,11 @@ std::string SignalJsonMsgBuilder::buildSignalMsg(Json::MessageType::Signal::Type
         content["target_code"] = args["target_code"];
         content["sender_code"] = args["sender_code"];
         break;
+    case Json::MessageType::Signal::Answer:
+        content["answer"] = args["answer"];
+        content["target_code"] = args["target_code"];
+        content["sender_code"] = args["sender_code"];
+        break;
     case Json::MessageType::Signal::ConnectRequest:
         content["target_code"] = args["target_code"];
         content["password"] = args["password"];

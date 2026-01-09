@@ -55,7 +55,34 @@ void P2PDriver::createOffer(std::function<void(const std::string &offer)> callba
 }
 
 void P2PDriver::setRemoteDescription(const std::string &sdp,
-                                     std::function<void(bool)> callback)
+                                     std::function<void(bool, const std::string &answer)> callback)
 {
-    peer_connection->setRemoteDescription(sdp);
+    try
+    {
+        if (!peer_connection)
+        {
+            std::cerr << "PeerConnection is null!" << std::endl;
+            if (callback)
+                callback(false, "");
+            return;
+        }
+        peer_connection->onLocalDescription([this, callback](rtc::Description description)
+                                            {            
+            if (callback) {
+                callback(true, description);
+            } });
+        auto description = rtc::Description(sdp, "offer");
+
+        peer_connection->setRemoteDescription(description);
+
+        std::cout << "Remote description set successfully" << std::endl;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Failed to set remote description: " << e.what() << std::endl;
+        if (callback)
+        {
+            callback(false, "");
+        }
+    }
 }

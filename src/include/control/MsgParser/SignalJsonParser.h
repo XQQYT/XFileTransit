@@ -22,6 +22,8 @@ private:
     void onTargetStatus(std::unique_ptr<Json::Parser> parser);
     void onConnectRequest(std::unique_ptr<Json::Parser> parser);
     void onConnectRequestResult(std::unique_ptr<Json::Parser> parser);
+    void onSdpOffer(std::unique_ptr<Json::Parser> parser);
+    void onSdpAnswer(std::unique_ptr<Json::Parser> parser);
 
 private:
     std::unique_ptr<Json::JsonFactoryInterface> json_driver;

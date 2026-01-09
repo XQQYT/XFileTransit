@@ -65,6 +65,11 @@ void NetworkController::initSubscribe()
     EventBusManager::instance().subscribe("/file/send_init_file_receiver_done",
                                           std::bind(&NetworkController::onSendInitFileReceiverDone,
                                                     this));
+    EventBusManager::instance().subscribe("/signal/set_offer_done",
+                                          std::bind(&NetworkController::onSetOfferDone,
+                                                    this,
+                                                    std::placeholders::_1));
+
     // 设置错误处理回调函数
     tcp_driver->setDealConnectErrorCb(std::bind(&NetworkController::onConnectError, this, std::placeholders::_1));
     tcp_driver->setDealRecvErrorCb(std::bind(
@@ -248,7 +253,8 @@ void NetworkController::onHaveConnectRequestResult(bool res, std::string)
                                 { p2p_driver->sendMsg(signal_json_builder->buildSignalMsg(
                                       Json::MessageType::Signal::Offer,
                                       {{"offer", str},
-                                       {"target_code", TargetInfo::target_code}})); });
+                                       {"target_code", TargetInfo::target_code},
+                                       {"sender_code", ConnectionInfo::my_code}})); });
         break;
     }
 }
@@ -373,4 +379,13 @@ void NetworkController::onSendInitFileReceiverDone()
     auto file_builder = user_json_builder->getBuilder(Json::BuilderType::File);
     tcp_driver->sendMsg(
         file_builder->buildFileMsg(Json::MessageType::File::ReceiverInitDone, {}));
+}
+
+void NetworkController::onSetOfferDone(std::string answer)
+{
+    p2p_driver->sendMsg(signal_json_builder->buildSignalMsg(
+        Json::MessageType::Signal::Answer,
+        {{"sender_code", ConnectionInfo::my_code},
+         {"target_code", TargetInfo::target_code},
+         {"answer", answer}}));
 }
