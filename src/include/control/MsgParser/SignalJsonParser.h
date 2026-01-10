@@ -24,6 +24,11 @@ private:
     void onConnectRequestResult(std::unique_ptr<Json::Parser> parser);
     void onSdpOffer(std::unique_ptr<Json::Parser> parser);
     void onSdpAnswer(std::unique_ptr<Json::Parser> parser);
+    void onIceCandidate(std::unique_ptr<Json::Parser> parser);
+
+private:
+    void onIceGenerated(const std::string &ice);
+    void onIceStatusChanged(const P2PInterface::IceState state);
 
 private:
     std::unique_ptr<Json::JsonFactoryInterface> json_driver;

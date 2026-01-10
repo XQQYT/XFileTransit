@@ -97,8 +97,6 @@ void initRegisterEvents()
     EventBusManager::instance().registerEvent("/settings/write_into_file");
 
     EventBusManager::instance().registerEvent("/signal/target_status");
-
-    EventBusManager::instance().registerEvent("/signal/set_offer_done");
 }
 
 void repairSettingsFile()

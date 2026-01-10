@@ -138,7 +138,8 @@ namespace Json
                 ConnectRequest,
                 ConnectRequestResult,
                 Offer,
-                Answer
+                Answer,
+                IceCandidate
             };
 
             constexpr const char *toString(Type type)
@@ -157,6 +158,8 @@ namespace Json
                     return "sdp_offer";
                 case Answer:
                     return "sdp_answer";
+                case IceCandidate:
+                    return "ice_candidate";
                 default:
                     return "unknown";
                 }

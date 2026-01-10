@@ -30,7 +30,6 @@ private:
     void onSendCancelTransit(uint32_t id);
     void onSendInitFileReceiverDone();
     void onSetEncrptyed(bool enable);
-    void onSetOfferDone(std::string answer);
 
 private:
     std::unique_ptr<TcpInterface> tcp_driver;

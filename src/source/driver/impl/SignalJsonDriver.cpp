@@ -35,6 +35,11 @@ std::string SignalJsonMsgBuilder::buildSignalMsg(Json::MessageType::Signal::Type
         content["sender_code"] = args["sender_code"];
         content["result"] = args["result"];
         break;
+    case Json::MessageType::Signal::IceCandidate:
+        content["target_code"] = args["target_code"];
+        content["sender_code"] = args["sender_code"];
+        content["ice_candidate"] = args["candidate"];
+        break;
     default:
         break;
     }

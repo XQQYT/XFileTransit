@@ -13,6 +13,7 @@ SignalJsonParser::SignalJsonParser() : json_driver(std::make_unique<NlohmannJson
     type_funcfion_map["connect_request_result"] = std::bind(&SignalJsonParser::onConnectRequestResult, this, std::placeholders::_1);
     type_funcfion_map["sdp_offer"] = std::bind(&SignalJsonParser::onSdpOffer, this, std::placeholders::_1);
     type_funcfion_map["sdp_answer"] = std::bind(&SignalJsonParser::onSdpAnswer, this, std::placeholders::_1);
+    type_funcfion_map["ice_candidate"] = std::bind(&SignalJsonParser::onIceCandidate, this, std::placeholders::_1);
 }
 
 void SignalJsonParser::parse(const std::string &data_str)
@@ -34,10 +35,13 @@ void SignalJsonParser::parse(const std::string &data_str)
 
 void SignalJsonParser::onRegisterResult(std::unique_ptr<Json::Parser> parser)
 {
-    p2p_instance->initialize();
+
     bool ret = parser->getValue("status") == "success";
     if (ret)
     {
+        p2p_instance->initialize();
+        p2p_instance->setIceGenerateCb(std::bind(&SignalJsonParser::onIceGenerated, this, std::placeholders::_1));
+        p2p_instance->setIceStatusCb(std::bind(&SignalJsonParser::onIceStatusChanged, this, std::placeholders::_1));
     }
 }
 
@@ -84,11 +88,46 @@ void SignalJsonParser::onSdpOffer(std::unique_ptr<Json::Parser> parser)
                                        { 
                                         if(ret)
                                         {
-                                            EventBusManager::instance().publish("/signal/set_offer_done", answer);
-                                        } });
+                                                p2p_instance->sendMsg(signal_json_builder->buildSignalMsg(
+                                                    Json::MessageType::Signal::Answer,
+                                                    {{"sender_code", ConnectionInfo::my_code},
+                                                    {"target_code", TargetInfo::target_code},
+                                                    {"answer", answer}}));
+                                                } });
 }
 
 void SignalJsonParser::onSdpAnswer(std::unique_ptr<Json::Parser> parser)
 {
     p2p_instance->setRemoteDescription(parser->getValue("answer"), nullptr);
+}
+
+void SignalJsonParser::onIceGenerated(const std::string &ice)
+{
+    p2p_instance->sendMsg(signal_json_builder->buildSignalMsg(
+        Json::MessageType::Signal::IceCandidate,
+        {{"sender_code", ConnectionInfo::my_code},
+         {"target_code", TargetInfo::target_code},
+         {"candidate", ice}}));
+}
+
+void SignalJsonParser::onIceCandidate(std::unique_ptr<Json::Parser> parser)
+{
+    p2p_instance->addIceCandidate(parser->getValue("candidate"));
+}
+
+void SignalJsonParser::onIceStatusChanged(const P2PInterface::IceState state)
+{
+    switch (state)
+    {
+    case P2PInterface::IceState::Completed:
+        EventBusManager::instance().publish("/network/have_connect_request_result", true, TargetInfo::target_code);
+        break;
+    case P2PInterface::IceState::Failed:
+        EventBusManager::instance().publish("/network/have_connect_request_result", false, TargetInfo::target_code);
+        break;
+    case P2PInterface::IceState::Closed:
+    case P2PInterface::IceState::Disconnected:
+    default:
+        break;
+    }
 }
