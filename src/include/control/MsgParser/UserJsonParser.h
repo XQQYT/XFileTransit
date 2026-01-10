@@ -48,6 +48,9 @@ class UserJsonParser
 public:
     UserJsonParser();
     void parse(std::unique_ptr<NetworkInterface::UserMsg> data);
+    void parse(std::string data);
+
+    void parseImpl(std::string data);
 
 private:
     void connectRequest(std::unique_ptr<Json::Parser> parser);

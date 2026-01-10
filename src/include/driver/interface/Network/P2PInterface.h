@@ -17,26 +17,15 @@ public:
         Closed = 6        // 连接关闭
     };
 
-    // P2P状态
-    enum class P2PState
-    {
-        Idle,
-        CreatingOffer,
-        WaitingForAnswer,
-        ExchangingCandidates,
-        Connected,
-        Failed
-    };
-
     virtual ~P2PInterface() = default;
     virtual void initialize() = 0;
+    virtual void setMsgParser(std::function<void(std::string)>) = 0;
     virtual void createOffer(std::function<void(const std::string &offer)> callback) = 0;
     virtual void setRemoteDescription(const std::string &sdp,
                                       std::function<void(bool, const std::string &answer)> callback = nullptr) = 0;
     virtual void addIceCandidate(const std::string &candidate) = 0;
     virtual void setIceGenerateCb(std::function<void(const std::string &)> cb) = 0;
     virtual void setIceStatusCb(std::function<void(const IceState)> cb) = 0;
-    virtual P2PState getP2PState() const = 0;
 };
 
 #endif

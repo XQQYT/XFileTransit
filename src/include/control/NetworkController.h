@@ -33,7 +33,9 @@ private:
 
 private:
     std::unique_ptr<TcpInterface> tcp_driver;
+    std::shared_ptr<NetworkInterface> websocket_driver;
     std::shared_ptr<P2PInterface> p2p_driver;
+    std::shared_ptr<NetworkInterface> network_driver;
     std::unique_ptr<Json::JsonFactoryInterface> user_json_builder;
     std::unique_ptr<Json::JsonBuilder> signal_json_builder;
     std::shared_ptr<SecurityInterface> security_driver;

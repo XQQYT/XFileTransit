@@ -17,7 +17,7 @@ public:
 
     void setTlsNetworkInfo(const std::string &address, const std::string &tls_port) override;
     void connect(const std::string &address, const std::string &port, std::function<void(bool)> callback = nullptr) override;
-    void sendMsg(const std::string &msg) override;
+    void sendMsg(const std::string &msg, std::string label = "") override;
     // 设置安全实例才会开启tls监听
     void startListen(const std::string &address, const std::string &tls_port, const std::string &tcp_port,
                      std::function<bool(bool)> tls_callback, std::function<bool(bool)> tcp_callback) override;

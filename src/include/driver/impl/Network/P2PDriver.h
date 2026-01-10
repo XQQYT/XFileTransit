@@ -7,6 +7,7 @@
 #include "driver/interface/Network/P2PInterface.h"
 #include <rtc/peerconnection.hpp>
 #include <rtc/datachannel.hpp>
+#include <unordered_map>
 
 class P2PDriver : public P2PInterface
 {
@@ -18,7 +19,7 @@ public:
 
     // 用户数据
     void connect(const std::string &address, const std::string &port, std::function<void(bool)> callback = nullptr) override;
-    void sendMsg(const std::string &msg) override;
+    void sendMsg(const std::string &msg, std::string label = "") override;
     void recvMsg(std::function<void(std::string)> callback) override;
     void closeSocket() override;
     void resetConnection() override;
@@ -29,20 +30,26 @@ public:
     void addIceCandidate(const std::string &candidate) override;
     void setIceGenerateCb(std::function<void(const std::string &)> cb) override;
     void setIceStatusCb(std::function<void(const IceState)> cb) override;
-    P2PState getP2PState() const { return P2PState::Connected; }
+
+    void receiveDataChannel(std::shared_ptr<rtc::DataChannel>);
+    void setMsgParser(std::function<void(std::string)> parser) override
+    {
+        msg_callback = parser;
+    }
 
 private:
-    enum class State
+    enum class Role
     {
         Default,
-        InSignal,
-        InP2P
+        Offer,
+        Answer
     };
     std::shared_ptr<NetworkInterface> websocket_driver;
     std::unique_ptr<rtc::PeerConnection> peer_connection;
-    std::shared_ptr<rtc::DataChannel> user_datachannel;
-    std::vector<std::shared_ptr<rtc::DataChannel>> sender_datachannel;
-    std::vector<std::shared_ptr<rtc::DataChannel>> receiver_datachannel;
+    std::unordered_map<std::string, std::shared_ptr<rtc::DataChannel>> label_dc_map;
+    Role current_role;
+    std::function<void(std::string)> msg_callback;
+    rtc::PeerConnection::IceState ice_state;
 };
 
 #endif

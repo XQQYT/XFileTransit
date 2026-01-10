@@ -26,26 +26,24 @@ WebSocket::~WebSocket()
 
 void WebSocket::connect(const std::string &addr, const std::string &p, std::function<void(bool)> callback)
 {
-    this->address = addr;
-    this->port = p;
     try
     {
         auto self = shared_from_this(); // 确保 `this` 对象在异步操作完成前不会被销毁
 
-        resolver->async_resolve(address, port,
-                                [this, self, callback](beast::error_code ec, tcp::resolver::results_type results)
+        resolver->async_resolve(addr, p,
+                                [this, addr, p, self, callback](beast::error_code ec, tcp::resolver::results_type results)
                                 {
                                     if (!ec)
                                     {
                                         asio::async_connect(ws_socket->next_layer(), results.begin(), results.end(),
-                                                            [this, self, callback](beast::error_code ec, const boost::asio::ip::basic_resolver_iterator<boost::asio::ip::tcp>)
+                                                            [this, addr, p, self, callback](beast::error_code ec, const boost::asio::ip::basic_resolver_iterator<boost::asio::ip::tcp>)
                                                             {
                                                                 if (ec)
                                                                 {
                                                                     callback(false);
                                                                     return;
                                                                 }
-                                                                ws_socket->async_handshake(address, "/",
+                                                                ws_socket->async_handshake(addr, "/",
                                                                                            [this, self, callback](beast::error_code ec)
                                                                                            {
                                                                                                if (!ec)
@@ -71,7 +69,7 @@ void WebSocket::connect(const std::string &addr, const std::string &p, std::func
     }
 }
 
-void WebSocket::sendMsg(const std::string &msg)
+void WebSocket::sendMsg(const std::string &msg, std::string)
 {
     if (!ws_socket || !ioc || !resolver)
     {
@@ -105,7 +103,8 @@ void WebSocket::recvMsg(std::function<void(std::string)> callback)
                               if (!ec)
                               {
                                   callback(beast::buffers_to_string(buffer->data()));
-                                  recvMsg(callback);
+                                  if (running)
+                                      recvMsg(callback);
                                   std::cout << "接收  " << beast::buffers_to_string(buffer->data()) << std::endl
                                             << std::endl;
                               }
@@ -133,4 +132,5 @@ void WebSocket::closeSocket()
 
 void WebSocket::resetConnection()
 {
+    running = false;
 }

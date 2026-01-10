@@ -24,7 +24,7 @@ public:
     WebSocket(const WebSocket &obj) = delete;
     WebSocket &operator=(WebSocket &obj) = delete;
     void connect(const std::string &address, const std::string &port, std::function<void(bool)> callback = nullptr) override;
-    void sendMsg(const std::string &msg) override;
+    void sendMsg(const std::string &msg, std::string) override;
     void recvMsg(std::function<void(std::string)> callback) override;
     void closeSocket() override;
     void resetConnection() override;
@@ -40,8 +40,7 @@ private:
     std::unique_ptr<websocket::stream<tcp::socket>> ws_socket;
     std::unique_ptr<tcp::resolver> resolver;
 
-    std::string address;
-    std::string port;
+    bool running{true};
 };
 
 #endif

@@ -22,10 +22,21 @@ UserJsonParser::UserJsonParser() : json_driver(std::make_unique<NlohmannJson>())
 
 void UserJsonParser::parse(std::unique_ptr<NetworkInterface::UserMsg> data)
 {
-    auto parser = json_driver->getParser();
+
     std::string data_str(std::make_move_iterator(data->data.begin()),
                          std::make_move_iterator(data->data.end()));
-    parser->loadJson(data_str);
+    parseImpl(data_str);
+}
+
+void UserJsonParser::parse(std::string data)
+{
+    parseImpl(data);
+}
+
+void UserJsonParser::parseImpl(std::string data)
+{
+    auto parser = json_driver->getParser();
+    parser->loadJson(data);
     std::string type = parser->getValue("type");
     auto deal_func = type_funcfion_map.find(type);
     if (deal_func != type_funcfion_map.end())

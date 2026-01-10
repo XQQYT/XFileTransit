@@ -178,7 +178,7 @@ void printHex(const std::vector<uint8_t> &data)
     std::cout << std::dec << std::endl;
 }
 
-void TcpDriver::sendMsg(const std::string &msg)
+void TcpDriver::sendMsg(const std::string &msg, std::string)
 {
     if (!connect_status)
     {

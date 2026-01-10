@@ -88,7 +88,7 @@ void SignalJsonParser::onSdpOffer(std::unique_ptr<Json::Parser> parser)
                                        { 
                                         if(ret)
                                         {
-                                                p2p_instance->sendMsg(signal_json_builder->buildSignalMsg(
+                                                websocket_instance->sendMsg(signal_json_builder->buildSignalMsg(
                                                     Json::MessageType::Signal::Answer,
                                                     {{"sender_code", ConnectionInfo::my_code},
                                                     {"target_code", TargetInfo::target_code},
@@ -103,7 +103,7 @@ void SignalJsonParser::onSdpAnswer(std::unique_ptr<Json::Parser> parser)
 
 void SignalJsonParser::onIceGenerated(const std::string &ice)
 {
-    p2p_instance->sendMsg(signal_json_builder->buildSignalMsg(
+    websocket_instance->sendMsg(signal_json_builder->buildSignalMsg(
         Json::MessageType::Signal::IceCandidate,
         {{"sender_code", ConnectionInfo::my_code},
          {"target_code", TargetInfo::target_code},
@@ -130,4 +130,6 @@ void SignalJsonParser::onIceStatusChanged(const P2PInterface::IceState state)
     default:
         break;
     }
+    if (p2p_status_changed_cb)
+        p2p_status_changed_cb(state);
 }

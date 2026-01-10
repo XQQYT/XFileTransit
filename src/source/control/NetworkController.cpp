@@ -1,6 +1,7 @@
 #include "control/NetworkController.h"
 #include "control/EventBusManager.h"
 #include "driver/impl/Network/TcpDriver.h"
+#include "driver/impl/Network/WebSocket.h"
 #include "driver/impl/Network/P2PDriver.h"
 #include "driver/impl/UserJsonDriver.h"
 #include "driver/impl/SignalJsonDriver.h"
@@ -79,6 +80,7 @@ void NetworkController::initSubscribe()
 
 NetworkController::NetworkController() : tcp_driver(std::make_unique<TcpDriver>()),
                                          p2p_driver(std::make_shared<P2PDriver>()),
+                                         websocket_driver(WebSocket::create()),
                                          user_json_builder(std::make_unique<NlohmannJson>()),
                                          signal_json_builder(std::make_unique<SignalJsonMsgBuilder>()),
                                          security_driver(std::make_shared<OpensslDriver>())
@@ -93,15 +95,25 @@ NetworkController::NetworkController() : tcp_driver(std::make_unique<TcpDriver>(
                     json_parser.parse(std::move(msg));
                 });
             return true; });
-    p2p_driver->connect("192.168.2.117", "8888", [=](bool ret)
-                        // p2p_driver->connect("127.0.0.1", "8888", [=](bool ret)
-                        { 
+    websocket_driver->connect("192.168.2.117", "8888", [=](bool ret)
+                              { 
         if(ret)
         {
             json_parser.setP2PInstance(p2p_driver);
-            p2p_driver->recvMsg([=](std::string msg)
-                { json_parser.parse(msg); });
-            p2p_driver->sendMsg(signal_json_builder->buildSignalMsg(Json::MessageType::Signal::Register, {{"id", ConnectionInfo::my_code}}));
+            json_parser.setWSInstance(websocket_driver);
+            p2p_driver->setMsgParser([=](std::string msg){
+                json_parser.parse(msg, Parser::MsgType::User);
+            });
+            websocket_driver->recvMsg([=](std::string msg)
+                { json_parser.parse(msg, Parser::MsgType::Signal); });
+            json_parser.setOnP2PStatusChanged([=](P2PInterface::IceState state){
+                if(state == P2PInterface::IceState::Completed)
+                {
+                    GlobalStatusManager::getInstance().setConnectStatus(true);
+                    network_driver = p2p_driver;
+                }
+            });
+            websocket_driver->sendMsg(signal_json_builder->buildSignalMsg(Json::MessageType::Signal::Register, {{"id", ConnectionInfo::my_code}}));
         } });
 }
 
@@ -171,7 +183,7 @@ void NetworkController::onSendConnectRequest(std::unordered_map<std::string, std
         default:
             return;
         }
-        p2p_driver->sendMsg(std::move(signal_msg));
+        websocket_driver->sendMsg(std::move(signal_msg));
         break;
     }
     break;
@@ -184,8 +196,8 @@ void NetworkController::onSendConnectRequest(std::unordered_map<std::string, std
 void NetworkController::onResetConnection()
 {
     std::string msg = user_json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(Json::MessageType::User::CancelConnRequest, {{"sender_device_name", GlobalStatusManager::getInstance().getCurrentLocalDeviceName()}, {"sender_device_ip", GlobalStatusManager::getInstance().getCurrentLocalDeviceIP()}});
-    tcp_driver->sendMsg(msg);
-    tcp_driver->resetConnection();
+    network_driver->sendMsg(msg, "user");
+    network_driver->resetConnection();
 }
 
 void NetworkController::onSendConnectRequestResult(bool res)
@@ -202,6 +214,7 @@ void NetworkController::onSendConnectRequestResult(bool res)
             GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::High);
             EventBusManager::instance().publish("/file/initialize_FileSyncCore",
                                                 GlobalStatusManager::getInstance().getCurrentTargetDeviceIP(), std::string("7779"), security_driver);
+            network_driver = std::move(tcp_driver);
         }
         else // 拒绝连接
         {
@@ -216,7 +229,7 @@ void NetworkController::onSendConnectRequestResult(bool res)
                                                               {{"sender_code", ConnectionInfo::my_code},
                                                                {"result", res ? "true" : "false"},
                                                                {"target_code", TargetInfo::target_code}});
-        p2p_driver->sendMsg(msg);
+        websocket_driver->sendMsg(msg);
         if (res) // 接受连接
         {
             GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::High);
@@ -237,6 +250,7 @@ void NetworkController::onHaveConnectRequestResult(bool res, std::string)
             GlobalStatusManager::getInstance().setIdBegin(GlobalStatusManager::idType::Low);
             EventBusManager::instance().publish("/file/initialize_FileSyncCore",
                                                 GlobalStatusManager::getInstance().getCurrentTargetDeviceIP(), std::string("7779"), security_driver);
+            network_driver = std::move(tcp_driver);
         }
         else
         {
@@ -246,7 +260,7 @@ void NetworkController::onHaveConnectRequestResult(bool res, std::string)
         break;
     case ConnectionType::P2P:
         p2p_driver->createOffer([=](const std::string &str)
-                                { p2p_driver->sendMsg(signal_json_builder->buildSignalMsg(
+                                { websocket_driver->sendMsg(signal_json_builder->buildSignalMsg(
                                       Json::MessageType::Signal::Offer,
                                       {{"offer", str},
                                        {"target_code", TargetInfo::target_code},
@@ -331,48 +345,48 @@ void NetworkController::onConnClosed()
 void NetworkController::onSendExpiredFile(uint32_t id)
 {
     auto sync_builder = user_json_builder->getBuilder(Json::BuilderType::Sync);
-    tcp_driver->sendMsg(
-        sync_builder->buildSyncMsg(Json::MessageType::Sync::FileExpired, {std::to_string(id)}, 1));
+    network_driver->sendMsg(
+        sync_builder->buildSyncMsg(Json::MessageType::Sync::FileExpired, {std::to_string(id)}, 1), "user");
 }
 
 void NetworkController::onSendSyncAddFiles(std::vector<std::string> files, uint8_t stride)
 {
     auto sync_builder = user_json_builder->getBuilder(Json::BuilderType::Sync);
-    tcp_driver->sendMsg(
-        sync_builder->buildSyncMsg(Json::MessageType::Sync::AddFiles, std::move(files), stride));
+    network_driver->sendMsg(
+        sync_builder->buildSyncMsg(Json::MessageType::Sync::AddFiles, std::move(files), stride), "user");
 }
 
 void NetworkController::onSendSyncDeleteFile(uint32_t id)
 {
     auto sync_builder = user_json_builder->getBuilder(Json::BuilderType::Sync);
-    tcp_driver->sendMsg(
-        sync_builder->buildSyncMsg(Json::MessageType::Sync::RemoveFile, {std::to_string(id)}, 1));
+    network_driver->sendMsg(
+        sync_builder->buildSyncMsg(Json::MessageType::Sync::RemoveFile, {std::to_string(id)}, 1), "user");
 }
 
 void NetworkController::onSendGetFile(uint32_t id)
 {
     auto sync_builder = user_json_builder->getBuilder(Json::BuilderType::Sync);
-    tcp_driver->sendMsg(
-        sync_builder->buildSyncMsg(Json::MessageType::Sync::DownloadFile, {std::to_string(id)}, 1));
+    network_driver->sendMsg(
+        sync_builder->buildSyncMsg(Json::MessageType::Sync::DownloadFile, {std::to_string(id)}, 1), "user");
 }
 
 void NetworkController::onConcurrentChanged(uint8_t num)
 {
     auto settings_builder = user_json_builder->getBuilder(Json::BuilderType::Settings);
-    tcp_driver->sendMsg(
-        settings_builder->buildSettingsMsg(Json::MessageType::Settings::ConcurrentTask, {{"concurrent", std::to_string(num)}}));
+    network_driver->sendMsg(
+        settings_builder->buildSettingsMsg(Json::MessageType::Settings::ConcurrentTask, {{"concurrent", std::to_string(num)}}), "user");
 }
 
 void NetworkController::onSendCancelTransit(uint32_t id)
 {
     auto file_builder = user_json_builder->getBuilder(Json::BuilderType::File);
-    tcp_driver->sendMsg(
-        file_builder->buildFileMsg(Json::MessageType::File::FileCancel, {{"id", std::to_string(id)}}));
+    network_driver->sendMsg(
+        file_builder->buildFileMsg(Json::MessageType::File::FileCancel, {{"id", std::to_string(id)}}), "user");
 }
 
 void NetworkController::onSendInitFileReceiverDone()
 {
     auto file_builder = user_json_builder->getBuilder(Json::BuilderType::File);
-    tcp_driver->sendMsg(
-        file_builder->buildFileMsg(Json::MessageType::File::ReceiverInitDone, {}));
+    network_driver->sendMsg(
+        file_builder->buildFileMsg(Json::MessageType::File::ReceiverInitDone, {}), "user");
 }
