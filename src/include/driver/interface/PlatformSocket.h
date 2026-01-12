@@ -6,7 +6,7 @@
 #define WIN32_LEAN_AND_MEAN
 
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0A00  // Windows 10
+#define _WIN32_WINNT 0x0A00 // Windows 10
 #endif
 
 #include <winsock2.h>
@@ -76,6 +76,7 @@ typedef HANDLE IcmpHandle;
 #include <string.h>
 #include <signal.h>
 #include <netdb.h>
+#include <sys/epoll.h>
 
 #define SOCKET_TYPE int
 #define SOCKET_ERROR_VAL (-1)

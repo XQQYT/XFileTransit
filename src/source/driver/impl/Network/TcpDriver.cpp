@@ -37,6 +37,7 @@ TcpDriver::TcpDriver()
 
 TcpDriver::~TcpDriver()
 {
+    LOG_ERROR("TcpDriver");
     closeSocket();
 }
 
@@ -467,7 +468,7 @@ void TcpDriver::startListen(const std::string &address, const std::string &tls_p
     startTcpListen(address, tcp_port, tcp_callback);
 }
 
-void TcpDriver::recvMsg(std::function<void(std::unique_ptr<UserMsg> parsed_msg)> callback)
+void TcpDriver::recvMsg(std::function<void(std::unique_ptr<NetworkInterface::UserMsg> parsed_msg)> callback)
 {
     if (!connect_status.load())
     {
@@ -477,15 +478,208 @@ void TcpDriver::recvMsg(std::function<void(std::unique_ptr<UserMsg> parsed_msg)>
     recv_running = true;
     receive_thread = new std::thread([this, callback = std::move(callback)]()
                                      {
-        while (this->recv_running)
+        LOG_INFO("Receive thread started");
+        
+        try 
         {
-            msg_parser->delegateRecv(client_socket, 
-                callback, 
-                this->dcc_cb, 
-                this->dre_cb, 
-                security_instance, 
-                recv_running);
+            int timeout_val = 1000; // 1秒超时
+#ifdef _WIN32
+            setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, 
+                      (const char*)&timeout_val, sizeof(timeout_val));
+#else
+            struct timeval tv;
+            tv.tv_sec = timeout_val / 1000;
+            tv.tv_usec = (timeout_val % 1000) * 1000;
+            setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, 
+                      &tv, sizeof(tv));
+#endif
+
+            // 设置为非阻塞模式
+            SOCKET_NONBLOCK(client_socket);
+
+            while (this->recv_running && client_socket != INVALID_SOCKET_VAL)
+            {
+                fd_set readfds;
+                FD_ZERO(&readfds);
+                FD_SET(client_socket, &readfds);
+                
+                struct timeval timeout;
+                timeout.tv_sec = 0;
+                timeout.tv_usec = 100000; // 100ms
+
+#ifdef _WIN32
+                int select_result = select(0, &readfds, nullptr, nullptr, &timeout);
+#else
+                int select_result = select(client_socket + 1, &readfds, nullptr, nullptr, &timeout);
+#endif
+
+                if (!this->recv_running) {
+                    break;
+                }
+
+                if (select_result == SOCKET_ERROR_VAL) {
+                    int error = GET_SOCKET_ERROR;
+                    if (error != SOCKET_EWOULDBLOCK) {
+                        LOG_ERROR("Select error in receive thread: " << error);
+                        break;
+                    }
+                }
+                else if (select_result == 0) {
+                    // 超时
+                    continue;
+                }
+
+                // socket有数据可读
+                uint8_t peek_buffer[2];
+                int peeked = recv(client_socket, reinterpret_cast<char *>(peek_buffer),
+                                 sizeof(peek_buffer), MSG_PEEK);
+
+                if (peeked > 0) 
+                {
+                    if (peek_buffer[0] == 0xAB && peek_buffer[1] == 0xCD) 
+                    {
+                        constexpr int HEADER_SIZE = 8;
+                        uint8_t buffer[HEADER_SIZE] = {0};
+                        uint32_t header_received = 0;
+
+                        // 接收消息头
+                        while (header_received < HEADER_SIZE && this->recv_running) 
+                        {
+                            fd_set readfds_inner;
+                            FD_ZERO(&readfds_inner);
+                            FD_SET(client_socket, &readfds_inner);
+
+                            struct timeval timeout_inner = {1, 0}; // 1秒超时
+#ifdef _WIN32
+                            if (select(0, &readfds_inner, nullptr, nullptr, &timeout_inner) > 0)
+#else
+                            if (select(client_socket + 1, &readfds_inner, nullptr, nullptr, &timeout_inner) > 0)
+#endif
+                            {
+                                int n = recv(client_socket, reinterpret_cast<char *>(buffer + header_received),
+                                            HEADER_SIZE - header_received, 0);
+                                if (n <= 0) 
+                                {
+                                    if (n == 0) 
+                                    {
+                                        LOG_INFO("Connection closed by peer1");
+                                        if (dcc_cb) dcc_cb();
+                                    }
+                                    else 
+                                    {
+                                        int err = GET_SOCKET_ERROR;
+                                        if (err == SOCKET_EWOULDBLOCK) {
+                                            continue;
+                                        }
+                                        LOG_ERROR("Header recv error: " << err);
+                                        if (dre_cb) msg_parser->dealRecvError(dcc_cb,dre_cb);
+                                    }
+                                    this->recv_running = false;
+                                    break;
+                                }
+                                header_received += n;
+                            }
+                        }
+
+                        if (!this->recv_running) break;
+                        if (header_received < HEADER_SIZE) continue;
+
+                        uint32_t payload_length = 0;
+                        memcpy(&payload_length, buffer + 3, sizeof(payload_length));
+                        payload_length = ntohl(payload_length);
+
+                        uint8_t flag = 0x0;
+                        memcpy(&flag, buffer + 7, sizeof(flag));
+
+                        std::vector<uint8_t> receive_msg(payload_length);
+                        uint32_t readed_length = 0;
+
+                        while (readed_length < payload_length && this->recv_running) 
+                        {
+                            fd_set readfds_inner;
+                            FD_ZERO(&readfds_inner);
+                            FD_SET(client_socket, &readfds_inner);
+
+                            struct timeval timeout_inner = {1, 0}; // 1秒超时
+#ifdef _WIN32
+                            if (select(0, &readfds_inner, nullptr, nullptr, &timeout_inner) > 0)
+#else
+                            if (select(client_socket + 1, &readfds_inner, nullptr, nullptr, &timeout_inner) > 0)
+#endif
+                            {
+                                int read_byte = recv(client_socket, reinterpret_cast<char *>(receive_msg.data() + readed_length),
+                                                    payload_length - readed_length, 0);
+                                if (read_byte == 0) 
+                                {
+                                    LOG_INFO("Connection closed by peer while receiving payload");
+                                    if (dcc_cb) dcc_cb();
+                                    break;
+                                }
+                                if (read_byte < 0) 
+                                {
+                                    int error = GET_SOCKET_ERROR;
+                                    if (error == SOCKET_EWOULDBLOCK) {
+                                        continue; // 非阻塞，重试
+                                    }
+                                    LOG_ERROR("Payload recv error: " << error);
+                                    if (dre_cb) msg_parser->dealRecvError(dcc_cb,dre_cb);
+                                    break;
+                                }
+                                readed_length += read_byte;
+                            }
+                        }
+
+                        if (!this->recv_running) break;
+                        if (readed_length < payload_length) continue;
+
+                        auto parsed = msg_parser->parse(std::move(receive_msg), payload_length, flag);
+                        memcpy(&parsed->header, buffer, HEADER_SIZE);
+                        std::vector<uint8_t> result_vec;
+
+                        if (flag & static_cast<uint8_t>(NetworkInterface::Flag::IS_ENCRYPT) &&
+                            security_instance && security_instance->verifyAndDecrypt(parsed->data, 
+                            security_instance->getTlsInfo().key.get(), parsed->iv, result_vec, parsed->sha256)) 
+                        {
+                            parsed->data.assign(result_vec.begin(), result_vec.end());
+                        }
+
+                        if (callback) {
+                            callback(std::move(parsed));
+                        }
+                    }
+                    else 
+                    {
+                        char dump_buffer[4];
+                        recv(client_socket, dump_buffer, sizeof(dump_buffer), 0);
+                        LOG_ERROR("Received invalid data, discarded");
+                    }
+                }
+                else if (peeked == 0) 
+                {
+                    LOG_INFO("Connection closed by peer2");
+                    if (dcc_cb) dcc_cb();
+                    break;
+                }
+                else if (peeked == SOCKET_ERROR_VAL) 
+                {
+                    int error = GET_SOCKET_ERROR;
+                    if (error == SOCKET_EWOULDBLOCK) 
+                    {
+                        continue;
+                    }
+                    LOG_ERROR("Recv error: " << error);
+                    if (dre_cb) msg_parser->dealRecvError(dcc_cb,dre_cb);
+                    break;
+                }
+            }
         }
+        catch (const std::exception &e)
+        {
+            LOG_ERROR("Receive thread exception: " << e.what());
+            if (dre_cb) msg_parser->dealRecvError(dcc_cb,dre_cb);
+        }
+
+        closesocket(client_socket);
         LOG_INFO("Receive thread exited"); });
 }
 
@@ -554,11 +748,11 @@ void TcpDriver::setSecurityInstance(std::shared_ptr<SecurityInterface> instance)
 
 void TcpDriver::resetConnection()
 {
-    if (connect_status)
+    recv_running = false;
+    if (client_socket)
     {
         closesocket(client_socket);
     }
-    recv_running = false;
     client_socket = INVALID_SOCKET_VAL;
     candidate_ip.clear();
     client_tls_addr = {};

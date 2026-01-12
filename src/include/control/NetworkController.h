@@ -32,7 +32,7 @@ private:
     void onSetEncrptyed(bool enable);
 
 private:
-    std::unique_ptr<TcpInterface> tcp_driver;
+    std::shared_ptr<TcpInterface> tcp_driver;
     std::shared_ptr<NetworkInterface> websocket_driver;
     std::shared_ptr<P2PInterface> p2p_driver;
     std::shared_ptr<NetworkInterface> network_driver;

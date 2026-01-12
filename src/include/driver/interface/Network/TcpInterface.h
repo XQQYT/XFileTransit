@@ -40,6 +40,7 @@ public:
     virtual void setDealConnectErrorCb(std::function<void(const ConnectError error)> cb) { dce_cb = cb; }
     virtual void setDealRecvErrorCb(std::function<void(const TcpInterface::RecvError error)> cb) { dre_cb = cb; }
     virtual void setDealConnClosedCb(std::function<void()> cb) { dcc_cb = cb; }
+    int test = 7;
 
 protected:
     std::shared_ptr<SecurityInterface> security_instance;
