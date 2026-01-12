@@ -15,14 +15,38 @@ void P2PDriver::initialize()
     config.iceServers.emplace_back("stun:stun.l.google.com:19302");
 
     peer_connection = std::make_unique<rtc::PeerConnection>(config);
-}
-
-void P2PDriver::setIceGenerateCb(std::function<void(const std::string &)> cb)
-{
-    peer_connection->onLocalCandidate([cb, this](rtc::Candidate candidate)
+    peer_connection->onLocalCandidate([this](rtc::Candidate candidate)
                                       { 
                                         if(ice_state != rtc::PeerConnection::IceState::Completed)
-                                            cb(candidate); });
+                                            ice_generate_cb(candidate); });
+    peer_connection->onIceStateChange([this](rtc::PeerConnection::IceState state)
+                                      {    
+        switch (state) {
+            case rtc::PeerConnection::IceState::New:
+                ice_status_cb(IceState::New);
+                break;
+            case rtc::PeerConnection::IceState::Checking:
+                ice_status_cb(IceState::Checking);
+                break;
+            case rtc::PeerConnection::IceState::Connected:
+                ice_status_cb(IceState::Connected);
+                break;
+                case rtc::PeerConnection::IceState::Completed:
+                ice_status_cb(IceState::Completed);
+                break;
+            case rtc::PeerConnection::IceState::Failed:
+                ice_status_cb(IceState::Failed);
+                break;
+                case rtc::PeerConnection::IceState::Disconnected:
+                ice_status_cb(IceState::Disconnected);
+                break;
+                case rtc::PeerConnection::IceState::Closed:
+                LOG_ERROR("rtc::PeerConnection::IceState::Closed");
+                ice_status_cb(IceState::Closed);
+                break;
+            default:
+                break;
+        } });
 }
 
 // 用户数据
@@ -50,10 +74,19 @@ void P2PDriver::recvMsg(std::function<void(std::string)> callback)
 
 void P2PDriver::closeSocket()
 {
+    for (const auto &it : label_dc_map)
+    {
+        if (it.second && it.second->isOpen())
+        {
+            it.second->close();
+        }
+    }
+    peer_connection->close();
 }
 
 void P2PDriver::resetConnection()
 {
+    closeSocket();
 }
 
 void P2PDriver::createOffer(std::function<void(const std::string &offer)> callback)
@@ -107,37 +140,6 @@ void P2PDriver::setRemoteDescription(const std::string &sdp,
 void P2PDriver::addIceCandidate(const std::string &candidate)
 {
     peer_connection->addRemoteCandidate(candidate);
-}
-
-void P2PDriver::setIceStatusCb(std::function<void(const IceState)> cb)
-{
-    peer_connection->onIceStateChange([cb, this](rtc::PeerConnection::IceState state)
-                                      {    
-        switch (state) {
-            case rtc::PeerConnection::IceState::New:
-                cb(IceState::New);
-                break;
-            case rtc::PeerConnection::IceState::Checking:
-                cb(IceState::Checking);
-                break;
-            case rtc::PeerConnection::IceState::Connected:
-                cb(IceState::Connected);
-                break;
-                case rtc::PeerConnection::IceState::Completed:
-                cb(IceState::Completed);
-                break;
-            case rtc::PeerConnection::IceState::Failed:
-                cb(IceState::Failed);
-                break;
-                case rtc::PeerConnection::IceState::Disconnected:
-                cb(IceState::Disconnected);
-                break;
-                case rtc::PeerConnection::IceState::Closed:
-                cb(IceState::Closed);
-                break;
-            default:
-                break;
-        } });
 }
 
 void P2PDriver::receiveDataChannel(std::shared_ptr<rtc::DataChannel> dc)

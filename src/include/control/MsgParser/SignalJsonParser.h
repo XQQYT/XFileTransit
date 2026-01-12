@@ -12,17 +12,14 @@ class SignalJsonParser
 public:
     SignalJsonParser();
     void parse(const std::string &data);
-    void setP2PInstace(std::shared_ptr<P2PInterface> inst)
+    inline void setP2PInstace(std::shared_ptr<P2PInterface> inst)
     {
         p2p_instance = inst;
+        p2p_instance->setIceGenerateCb(std::bind(&SignalJsonParser::onIceGenerated, this, std::placeholders::_1));
     }
-    void setWSInstace(std::shared_ptr<NetworkInterface> inst)
+    inline void setWSInstace(std::shared_ptr<NetworkInterface> inst)
     {
         websocket_instance = inst;
-    }
-    void setOnP2PStatusChanged(std::function<void(P2PInterface::IceState)> cb)
-    {
-        p2p_status_changed_cb = cb;
     }
 
 private:
@@ -36,7 +33,6 @@ private:
 
 private:
     void onIceGenerated(const std::string &ice);
-    void onIceStatusChanged(const P2PInterface::IceState state);
 
 private:
     std::unique_ptr<Json::JsonFactoryInterface> json_driver;
@@ -44,6 +40,5 @@ private:
     std::map<std::string, std::function<void(std::unique_ptr<Json::Parser> parser)>> type_funcfion_map;
     std::shared_ptr<P2PInterface> p2p_instance;
     std::shared_ptr<NetworkInterface> websocket_instance;
-    std::function<void(P2PInterface::IceState)> p2p_status_changed_cb;
 };
 #endif

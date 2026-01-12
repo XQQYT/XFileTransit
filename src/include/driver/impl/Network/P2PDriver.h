@@ -28,8 +28,15 @@ public:
     void setRemoteDescription(const std::string &sdp,
                               std::function<void(bool, const std::string &answer)> callback = nullptr) override;
     void addIceCandidate(const std::string &candidate) override;
-    void setIceGenerateCb(std::function<void(const std::string &)> cb) override;
-    void setIceStatusCb(std::function<void(const IceState)> cb) override;
+
+    void setIceGenerateCb(std::function<void(const std::string &)> cb) override
+    {
+        ice_generate_cb = cb;
+    }
+    void setIceStatusCb(std::function<void(const IceState)> cb) override
+    {
+        ice_status_cb = cb;
+    }
 
     void receiveDataChannel(std::shared_ptr<rtc::DataChannel>);
     void setMsgParser(std::function<void(std::string)> parser) override
@@ -50,6 +57,10 @@ private:
     Role current_role;
     std::function<void(std::string)> msg_callback;
     rtc::PeerConnection::IceState ice_state;
+
+    std::function<void(const std::string &)> ice_generate_cb;
+    std::function<void()> on_closed_cb;
+    std::function<void(const IceState)> ice_status_cb;
 };
 
 #endif

@@ -86,6 +86,8 @@ NetworkController::NetworkController() : tcp_driver(std::make_shared<TcpDriver>(
                                          security_driver(std::make_shared<OpensslDriver>())
 {
     initSubscribe();
+    p2p_driver->setIceStatusCb(std::bind(&NetworkController::onIceStatusChanged, this, std::placeholders::_1));
+
     // 设置安全实例驱动才会按照加密协议进行通信
     tcp_driver->setSecurityInstance(security_driver);
     tcp_driver->startListen("0.0.0.0", "7777", "7778", nullptr, [this](bool connect_status) -> bool
@@ -106,13 +108,6 @@ NetworkController::NetworkController() : tcp_driver(std::make_shared<TcpDriver>(
             });
             websocket_driver->recvMsg([=](std::string msg)
                 { json_parser.parse(msg, Parser::MsgType::Signal); });
-            json_parser.setOnP2PStatusChanged([=](P2PInterface::IceState state){
-                if(state == P2PInterface::IceState::Completed)
-                {
-                    GlobalStatusManager::getInstance().setConnectStatus(true);
-                    network_driver = p2p_driver;
-                }
-            });
             websocket_driver->sendMsg(signal_json_builder->buildSignalMsg(Json::MessageType::Signal::Register, {{"id", ConnectionInfo::my_code}}));
         } });
 }
@@ -226,6 +221,7 @@ void NetworkController::onSendConnectRequestResult(bool res)
     }
     case ConnectionType::P2P:
     {
+        p2p_driver->initialize();
         std::string msg = signal_json_builder->buildSignalMsg(Json::MessageType::Signal::ConnectRequestResult,
                                                               {{"sender_code", ConnectionInfo::my_code},
                                                                {"result", res ? "true" : "false"},
@@ -390,4 +386,25 @@ void NetworkController::onSendInitFileReceiverDone()
     auto file_builder = user_json_builder->getBuilder(Json::BuilderType::File);
     network_driver->sendMsg(
         file_builder->buildFileMsg(Json::MessageType::File::ReceiverInitDone, {}), "user");
+}
+
+void NetworkController::onIceStatusChanged(const P2PInterface::IceState state)
+{
+    switch (state)
+    {
+    case P2PInterface::IceState::Completed:
+        EventBusManager::instance().publish("/network/have_connect_request_result", true, TargetInfo::target_code);
+        GlobalStatusManager::getInstance().setConnectStatus(true);
+        network_driver = p2p_driver;
+        break;
+    case P2PInterface::IceState::Failed:
+        EventBusManager::instance().publish("/network/have_connect_request_result", false, TargetInfo::target_code);
+        break;
+    case P2PInterface::IceState::Closed:
+        EventBusManager::instance().publish("/network/have_recv_error", std::string("连接已关闭"));
+        break;
+    case P2PInterface::IceState::Disconnected:
+    default:
+        break;
+    }
 }

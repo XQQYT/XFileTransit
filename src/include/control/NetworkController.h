@@ -30,6 +30,7 @@ private:
     void onSendCancelTransit(uint32_t id);
     void onSendInitFileReceiverDone();
     void onSetEncrptyed(bool enable);
+    void onIceStatusChanged(const P2PInterface::IceState state);
 
 private:
     std::shared_ptr<TcpInterface> tcp_driver;

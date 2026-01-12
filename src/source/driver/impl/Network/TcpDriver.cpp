@@ -37,7 +37,6 @@ TcpDriver::TcpDriver()
 
 TcpDriver::~TcpDriver()
 {
-    LOG_ERROR("TcpDriver");
     closeSocket();
 }
 

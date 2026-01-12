@@ -39,9 +39,6 @@ void SignalJsonParser::onRegisterResult(std::unique_ptr<Json::Parser> parser)
     bool ret = parser->getValue("status") == "success";
     if (ret)
     {
-        p2p_instance->initialize();
-        p2p_instance->setIceGenerateCb(std::bind(&SignalJsonParser::onIceGenerated, this, std::placeholders::_1));
-        p2p_instance->setIceStatusCb(std::bind(&SignalJsonParser::onIceStatusChanged, this, std::placeholders::_1));
     }
 }
 
@@ -79,7 +76,12 @@ void SignalJsonParser::onConnectRequest(std::unique_ptr<Json::Parser> parser)
 
 void SignalJsonParser::onConnectRequestResult(std::unique_ptr<Json::Parser> parser)
 {
-    EventBusManager::instance().publish("/network/have_connect_request_result", parser->getValue("result") == "true" ? true : false, TargetInfo::target_code);
+    bool ret = parser->getValue("result") == "true";
+    if (ret)
+    {
+        p2p_instance->initialize();
+    }
+    EventBusManager::instance().publish("/network/have_connect_request_result", ret, TargetInfo::target_code);
 }
 
 void SignalJsonParser::onSdpOffer(std::unique_ptr<Json::Parser> parser)
@@ -113,23 +115,4 @@ void SignalJsonParser::onIceGenerated(const std::string &ice)
 void SignalJsonParser::onIceCandidate(std::unique_ptr<Json::Parser> parser)
 {
     p2p_instance->addIceCandidate(parser->getValue("candidate"));
-}
-
-void SignalJsonParser::onIceStatusChanged(const P2PInterface::IceState state)
-{
-    switch (state)
-    {
-    case P2PInterface::IceState::Completed:
-        EventBusManager::instance().publish("/network/have_connect_request_result", true, TargetInfo::target_code);
-        break;
-    case P2PInterface::IceState::Failed:
-        EventBusManager::instance().publish("/network/have_connect_request_result", false, TargetInfo::target_code);
-        break;
-    case P2PInterface::IceState::Closed:
-    case P2PInterface::IceState::Disconnected:
-    default:
-        break;
-    }
-    if (p2p_status_changed_cb)
-        p2p_status_changed_cb(state);
 }

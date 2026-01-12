@@ -41,10 +41,6 @@ public:
     {
         signal_json_parser.setWSInstace(inst);
     }
-    void setOnP2PStatusChanged(std::function<void(P2PInterface::IceState)> cb)
-    {
-        signal_json_parser.setOnP2PStatusChanged(std::move(cb));
-    }
 
 private:
     UserJsonParser user_json_parser;
