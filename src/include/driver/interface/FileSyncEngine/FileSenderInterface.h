@@ -15,7 +15,7 @@ class FileSenderInterface
 public:
     FileSenderInterface() = default;
     virtual ~FileSenderInterface() = default;
-    virtual bool initialize(const std::string &addr, const std::string &p, std::shared_ptr<SecurityInterface> inst) { return false; }
+    virtual bool initialize(const std::string &addr, const std::string &p, std::shared_ptr<SecurityInterface> inst) { return true; }
     virtual void start(std::function<std::optional<std::pair<uint32_t, std::string>>()> get_task_cb) = 0;
     virtual void stop() {}
     virtual void setCondition(std::shared_ptr<std::condition_variable> queue_cv) { cv = queue_cv; }

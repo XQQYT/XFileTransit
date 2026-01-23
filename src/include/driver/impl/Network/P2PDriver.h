@@ -1,10 +1,9 @@
 #ifndef _P2PDRIVER_H
 #define _P2PDRIVER_H
 
-#include "driver/interface/Network/NetworkInterface.h"
-#include "driver/interface/FileSyncEngine/FileReceiverInterface.h"
-#include "driver/interface/FileSyncEngine/FileSenderInterface.h"
+#include "driver/interface/FileSyncEngine/FileParserInterface.h"
 #include "driver/interface/Network/P2PInterface.h"
+#include "driver/impl/OuterMsgParser.h"
 #include <rtc/peerconnection.hpp>
 #include <rtc/datachannel.hpp>
 #include <unordered_map>
@@ -20,6 +19,7 @@ public:
     // 用户数据
     void connect(const std::string &address, const std::string &port, std::function<void(bool)> callback = nullptr) override;
     void sendMsg(const std::string &msg, std::string label = "") override;
+    void sendMsg(const std::vector<uint8_t> &msg, std::string label = "") override;
     void recvMsg(std::function<void(std::string)> callback) override;
     void closeSocket() override;
     void resetConnection() override;
@@ -43,6 +43,16 @@ public:
     {
         msg_callback = parser;
     }
+    void parseRecvMsg(rtc::message_variant msg);
+
+    std::string getOneReceiveDc() override
+    {
+        if (cur_sender_index >= sender_label_list.size())
+        {
+            return "";
+        }
+        return sender_label_list[cur_sender_index++];
+    }
 
 private:
     enum class Role
@@ -51,16 +61,20 @@ private:
         Offer,
         Answer
     };
+    int cur_sender_index{0};
     std::shared_ptr<NetworkInterface> websocket_driver;
     std::unique_ptr<rtc::PeerConnection> peer_connection;
+    std::unique_ptr<OuterMsgParser> outer_parser;
     std::unordered_map<std::string, std::shared_ptr<rtc::DataChannel>> label_dc_map;
     Role current_role;
     std::function<void(std::string)> msg_callback;
     rtc::PeerConnection::IceState ice_state;
 
     std::function<void(const std::string &)> ice_generate_cb;
-    std::function<void()> on_closed_cb;
     std::function<void(const IceState)> ice_status_cb;
+
+    std::vector<std::unique_ptr<FileParserInterface>> file_parsers;
+    std::vector<std::string> sender_label_list;
 };
 
 #endif

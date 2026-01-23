@@ -1,4 +1,4 @@
-#include "driver/impl/FileSyncEngine/FileSender.h"
+#include "driver/impl/FileSyncEngine/Tcp/TcpFileSender.h"
 #include "driver/impl/FileSyncEngine/FileMsgBuilder.h"
 #include "control/EventBusManager.h"
 #include "driver/interface/PlatformSocket.h"
@@ -7,7 +7,7 @@
 #include <cerrno>
 #include <cstring>
 
-bool FileSender::initialize(const std::string &addr, const std::string &p, std::shared_ptr<SecurityInterface> inst)
+bool TcpFileSender::initialize(const std::string &addr, const std::string &p, std::shared_ptr<SecurityInterface> inst)
 {
     address = addr;
     port = p;
@@ -52,11 +52,11 @@ bool FileSender::initialize(const std::string &addr, const std::string &p, std::
         getOuterMsgBuilder().setSecurityInstance(security_instance);
     }
 
-    LOG_INFO("FileSender initialized successfully");
+    LOG_INFO("TcpFileSender initialized successfully");
     return true;
 }
 
-void FileSender::sendMsg(std::vector<uint8_t> &&msg, bool is_binary)
+void TcpFileSender::sendMsg(std::vector<uint8_t> &&msg, bool is_binary)
 {
     if (msg.empty() || client_socket == INVALID_SOCKET_VAL)
         return;
@@ -97,7 +97,7 @@ void FileSender::sendMsg(std::vector<uint8_t> &&msg, bool is_binary)
     }
 }
 
-void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::string>>()> get_task_cb)
+void TcpFileSender::start(std::function<std::optional<std::pair<uint32_t, std::string>>()> get_task_cb)
 {
     if (!running)
     {
@@ -182,11 +182,11 @@ void FileSender::start(std::function<std::optional<std::pair<uint32_t, std::stri
                 }
             }
             
-            LOG_INFO("FileSender thread exited"); });
+            LOG_INFO("TcpFileSender thread exited"); });
     }
 }
 
-void FileSender::stop()
+void TcpFileSender::stop()
 {
     running = false;
     if (send_thread)
@@ -195,7 +195,7 @@ void FileSender::stop()
     }
 }
 
-FileSender::~FileSender()
+TcpFileSender::~TcpFileSender()
 {
     stop();
 
@@ -219,5 +219,5 @@ FileSender::~FileSender()
     WSACleanup();
 #endif
 
-    LOG_INFO("FileSender destroyed");
+    LOG_INFO("TcpFileSender destroyed");
 }

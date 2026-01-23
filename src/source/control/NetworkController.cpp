@@ -86,6 +86,7 @@ NetworkController::NetworkController() : tcp_driver(std::make_shared<TcpDriver>(
                                          security_driver(std::make_shared<OpensslDriver>())
 {
     initSubscribe();
+    ConnectionInfo::p2p_driver = p2p_driver;
     p2p_driver->setIceStatusCb(std::bind(&NetworkController::onIceStatusChanged, this, std::placeholders::_1));
 
     // 设置安全实例驱动才会按照加密协议进行通信
@@ -192,7 +193,8 @@ void NetworkController::onSendConnectRequest(std::unordered_map<std::string, std
 void NetworkController::onResetConnection()
 {
     std::string msg = user_json_builder->getBuilder(Json::BuilderType::User)->buildUserMsg(Json::MessageType::User::CancelConnRequest, {{"sender_device_name", GlobalStatusManager::getInstance().getCurrentLocalDeviceName()}, {"sender_device_ip", GlobalStatusManager::getInstance().getCurrentLocalDeviceIP()}});
-    network_driver->sendMsg(msg, "user");
+    if (ConnectionInfo::connection_type == ConnectionType::Tcp)
+        network_driver->sendMsg(msg, "user");
     network_driver->resetConnection();
 }
 
@@ -390,12 +392,15 @@ void NetworkController::onSendInitFileReceiverDone()
 
 void NetworkController::onIceStatusChanged(const P2PInterface::IceState state)
 {
+    LOG_DEBUG(static_cast<int>(state));
     switch (state)
     {
     case P2PInterface::IceState::Completed:
         EventBusManager::instance().publish("/network/have_connect_request_result", true, TargetInfo::target_code);
         GlobalStatusManager::getInstance().setConnectStatus(true);
         network_driver = p2p_driver;
+        EventBusManager::instance().publish("/file/initialize_FileSyncCore",
+                                            GlobalStatusManager::getInstance().getCurrentTargetDeviceIP(), std::string("7779"), security_driver);
         break;
     case P2PInterface::IceState::Failed:
         EventBusManager::instance().publish("/network/have_connect_request_result", false, TargetInfo::target_code);

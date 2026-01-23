@@ -61,6 +61,7 @@ public:
     virtual void connect(const std::string &address, const std::string &port, std::function<void(bool)> callback = nullptr) = 0;
     virtual void startListen(const std::string &address, const std::string &port, std::function<bool(bool)> callback) = 0;
     virtual void sendMsg(const std::string &msg, std::string label = "") = 0;
+    virtual void sendMsg(const std::vector<uint8_t> &msg, std::string label = "") {}
     virtual void recvMsg(std::function<void(std::unique_ptr<UserMsg>)> callback) {};
     virtual void recvMsg(std::function<void(std::string)> callback) {}
     virtual void closeSocket() = 0;

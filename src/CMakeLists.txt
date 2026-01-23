@@ -26,7 +26,8 @@ set(EN_QM ${CMAKE_CURRENT_SOURCE_DIR}/res/translations/en.qm)
 # 查找 lupdate
 find_program(LUPDATE_EXECUTABLE
     NAMES lupdate
-    PATHS "${QT6_DIR}/bin"
+    PATHS "${Qt6_DIR}/bin"
+    "${Qt6_PATH}/bin"
     NO_DEFAULT_PATH
 )
 if(LUPDATE_EXECUTABLE)
@@ -46,7 +47,9 @@ endif()
 # 查找 lrelease
 find_program(LRELEASE_EXECUTABLE
     NAMES lrelease
-    PATHS "${QT6_DIR}/bin"
+    PATHS 
+    "${Qt6_DIR}/bin"
+    "${Qt6_PATH}/bin"
     NO_DEFAULT_PATH
 )
 if(LRELEASE_EXECUTABLE)

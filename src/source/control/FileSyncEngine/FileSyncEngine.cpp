@@ -1,10 +1,12 @@
 #include "control/FileSyncEngine/FileSyncEngine.h"
 #include "driver/impl/OuterMsgBuilder.h"
 #include "driver/impl/OuterMsgParser.h"
-#include "driver/impl/FileSyncEngine/FileSender.h"
-#include "driver/impl/FileSyncEngine/FileReceiver.h"
+#include "driver/impl/FileSyncEngine/Tcp/TcpFileSender.h"
+#include "driver/impl/FileSyncEngine/P2P/P2PFileSender.h"
+#include "driver/impl/FileSyncEngine/Tcp/TcpFileReceiver.h"
 #include "driver/impl/FileSyncEngine/FileParser.h"
 #include "control/EventBusManager.h"
+#include "control/GlobalStatusManager.h"
 #include <iostream>
 
 FileSyncEngine::FileSyncEngine()
@@ -96,17 +98,17 @@ std::optional<std::pair<uint32_t, std::string>> FileSyncEngine::getPendingFile()
     return file;
 }
 
-void FileSyncEngine::haveFileConnection(UnifiedSocket socket)
+void FileSyncEngine::haveFileConnection(int receiver_id)
 {
-    if (file_parser_map.find(socket) == file_parser_map.end())
+    if (file_parser_map.find(receiver_id) == file_parser_map.end())
     {
-        file_parser_map[socket] = std::make_unique<FileParser>();
+        file_parser_map[receiver_id] = std::make_unique<FileParser>();
     }
 }
 
-void FileSyncEngine::haveFileMsg(UnifiedSocket socket, std::unique_ptr<NetworkInterface::UserMsg> msg)
+void FileSyncEngine::haveFileMsg(int receiver_id, std::unique_ptr<NetworkInterface::UserMsg> msg)
 {
-    file_parser_map[socket]->parse(std::move(msg));
+    file_parser_map[receiver_id]->parse(std::move(msg));
 }
 
 void FileSyncEngine::start(std::string address, std::string recv_port,
@@ -118,27 +120,42 @@ void FileSyncEngine::start(std::string address, std::string recv_port,
 
     LOG_INFO("FileSyncCore start");
 
-    // 初始化receiver
-    file_receiver = std::make_unique<FileReceiver>();
     cv = std::make_shared<std::condition_variable>();
 
-    if (file_receiver->initialize("0.0.0.0", this->recv_port, this->instance))
+    if (ConnectionInfo::connection_type == ConnectionType::Tcp)
     {
-        file_receiver->start(std::bind(&FileSyncEngine::haveFileConnection, this, std::placeholders::_1),
-                             std::bind(&FileSyncEngine::haveFileMsg, this, std::placeholders::_1, std::placeholders::_2));
+        // 初始化receiver
+        file_receiver = std::make_unique<TcpFileReceiver>();
+
+        if (file_receiver->initialize("0.0.0.0", this->recv_port, this->instance))
+        {
+            file_receiver->start(std::bind(&FileSyncEngine::haveFileConnection, this, std::placeholders::_1),
+                                 std::bind(&FileSyncEngine::haveFileMsg, this, std::placeholders::_1, std::placeholders::_2));
+        }
     }
 
-    EventBusManager::instance().publish("/file/send_init_file_receiver_done");
     is_start = true;
 }
 
 void FileSyncEngine::initFileSenders()
 {
+    LOG_DEBUG("initFileSenders");
+
     // 初始化sender
-    std::vector<std::shared_ptr<FileSender>> initialized_senders;
+    std::vector<std::shared_ptr<FileSenderInterface>> initialized_senders;
     for (int i = 0; i < sender_num; ++i)
     {
-        auto sender = std::make_shared<FileSender>();
+        LOG_DEBUG("Create a sender");
+        std::shared_ptr<FileSenderInterface> sender;
+        if (ConnectionInfo::connection_type == ConnectionType::Tcp)
+            sender = std::make_shared<TcpFileSender>();
+        else if (ConnectionInfo::connection_type == ConnectionType::P2P)
+        {
+            sender = std::make_shared<P2PFileSender>();
+            auto p2p_sender = dynamic_cast<P2PFileSender *>(sender.get());
+            p2p_sender->setP2PInstance(ConnectionInfo::p2p_driver);
+        }
+
         if (sender->initialize(this->address, this->recv_port, this->instance))
         {
             sender->setCondition(this->cv);
@@ -165,11 +182,11 @@ void FileSyncEngine::setConcurrentTask(uint8_t num)
     // 增加并行数
     if (need_to_close >= 0)
     {
-        std::vector<std::shared_ptr<FileSender>> initialized_senders;
+        std::vector<std::shared_ptr<TcpFileSender>> initialized_senders;
         for (uint8_t i = 0; i < need_to_close; ++i)
         {
             LOG_DEBUG("add one sender");
-            auto sender = std::make_shared<FileSender>();
+            auto sender = std::make_shared<TcpFileSender>();
             if (sender->initialize(this->address, this->recv_port, this->instance))
             {
                 sender->setCondition(this->cv);
@@ -212,10 +229,12 @@ void FileSyncEngine::stop()
         i->stop();
     }
     cv->notify_all();
-    file_receiver->stop();
+    if (file_receiver)
+        file_receiver->stop();
     // 销毁资源
     file_senders.clear();
-    file_receiver.release();
+    if (file_receiver)
+        file_receiver.release();
     cv.reset();
 }
 

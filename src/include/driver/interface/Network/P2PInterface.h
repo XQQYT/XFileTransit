@@ -26,6 +26,7 @@ public:
     virtual void addIceCandidate(const std::string &candidate) = 0;
     virtual void setIceGenerateCb(std::function<void(const std::string &)> cb) = 0;
     virtual void setIceStatusCb(std::function<void(const IceState)> cb) = 0;
+    virtual std::string getOneReceiveDc() = 0;
 };
 
 #endif

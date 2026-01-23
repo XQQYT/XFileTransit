@@ -32,7 +32,7 @@ public:
 private:
     std::vector<std::shared_ptr<FileSenderInterface>> file_senders;
     std::unique_ptr<FileReceiverInterface> file_receiver;
-    std::unordered_map<UnifiedSocket, std::unique_ptr<FileParserInterface>> file_parser_map;
+    std::unordered_map<int, std::unique_ptr<FileParserInterface>> file_parser_map;
     std::shared_ptr<std::condition_variable> cv;
     std::mutex mtx;
 

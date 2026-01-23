@@ -8,8 +8,9 @@ set(DRIVER_SOURCES
     impl/OuterMsgParser.cpp
     impl/Network/P2PDriver.cpp
     impl/Network/WebSocket.cpp
-    impl/FileSyncEngine/FileReceiver.cpp
-    impl/FileSyncEngine/FileSender.cpp
+    impl/FileSyncEngine/Tcp/TcpFileReceiver.cpp
+    impl/FileSyncEngine/Tcp/TcpFileSender.cpp
+    impl/FileSyncEngine/P2P/P2PFileSender.cpp
     impl/FileSyncEngine/FileParser.cpp
     impl/FileSyncEngine/FileMsgBuilder.cpp
 )

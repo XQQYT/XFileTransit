@@ -1,5 +1,5 @@
-#ifndef FILERECEIVER_H
-#define FILERECEIVER_H
+#ifndef TCPFILERECEIVER_H
+#define TCPFILERECEIVER_H
 
 #include "driver/interface/FileSyncEngine/FileReceiverInterface.h"
 #include "driver/interface/SecurityInterface.h"
@@ -14,11 +14,11 @@
 
 class OuterMsgParser;
 
-class FileReceiver : public FileReceiverInterface
+class TcpFileReceiver : public FileReceiverInterface
 {
 public:
-    FileReceiver();
-    ~FileReceiver();
+    TcpFileReceiver();
+    ~TcpFileReceiver();
 
     bool initialize(const std::string &addr, const std::string &p,
                     std::shared_ptr<SecurityInterface> inst) override;
@@ -79,4 +79,4 @@ private:
     std::mutex threads_mutex;
 };
 
-#endif // FILERECEIVER_H
+#endif // TCPFILERECEIVER_H

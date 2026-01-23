@@ -1,4 +1,4 @@
-#include "driver/impl/FileSyncEngine/FileReceiver.h"
+#include "driver/impl/FileSyncEngine/Tcp/TcpFileReceiver.h"
 #include "driver/impl/OuterMsgParser.h"
 #include "common/DebugOutputer.h"
 #include <iostream>
@@ -10,14 +10,14 @@
 #define MAX_EVENTS 64
 #endif
 
-FileReceiver::FileReceiver() : listen_socket(INVALID_SOCKET_VAL), running(false) {}
+TcpFileReceiver::TcpFileReceiver() : listen_socket(INVALID_SOCKET_VAL), running(false) {}
 
-FileReceiver::~FileReceiver()
+TcpFileReceiver::~TcpFileReceiver()
 {
     closeReceiver();
 }
 
-bool FileReceiver::initialize(const std::string &addr, const std::string &p,
+bool TcpFileReceiver::initialize(const std::string &addr, const std::string &p,
                               std::shared_ptr<SecurityInterface> inst)
 {
     address = addr;
@@ -28,7 +28,7 @@ bool FileReceiver::initialize(const std::string &addr, const std::string &p,
     return (listen_socket != INVALID_SOCKET_VAL);
 }
 
-UnifiedSocket FileReceiver::createListenSocket(const std::string &address, const std::string &port)
+UnifiedSocket TcpFileReceiver::createListenSocket(const std::string &address, const std::string &port)
 {
     // 创建socket
     UnifiedSocket sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -91,7 +91,7 @@ UnifiedSocket FileReceiver::createListenSocket(const std::string &address, const
     return sock;
 }
 
-void FileReceiver::start(std::function<void(UnifiedSocket)> accept_cb,
+void TcpFileReceiver::start(std::function<void(UnifiedSocket)> accept_cb,
                          std::function<void(UnifiedSocket socket, std::unique_ptr<NetworkInterface::UserMsg>)> msg_cb)
 {
     running = true;
@@ -130,7 +130,7 @@ void FileReceiver::start(std::function<void(UnifiedSocket)> accept_cb,
         std::unordered_map<int, std::shared_ptr<std::thread>> socket_threads;
 #endif
 
-        LOG_INFO("FileReceiver started, waiting for connections...");
+        LOG_INFO("TcpFileReceiver started, waiting for connections...");
 
         while (this->running) {
 #ifdef _WIN32
@@ -222,11 +222,11 @@ void FileReceiver::start(std::function<void(UnifiedSocket)> accept_cb,
             listen_socket = INVALID_SOCKET_VAL;
         }
         
-        LOG_INFO("FileReceiver listener thread stopped"); });
+        LOG_INFO("TcpFileReceiver listener thread stopped"); });
 }
 
 #ifdef _WIN32
-void FileReceiver::handleAccept(std::vector<WSAPOLLFD> &poll_fds,
+void TcpFileReceiver::handleAccept(std::vector<WSAPOLLFD> &poll_fds,
                                 std::unordered_map<SOCKET, size_t> &socket_to_index,
                                 std::function<void(UnifiedSocket)> &accept_cb,
                                 std::function<void(UnifiedSocket, std::unique_ptr<NetworkInterface::UserMsg>)> &msg_cb)
@@ -276,7 +276,7 @@ void FileReceiver::handleAccept(std::vector<WSAPOLLFD> &poll_fds,
     }
 }
 
-void FileReceiver::handleSocketEvent(SOCKET socket,
+void TcpFileReceiver::handleSocketEvent(SOCKET socket,
                                      std::function<void(UnifiedSocket, std::unique_ptr<NetworkInterface::UserMsg>)> &msg_cb)
 {
     WSAPOLLFD fd;
@@ -292,7 +292,7 @@ void FileReceiver::handleSocketEvent(SOCKET socket,
     }
 }
 
-void FileReceiver::cleanupClosedSockets(std::vector<WSAPOLLFD> &poll_fds,
+void TcpFileReceiver::cleanupClosedSockets(std::vector<WSAPOLLFD> &poll_fds,
                                         std::unordered_map<SOCKET, size_t> &socket_to_index)
 {
     auto it = poll_fds.begin();
@@ -330,7 +330,7 @@ void FileReceiver::cleanupClosedSockets(std::vector<WSAPOLLFD> &poll_fds,
 #endif
 
 #ifdef __linux__
-void FileReceiver::handleAcceptEpoll(int epoll_fd,
+void TcpFileReceiver::handleAcceptEpoll(int epoll_fd,
                                      std::unordered_map<int, std::shared_ptr<std::thread>> &socket_threads,
                                      std::function<void(UnifiedSocket)> &accept_cb,
                                      std::function<void(UnifiedSocket, std::unique_ptr<NetworkInterface::UserMsg>)> &msg_cb)
@@ -391,7 +391,7 @@ void FileReceiver::handleAcceptEpoll(int epoll_fd,
 }
 #endif
 
-void FileReceiver::startReceiveThread(UnifiedSocket socket,
+void TcpFileReceiver::startReceiveThread(UnifiedSocket socket,
                                       std::function<void(UnifiedSocket, std::unique_ptr<NetworkInterface::UserMsg>)> &msg_cb)
 {
     auto recv_thread = std::make_shared<std::thread>([this, socket, msg_cb]() mutable
@@ -403,7 +403,7 @@ void FileReceiver::startReceiveThread(UnifiedSocket socket,
     }
 }
 
-void FileReceiver::receiveThreadFunction(UnifiedSocket socket,
+void TcpFileReceiver::receiveThreadFunction(UnifiedSocket socket,
                                          std::function<void(UnifiedSocket, std::unique_ptr<NetworkInterface::UserMsg>)> &msg_cb)
 {
     LOG_DEBUG("Receive thread started for socket: " << socket);
@@ -468,7 +468,7 @@ void FileReceiver::receiveThreadFunction(UnifiedSocket socket,
     removeSocket(socket);
 }
 
-bool FileReceiver::processSocketData(UnifiedSocket socket,
+bool TcpFileReceiver::processSocketData(UnifiedSocket socket,
                                      std::function<void(UnifiedSocket, std::unique_ptr<NetworkInterface::UserMsg>)> &msg_cb)
 {
     uint8_t peek_buffer[2];
@@ -506,7 +506,7 @@ bool FileReceiver::processSocketData(UnifiedSocket socket,
     }
 }
 
-bool FileReceiver::processProtocolMessage(UnifiedSocket socket,
+bool TcpFileReceiver::processProtocolMessage(UnifiedSocket socket,
                                           std::function<void(UnifiedSocket, std::unique_ptr<NetworkInterface::UserMsg>)> &msg_cb)
 {
     constexpr int HEADER_SIZE = 8;
@@ -637,7 +637,7 @@ bool FileReceiver::processProtocolMessage(UnifiedSocket socket,
     return true;
 }
 
-void FileReceiver::removeSocket(UnifiedSocket socket)
+void TcpFileReceiver::removeSocket(UnifiedSocket socket)
 {
     std::lock_guard<std::mutex> lock(sockets_mutex);
     auto it = std::find(receive_sockets.begin(), receive_sockets.end(), socket);
@@ -649,7 +649,7 @@ void FileReceiver::removeSocket(UnifiedSocket socket)
     }
 }
 
-void FileReceiver::closeReceiver()
+void TcpFileReceiver::closeReceiver()
 {
     running = false;
 
@@ -723,10 +723,10 @@ void FileReceiver::closeReceiver()
         receive_threads.clear();
     }
 
-    LOG_INFO("FileReceiver closed successfully");
+    LOG_INFO("TcpFileReceiver closed successfully");
 }
 
-void FileReceiver::stop()
+void TcpFileReceiver::stop()
 {
     closeReceiver();
 }

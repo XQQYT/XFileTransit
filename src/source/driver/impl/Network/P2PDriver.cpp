@@ -1,12 +1,19 @@
 #include "driver/impl/Network/P2PDriver.h"
 #include "driver/impl/Network/WebSocket.h"
+#include "driver/impl/FileSyncEngine/FileParser.h"
+#include "driver/impl/OuterMsgParser.h"
 #include "common/DebugOutputer.h"
 #include <rtc/configuration.hpp>
 
 P2PDriver::P2PDriver()
-    : websocket_driver(WebSocket::create())
+    : websocket_driver(WebSocket::create()),
+      outer_parser(std::make_unique<OuterMsgParser>())
 {
     current_role = Role::Default;
+    for (int i = 0; i < 5; ++i)
+    {
+        file_parsers.push_back(std::make_unique<FileParser>());
+    }
 }
 
 void P2PDriver::initialize()
@@ -64,12 +71,22 @@ void P2PDriver::sendMsg(const std::string &msg, std::string label)
     }
 }
 
+void P2PDriver::sendMsg(const std::vector<uint8_t> &msg, std::string label)
+{
+    if (!label.empty())
+    {
+        label_dc_map[label]->sendBuffer(msg);
+    }
+}
+
 void P2PDriver::recvMsg(std::function<void(std::string)> callback)
 {
     LOG_DEBUG("start user recv");
     msg_callback = callback;
     label_dc_map["user"]->onMessage([=](rtc::message_variant data)
-                                    { callback(std::get<std::string>(data)); });
+                                    { 
+                                        LOG_DEBUG("user收到: "<<std::get<std::string>(data));
+                                        callback(std::get<std::string>(data)); });
 }
 
 void P2PDriver::closeSocket()
@@ -91,6 +108,7 @@ void P2PDriver::resetConnection()
 
 void P2PDriver::createOffer(std::function<void(const std::string &offer)> callback)
 {
+    static int parser_index = 0;
     peer_connection->onLocalDescription([&](rtc::Description description)
                                         { callback(description); });
     label_dc_map["user"] = peer_connection->createDataChannel("user");
@@ -100,6 +118,8 @@ void P2PDriver::createOffer(std::function<void(const std::string &offer)> callba
         std::string receiver_dn = "answer-offer" + std::to_string(i);
         label_dc_map.insert({sender_dn, peer_connection->createDataChannel(sender_dn)});
         label_dc_map.insert({receiver_dn, peer_connection->createDataChannel(receiver_dn)});
+        label_dc_map[receiver_dn]->onMessage(std::bind(&P2PDriver::parseRecvMsg, this, std::placeholders::_1));
+        sender_label_list.push_back(sender_dn);
     }
     if (current_role == Role::Offer)
         recvMsg(msg_callback);
@@ -142,12 +162,74 @@ void P2PDriver::addIceCandidate(const std::string &candidate)
     peer_connection->addRemoteCandidate(candidate);
 }
 
+// answer方
 void P2PDriver::receiveDataChannel(std::shared_ptr<rtc::DataChannel> dc)
 {
+    static int parser_index = 0;
     std::string label = dc->label();
+
+    label_dc_map[label] = dc;
+
     if (label == "user")
     {
-        label_dc_map["user"] = dc;
         recvMsg(msg_callback);
+    }
+    else if (label.substr(0, 5) == "offer")
+    {
+        dc->onMessage(std::bind(&P2PDriver::parseRecvMsg, this, std::placeholders::_1));
+    }
+    else if (label.substr(0, 6) == "answer")
+    {
+        sender_label_list.push_back(label);
+    }
+}
+
+void P2PDriver::parseRecvMsg(rtc::message_variant msg)
+{
+    auto byte_msg = std::get<std::vector<std::byte>>(msg);
+    if (byte_msg.size() < sizeof(Header))
+    {
+        LOG_ERROR("Bad Data");
+        return;
+    }
+    std::vector<uint8_t> header;
+    header.reserve(sizeof(Header));
+    std::transform(byte_msg.data(), byte_msg.data() + sizeof(Header),
+                   std::back_inserter(header),
+                   [](std::byte b)
+                   { return std::to_integer<uint8_t>(b); });
+
+    std::vector<uint8_t> data;
+    data.reserve(byte_msg.size() - sizeof(Header));
+    std::transform(byte_msg.data() + sizeof(Header), byte_msg.data() + byte_msg.size(),
+                   std::back_inserter(data),
+                   [](std::byte b)
+                   { return std::to_integer<uint8_t>(b); });
+    if (header[0] == 0xAB && header[1] == 0xCD)
+    {
+        uint8_t version = header[2];
+        uint32_t length = 0;
+        memcpy(&length, header.data() + 3, 4);
+        uint8_t flag = header[7];
+
+        if (data.size() < length)
+        {
+            LOG_ERROR("Data length invalid");
+            return;
+        }
+        else if (data.size() > length)
+        {
+            LOG_WARN("Data length bigger than length in header");
+            outer_parser->parse(std::move(data), length, flag);
+        }
+        else
+        {
+            outer_parser->parse(std::move(data), length, flag);
+        }
+    }
+    else
+    {
+        LOG_ERROR("Bad magic");
+        return;
     }
 }

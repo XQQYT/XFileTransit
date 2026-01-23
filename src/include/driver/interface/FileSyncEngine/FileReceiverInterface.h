@@ -12,7 +12,7 @@ public:
     virtual ~FileReceiverInterface() = default;
     virtual bool initialize(const std::string &addr, const std::string &p, std::shared_ptr<SecurityInterface> inst) = 0;
     virtual void start(std::function<void(UnifiedSocket)> accept_cb,
-                       std::function<void(UnifiedSocket socket, std::unique_ptr<NetworkInterface::UserMsg>)> msg_cb) = 0;
+                       std::function<void(UnifiedSocket, std::unique_ptr<NetworkInterface::UserMsg>)> msg_cb) = 0;
     virtual void stop() = 0;
     virtual void closeReceiver() = 0;
     virtual void removeSocket(UnifiedSocket socket) = 0;

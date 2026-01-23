@@ -3,6 +3,7 @@
 
 #include <string>
 #include "driver/impl/FileUtility.h"
+#include "driver/interface/Network/P2PInterface.h"
 
 class GlobalStatusManager
 {
@@ -133,6 +134,7 @@ inline namespace ConnectionInfo
     inline ConnectionType connection_type = Tcp;
     // inline std::string my_code = "111111";
     inline std::string my_code = "222222";
+    inline std::shared_ptr<P2PInterface> p2p_driver;
 };
 
 inline namespace TargetInfo
